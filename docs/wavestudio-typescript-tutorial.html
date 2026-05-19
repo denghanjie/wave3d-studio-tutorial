@@ -1,0 +1,2372 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WaveStudio TypeScript Tutorial</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f7f9fb;
+      --panel: #ffffff;
+      --ink: #18212b;
+      --muted: #667085;
+      --line: #d9e2ec;
+      --code: #111827;
+      --code-line: #223042;
+      --teal: #00a896;
+      --blue: #3a86ff;
+      --rose: #f25c54;
+      --gold: #ffbe0b;
+      --green: #2fb344;
+      --shadow: 0 16px 40px rgba(19, 34, 54, 0.10);
+      --radius: 8px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background:
+        linear-gradient(120deg, rgba(0, 168, 150, 0.09), transparent 32rem),
+        linear-gradient(300deg, rgba(242, 92, 84, 0.08), transparent 34rem),
+        var(--bg);
+      color: var(--ink);
+      font-family: var(--sans);
+      line-height: 1.55;
+    }
+
+    a {
+      color: #1266d6;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: grid;
+      grid-template-columns: minmax(15rem, 1fr) minmax(14rem, 32rem) auto;
+      gap: 1rem;
+      align-items: center;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(16px);
+    }
+
+    .brand {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      min-width: 0;
+    }
+
+    .mark {
+      width: 2.25rem;
+      height: 2.25rem;
+      display: grid;
+      place-items: center;
+      border-radius: var(--radius);
+      background: conic-gradient(from 210deg, var(--teal), var(--blue), var(--rose), var(--gold), var(--teal));
+      color: white;
+      font-family: var(--mono);
+      font-weight: 800;
+      box-shadow: 0 8px 18px rgba(58, 134, 255, 0.25);
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 1rem;
+      letter-spacing: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .brand p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
+
+    .search {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fdfefe;
+      padding: 0.5rem 0.7rem;
+    }
+
+    .search input {
+      width: 100%;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--ink);
+      font: inherit;
+      min-width: 0;
+    }
+
+    .actions {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+
+    button,
+    .button {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #ffffff;
+      color: var(--ink);
+      font: 700 0.88rem var(--sans);
+      padding: 0.55rem 0.7rem;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+    }
+
+    button:hover,
+    .button:hover {
+      border-color: #a5b4c4;
+      background: #f8fafc;
+      text-decoration: none;
+      transform: translateY(-1px);
+    }
+
+    .primary {
+      border-color: transparent;
+      background: var(--ink);
+      color: #ffffff;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 17rem minmax(0, 1fr) 20rem;
+      gap: 1rem;
+      align-items: start;
+      max-width: 1500px;
+      margin: 0 auto;
+      padding: 1rem;
+    }
+
+    aside {
+      position: sticky;
+      top: 5rem;
+      max-height: calc(100vh - 6rem);
+      overflow: auto;
+    }
+
+    .side,
+    .builder,
+    .reference {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.88);
+      box-shadow: var(--shadow);
+    }
+
+    .side {
+      padding: 0.75rem;
+    }
+
+    .meter {
+      height: 0.6rem;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #e7edf4;
+      margin: 0.5rem 0 0.7rem;
+    }
+
+    .meter span {
+      display: block;
+      height: 100%;
+      width: 0;
+      background: linear-gradient(90deg, var(--teal), var(--blue), var(--rose));
+      transition: width 180ms ease;
+    }
+
+    .progress-label {
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    nav a {
+      display: grid;
+      grid-template-columns: 1.4rem 1fr;
+      gap: 0.5rem;
+      align-items: center;
+      padding: 0.48rem 0.45rem;
+      border-radius: 6px;
+      color: var(--ink);
+      font-size: 0.88rem;
+    }
+
+    nav a:hover,
+    nav a.active {
+      background: #edf7f5;
+      text-decoration: none;
+    }
+
+    .dot {
+      width: 0.72rem;
+      height: 0.72rem;
+      border-radius: 50%;
+      background: #c9d5e2;
+      justify-self: center;
+    }
+
+    nav a.done .dot {
+      background: var(--green);
+    }
+
+    main {
+      min-width: 0;
+    }
+
+    .intro {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(18rem, 0.8fr);
+      gap: 1rem;
+      align-items: stretch;
+      margin-bottom: 1rem;
+    }
+
+    .intro-copy,
+    .visual-map {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: var(--shadow);
+      padding: 1rem;
+    }
+
+    .intro h2 {
+      margin: 0 0 0.55rem;
+      font-size: clamp(1.6rem, 3vw, 2.4rem);
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+
+    .intro p {
+      color: var(--muted);
+      margin: 0.5rem 0;
+    }
+
+    .badges {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+    }
+
+    .badge {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 0.25rem 0.55rem;
+      font-size: 0.78rem;
+      background: #ffffff;
+      color: #405164;
+    }
+
+    .visual-map {
+      display: grid;
+      gap: 0.65rem;
+      align-content: center;
+    }
+
+    .node {
+      display: grid;
+      grid-template-columns: 5rem 1fr;
+      gap: 0.75rem;
+      align-items: center;
+      padding: 0.65rem;
+      border: 1px solid #d8e3ee;
+      border-radius: var(--radius);
+      background: #fbfdff;
+    }
+
+    .node strong {
+      font-family: var(--mono);
+      font-size: 0.82rem;
+    }
+
+    .node span {
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .lesson {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.94);
+      box-shadow: var(--shadow);
+      margin-bottom: 1rem;
+      overflow: clip;
+      scroll-margin-top: 5rem;
+    }
+
+    .lesson[hidden] {
+      display: none;
+    }
+
+    .lesson-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 1rem;
+      align-items: center;
+      padding: 1rem;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(90deg, rgba(0, 168, 150, 0.08), rgba(58, 134, 255, 0.06));
+    }
+
+    .lesson-head h2 {
+      margin: 0;
+      font-size: 1.25rem;
+      letter-spacing: 0;
+    }
+
+    .lesson-head p {
+      margin: 0.25rem 0 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .check {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--muted);
+      font-size: 0.84rem;
+      white-space: nowrap;
+    }
+
+    .check input {
+      width: 1.05rem;
+      height: 1.05rem;
+      accent-color: var(--green);
+    }
+
+    .lesson-body {
+      padding: 1rem;
+    }
+
+    .lesson-body p {
+      margin-top: 0;
+    }
+
+    .lesson-body ul,
+    .lesson-body ol {
+      padding-left: 1.25rem;
+    }
+
+    .lesson-body li {
+      margin: 0.35rem 0;
+    }
+
+    .reference-table {
+      width: 100%;
+      margin: 0.8rem 0 1rem;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+
+    .reference-table th,
+    .reference-table td {
+      border: 1px solid var(--line);
+      padding: 0.5rem 0.6rem;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .reference-table th {
+      background: #eef5f8;
+      color: #334155;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0;
+    }
+
+    .catalog-columns {
+      columns: 2;
+      column-gap: 2rem;
+    }
+
+    .catalog-columns li {
+      break-inside: avoid;
+    }
+
+    .catalog-note {
+      border-left: 3px solid var(--teal);
+      padding: 0.7rem 0.9rem;
+      background: #eefbf8;
+      color: #28403c;
+      margin: 0.8rem 0 1rem;
+    }
+
+    .code-card {
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin: 0.8rem 0 1rem;
+      background: var(--code);
+      border: 1px solid #253041;
+    }
+
+    .code-tools {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.45rem 0.6rem;
+      background: var(--code-line);
+      color: #cbd5e1;
+      font: 0.76rem var(--mono);
+    }
+
+    .code-tools button {
+      padding: 0.32rem 0.5rem;
+      border-color: #3a4a61;
+      background: #172033;
+      color: #edf2f7;
+      font: 700 0.75rem var(--sans);
+    }
+
+    pre {
+      margin: 0;
+      overflow: auto;
+      padding: 0.95rem;
+      color: #e5edf7;
+      font: 0.86rem/1.55 var(--mono);
+      tab-size: 2;
+      white-space: pre;
+    }
+
+    code {
+      font-family: var(--mono);
+    }
+
+    :not(pre) > code {
+      background: #edf2f7;
+      border: 1px solid #d9e2ec;
+      border-radius: 5px;
+      padding: 0.08rem 0.25rem;
+      color: #16324f;
+    }
+
+    .builder {
+      padding: 1rem;
+    }
+
+    .builder h2,
+    .reference h2 {
+      margin: 0 0 0.75rem;
+      font-size: 1rem;
+    }
+
+    .field {
+      margin-bottom: 0.75rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 0.25rem;
+      font-weight: 700;
+    }
+
+    select,
+    input[type="text"],
+    input[type="number"],
+    input[type="color"] {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #ffffff;
+      color: var(--ink);
+      padding: 0.5rem;
+      font: inherit;
+    }
+
+    input[type="color"] {
+      height: 2.55rem;
+      padding: 0.18rem;
+    }
+
+    .xyz {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+    }
+
+    .builder pre {
+      max-height: 14rem;
+      font-size: 0.78rem;
+    }
+
+    .reference {
+      margin-top: 1rem;
+      padding: 1rem;
+    }
+
+    .reference ul {
+      margin: 0;
+      padding-left: 1.1rem;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .toast {
+      position: fixed;
+      right: 1rem;
+      bottom: 1rem;
+      z-index: 50;
+      transform: translateY(1rem);
+      opacity: 0;
+      border-radius: var(--radius);
+      background: #111827;
+      color: white;
+      padding: 0.65rem 0.8rem;
+      box-shadow: var(--shadow);
+      transition: 160ms ease;
+      pointer-events: none;
+      font-weight: 700;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    body.focus-mode .lesson-body > p,
+    body.focus-mode .lesson-body > ul,
+    body.focus-mode .lesson-body > ol,
+    body.focus-mode .lesson-body > table {
+      display: none;
+    }
+
+    .no-results {
+      display: none;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      padding: 1rem;
+      color: var(--muted);
+    }
+
+    .no-results.show {
+      display: block;
+    }
+
+    @media (max-width: 1120px) {
+      .layout {
+        grid-template-columns: 15rem minmax(0, 1fr);
+      }
+
+      .right {
+        position: static;
+        grid-column: 1 / -1;
+        max-height: none;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 1rem;
+      }
+
+      .reference {
+        margin-top: 0;
+      }
+    }
+
+    @media (max-width: 820px) {
+      .topbar {
+        grid-template-columns: 1fr;
+      }
+
+      .actions {
+        justify-content: flex-start;
+      }
+
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      aside {
+        position: static;
+        max-height: none;
+      }
+
+      .side nav {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+      }
+
+      .intro,
+      .right {
+        grid-template-columns: 1fr;
+      }
+
+      .lesson-head {
+        grid-template-columns: 1fr;
+      }
+
+      .catalog-columns {
+        columns: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="mark">W3D</div>
+      <div>
+        <h1>WaveStudio TypeScript Tutorial</h1>
+        <p>Interactive companion for the generated globals API</p>
+      </div>
+    </div>
+    <label class="search" aria-label="Search lessons">
+      <span>Search</span>
+      <input id="search" type="search" placeholder="Try physics, model, myCloud, UI">
+    </label>
+    <div class="actions">
+      <button id="focusToggle" type="button">Focus Code</button>
+      <button id="resetProgress" type="button">Reset</button>
+      <a class="button primary" href="https://wave3d.ai/waveStudio/" target="_blank" rel="noreferrer">Open WaveStudio</a>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="side" aria-label="Tutorial navigation">
+      <div class="progress-label"><span id="progressText">0 of 18 complete</span></div>
+      <div class="meter" aria-hidden="true"><span id="progressBar"></span></div>
+      <nav id="lessonNav">
+        <a href="#lesson-1"><span class="dot"></span><span>1. Smallest Scene</span></a>
+        <a href="#lesson-2"><span class="dot"></span><span>2. Primitives</span></a>
+        <a href="#lesson-shape-gallery"><span class="dot"></span><span>2A. Shape Gallery</span></a>
+        <a href="#lesson-3"><span class="dot"></span><span>3. Transform</span></a>
+        <a href="#lesson-4"><span class="dot"></span><span>4. Materials</span></a>
+        <a href="#lesson-5"><span class="dot"></span><span>5. Models</span></a>
+        <a href="#lesson-6"><span class="dot"></span><span>6. Animation</span></a>
+        <a href="#lesson-7"><span class="dot"></span><span>7. Input</span></a>
+        <a href="#lesson-8"><span class="dot"></span><span>8. Physics</span></a>
+        <a href="#lesson-9"><span class="dot"></span><span>9. Camera</span></a>
+        <a href="#lesson-10"><span class="dot"></span><span>10. Queries</span></a>
+        <a href="#lesson-11"><span class="dot"></span><span>11. Spawning</span></a>
+        <a href="#lesson-12"><span class="dot"></span><span>12. UI</span></a>
+        <a href="#lesson-13"><span class="dot"></span><span>13. Audio and FX</span></a>
+        <a href="#lesson-14"><span class="dot"></span><span>14. Data</span></a>
+        <a href="#lesson-15"><span class="dot"></span><span>15. Mini Project</span></a>
+        <a href="#lesson-16"><span class="dot"></span><span>16. Recursion</span></a>
+        <a href="#lesson-17"><span class="dot"></span><span>17. Object Catalog</span></a>
+      </nav>
+    </aside>
+
+    <main>
+      <section class="intro" id="top">
+        <div class="intro-copy">
+          <h2>Learn WaveStudio by writing TypeScript.</h2>
+          <p>This standalone page turns the tutorial into a searchable, copyable, trackable guide. Every code block has a copy button, and lesson progress is saved locally in your browser.</p>
+          <p>The examples are based on <code>waveStudio-globals.d.ts</code>, the generated declaration file that powers WaveStudio's Monaco IntelliSense.</p>
+          <div class="badges">
+            <span class="badge">18 lessons</span>
+            <span class="badge">TypeScript snippets</span>
+            <span class="badge">Local progress</span>
+            <span class="badge">No build step</span>
+          </div>
+        </div>
+        <div class="visual-map" aria-label="WaveStudio authoring model">
+          <div class="node"><strong>scene</strong><span>Add, find, spawn, print, configure.</span></div>
+          <div class="node"><strong>entity</strong><span>Move, color, animate, tag, collide.</span></div>
+          <div class="node"><strong>assets</strong><span>Use typed names from models and textures.</span></div>
+          <div class="node"><strong>myCloud</strong><span>Open and save JSON records.</span></div>
+        </div>
+      </section>
+
+      <div id="noResults" class="no-results">No lessons match that search.</div>
+
+      <article class="lesson" id="lesson-1" data-lesson="1" data-keywords="scene withMain globals ctx engine scene">
+        <header class="lesson-head">
+          <div><h2>Lesson 1: The Smallest Scene</h2><p>Create an object, configure it, then add it to the scene.</p></div>
+          <label class="check"><input type="checkbox" data-complete="lesson-1"> Complete</label>
+        </header>
+        <div class="lesson-body">
+          <p>A scene is a world full of entities. In WaveStudio you often already have access to the global <code>scene</code>. If you are defining a reusable scene object, use <code>withMain</code>.</p>
+          <pre><code class="language-ts">const tutorialScene = new WaveScene("Tutorial");
+
+tutorialScene.withMain(({ scene }) =&gt; {
+  const cube = new waveCube(2, 2, 2);
+  cube.setColor(PALETTE.CYAN);
+  cube.moveTo({ x: 0, y: 1, z: 0 });
+
+  scene.add(cube);
+});</code></pre>
+          <p>Inside the WaveStudio editor, the shorter version is usually enough.</p>
+          <pre><code class="language-ts">const cube = new waveCube(2, 2, 2);
+cube.setColor(PALETTE.CYAN);
+cube.moveTo({ x: 0, y: 1, z: 0 });
+scene.add(cube);</code></pre>
+          <h3>Fluent Dot Chaining</h3>
+          <p>The repeated dots in examples such as <code>new Cube().placeAt(...).setColor(...)</code> are called method chaining, or a fluent API. Each method returns an object, so the next <code>.method(...)</code> can keep working on that returned value.</p>
+          <pre><code class="language-ts">const target = new Cube()
+  .placeAt(0, 5, 0)
+  .setColor(PALETTE.BLUE);
+
+scene.add(target);</code></pre>
+          <p>That is the same basic setup as writing separate statements.</p>
+          <pre><code class="language-ts">const target = new Cube();
+target.placeAt(0, 5, 0);
+target.setColor(PALETTE.BLUE);
+
+scene.add(target);</code></pre>
+          <p>The leading dot on a new line belongs to the expression above it. The semicolon ends the whole chain. This is different from TypeScript's three-dot <code>...</code> spread/rest syntax.</p>
+          <pre><code class="language-ts">const target = new Cube()
+  .placeAt(0, 5, 0)
+  .setColor(PALETTE.BLUE);
+
+target
+  .exploding()
+  .intoPieces(3)
+  .withStrength(2)
+  .apply();</code></pre>
+          <p>Use chaining when it reads naturally. If autocomplete becomes confusing, or a method returns <code>void</code>, <code>null</code>, or a different builder type than you expected, split the code into separate statements.</p>
+        </div>
+      </article>
+
+      <article class="lesson" id="lesson-2" data-lesson="2" data-keywords="primitive cube sphere cylinder ground plane cone torus geometry">
+        <header class="lesson-head">
+          <div><h2>Lesson 2: Primitives</h2><p>Use built-in geometry classes for fast 3D objects.</p></div>
+          <label class="check"><input type="checkbox" data-complete="lesson-2"> Complete</label>
+        </header>
+        <div class="lesson-body">
+          <p>WaveStudio includes common shape classes. Constructors usually take dimensions.</p>
+          <pre><code class="language-ts">const ground = new waveGround(20, 20, 4);
+ground.setColor(PALETTE.CHARCOAL);
+ground.moveTo({ x: 0, y: 0, z: 0 });
+scene.add(ground);
+
+const cube = new waveCube(2, 2, 2);
+cube.setColor(PALETTE.TURQUOISE);
+cube.moveTo({ x: -3, y: 1, z: 0 });
+scene.add(cube);
+
+const sphere = new waveSphere(1, 32);
+sphere.setColor(PALETTE.GOLDENROD);
+sphere.moveTo({ x: 0, y: 1, z: 0 });
+scene.add(sphere);
+
+const cylinder = new waveCylinder(2, 1.5, 1.5);
+cylinder.setColor(PALETTE.FUCHSIA);
+cylinder.moveTo({ x: 3, y: 1, z: 0 });
+scene.add(cylinder);</code></pre>
+          <ul>
+            <li><code>waveCube(width, height, depth)</code></li>
+            <li><code>waveBox(width, height, depth)</code></li>
+            <li><code>waveSphere(radius, segments)</code></li>
+            <li><code>waveCylinder(height, diameterTop, diameterBottom)</code></li>
+            <li><code>waveCapsule(radius, height)</code></li>
+            <li><code>waveCone(height, diameter)</code></li>
+            <li><code>waveTorus(radius, tubeRadius)</code></li>
+            <li><code>wavePlane(width, height, doubleSided)</code></li>
+            <li><code>waveGround(width, height, subdivisions)</code></li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="lesson" id="lesson-shape-gallery" data-lesson="2A" data-keywords="built in 3d shapes gallery cube capsule sphere cylinder cone torus plane ground disc ring polygon path tube lathe dome wedge prism trapezoid cavity">
+        <header class="lesson-head">
+          <div><h2>Lesson 2A: Built-In 3D Shapes Gallery</h2><p>Map visual shape names like Cube and Capsule to the TypeScript classes you instantiate.</p></div>
+          <label class="check"><input type="checkbox" data-complete="lesson-shape-gallery"> Complete</label>
+        </header>
+        <div class="lesson-body">
+          <p>The WaveStudio UI may describe shapes as <code>Cube</code>, <code>Capsule</code>, <code>Sphere</code>, and so on. In TypeScript, those built-ins use class names such as <code>waveCube</code>, <code>waveCapsule</code>, and <code>waveSphere</code>.</p>
+          <p>WaveStudio also declares natural aliases for many of these classes. For example, <code>Cube</code> means <code>waveCube</code>, <code>Sphere</code> means <code>waveSphere</code>, <code>Capsule</code> means <code>waveCapsule</code>, and <code>Prop</code> means <code>waveProp</code>.</p>
+          <table class="reference-table">
+            <thead><tr><th>Shape name</th><th>TypeScript class</th><th>Example</th></tr></thead>
+            <tbody>
+              <tr><td>Cube</td><td><code>waveCube</code></td><td><code>new waveCube(1, 1, 1)</code></td></tr>
+              <tr><td>Box</td><td><code>waveBox</code></td><td><code>new waveBox(2, 1, 1)</code></td></tr>
+              <tr><td>Sphere</td><td><code>waveSphere</code></td><td><code>new waveSphere(1, 32)</code></td></tr>
+              <tr><td>Capsule</td><td><code>waveCapsule</code></td><td><code>new waveCapsule(0.5, 2, 24)</code></td></tr>
+              <tr><td>Cylinder</td><td><code>waveCylinder</code></td><td><code>new waveCylinder(2, 1, 1, 32)</code></td></tr>
+              <tr><td>Cone</td><td><code>waveCone</code></td><td><code>new waveCone(2, 1.4, 32)</code></td></tr>
+              <tr><td>Torus</td><td><code>waveTorus</code></td><td><code>new waveTorus(1.2, 0.25, 64)</code></td></tr>
+              <tr><td>Torus knot</td><td><code>waveTorusKnot</code></td><td><code>new waveTorusKnot(1.2, 0.16, 96, 2, 3)</code></td></tr>
+              <tr><td>Plane</td><td><code>wavePlane</code></td><td><code>new wavePlane(2, 2, true)</code></td></tr>
+              <tr><td>Ground</td><td><code>waveGround</code></td><td><code>new waveGround(12, 12, 4)</code></td></tr>
+              <tr><td>Disc</td><td><code>waveDisc</code></td><td><code>new waveDisc(1.2, 48)</code></td></tr>
+              <tr><td>Ring</td><td><code>waveRing</code></td><td><code>new waveRing(1.4, 0.7, 64)</code></td></tr>
+              <tr><td>Polygon</td><td><code>wavePolygon</code></td><td><code>new wavePolygon(1.2, 6)</code></td></tr>
+              <tr><td>Line</td><td><code>waveLine</code></td><td><code>new waveLine(start, end)</code></td></tr>
+              <tr><td>Arc</td><td><code>waveArc</code></td><td><code>new waveArc(1.2, 0, 180, 32)</code></td></tr>
+              <tr><td>Path</td><td><code>wavePath</code></td><td><code>new wavePath(points)</code></td></tr>
+              <tr><td>Point net</td><td><code>wavePointNet</code></td><td><code>new wavePointNet(points)</code></td></tr>
+              <tr><td>Path extrusion</td><td><code>wavePathExtrusion</code></td><td><code>new wavePathExtrusion(path, shape)</code></td></tr>
+              <tr><td>Tube</td><td><code>waveTube</code></td><td><code>new waveTube(0.15, 32)</code></td></tr>
+              <tr><td>Lathe</td><td><code>waveLathe</code></td><td><code>new waveLathe(1, 48)</code></td></tr>
+              <tr><td>Ico sphere</td><td><code>waveIcoSphere</code></td><td><code>new waveIcoSphere(1, 2, false)</code></td></tr>
+              <tr><td>Dome</td><td><code>waveDome</code></td><td><code>new waveDome(2, 0.5, 32)</code></td></tr>
+              <tr><td>Wedge</td><td><code>waveWedge</code></td><td><code>new waveWedge(2, 1, 2)</code></td></tr>
+              <tr><td>Prism</td><td><code>wavePrism</code></td><td><code>new wavePrism(6, 1, 2)</code></td></tr>
+              <tr><td>Trapezoid</td><td><code>waveTrapezoid</code></td><td><code>new waveTrapezoid(2, 1.5, 2, 1, 1)</code></td></tr>
+              <tr><td>Cavity</td><td><code>waveCavity</code></td><td><code>new waveCavity(4, 3, 4)</code></td></tr>
+              <tr><td>Cavity topology</td><td><code>waveCavityTopology</code></td><td><code>new waveCavityTopology()</code></td></tr>
+            </tbody>
+          </table>
+
+          <p>This gallery lays out many built-in shapes in one scene. Click a shape to print its name.</p>
+          <pre><code class="language-ts">type ShapeFactory = {
+  label: string;
+  create: () =&gt; waveGeometry;
+};
+
+const pathPoints = [
+  { x: -0.9, y: 0, z: 0 },
+  { x: 0, y: 0.8, z: 0 },
+  { x: 0.9, y: 0, z: 0 },
+];
+
+const extrusionShape = [
+  { x: -0.12, y: -0.12, z: 0 },
+  { x: 0.12, y: -0.12, z: 0 },
+  { x: 0.12, y: 0.12, z: 0 },
+  { x: -0.12, y: 0.12, z: 0 },
+];
+
+const shapes: ShapeFactory[] = [
+  { label: "Cube", create: () =&gt; new waveCube(1, 1, 1) },
+  { label: "Box", create: () =&gt; new waveBox(1.4, 0.8, 1) },
+  { label: "Sphere", create: () =&gt; new waveSphere(0.65, 32) },
+  { label: "Capsule", create: () =&gt; new waveCapsule(0.35, 1.3, 24) },
+  { label: "Cylinder", create: () =&gt; new waveCylinder(1.2, 0.8, 0.8, 32) },
+  { label: "Cone", create: () =&gt; new waveCone(1.3, 0.9, 32) },
+  { label: "Torus", create: () =&gt; new waveTorus(0.7, 0.16, 64) },
+  { label: "TorusKnot", create: () =&gt; new waveTorusKnot(0.65, 0.12, 96, 2, 3) },
+  { label: "Plane", create: () =&gt; new wavePlane(1.2, 1.2, true) },
+  { label: "Disc", create: () =&gt; new waveDisc(0.7, 48) },
+  { label: "Ring", create: () =&gt; new waveRing(0.75, 0.38, 64) },
+  { label: "Polygon", create: () =&gt; new wavePolygon(0.75, 6) },
+  { label: "Line", create: () =&gt; new waveLine({ x: -0.7, y: 0, z: 0 }, { x: 0.7, y: 0, z: 0 }) },
+  { label: "Arc", create: () =&gt; new waveArc(0.75, 0, 210, 40) },
+  { label: "Path", create: () =&gt; new wavePath(pathPoints) },
+  { label: "PointNet", create: () =&gt; new wavePointNet(pathPoints) },
+  { label: "Extrusion", create: () =&gt; new wavePathExtrusion(pathPoints, extrusionShape) },
+  { label: "Tube", create: () =&gt; new waveTube(0.12, 24) },
+  { label: "Lathe", create: () =&gt; new waveLathe(0.7, 48) },
+  { label: "IcoSphere", create: () =&gt; new waveIcoSphere(0.7, 2, false) },
+  { label: "Dome", create: () =&gt; new waveDome(1.2, 0.5, 32) },
+  { label: "Wedge", create: () =&gt; new waveWedge(1.2, 0.8, 1.2) },
+  { label: "Prism", create: () =&gt; new wavePrism(6, 0.7, 1.2) },
+  { label: "Trapezoid", create: () =&gt; new waveTrapezoid(1.2, 1, 1.2, 0.7, 0.7) },
+  { label: "Cavity", create: () =&gt; new waveCavity(1.3, 1, 1.3) },
+];
+
+const palette = [
+  PALETTE.CYAN,
+  PALETTE.GOLDENROD,
+  PALETTE.CORAL,
+  PALETTE.SAGE,
+  PALETTE.COBALT,
+];
+const columns = 5;
+const spacing = 2.6;
+const gallerySpinDegreesPerSecond = 20;
+
+for (let i = 0; i &lt; shapes.length; i++) {
+  const item = shapes[i];
+  const shape = item.create();
+  const col = i % columns;
+  const row = Math.floor(i / columns);
+
+  shape.setColor(palette[i % palette.length]);
+  shape.moveTo({ x: (col - 2) * spacing, y: 1.2, z: row * spacing });
+  shape.addTag("built-in-shape");
+  scene.add(shape);
+
+  shape.onTick((_self, deltaTime) =&gt; {
+    shape.turnRight(gallerySpinDegreesPerSecond * deltaTime);
+  });
+
+  shape.whenClickedOn(() =&gt; {
+    scene.print(item.label);
+  });
+}</code></pre>
+        </div>
+      </article>
+
+      <article class="lesson" id="lesson-3" data-lesson="3" data-keywords="transform move rotate scale position direction">
+        <header class="lesson-head">
+          <div><h2>Lesson 3: Position, Rotation, and Scale</h2><p>Transform helpers are inherited by most 3D objects.</p></div>
+          <label class="check"><input type="checkbox" data-complete="lesson-3"> Complete</label>
+        </header>
+        <div class="lesson-body">
+          <pre><code class="language-ts">const block = new waveCube(1, 1, 1);
+scene.add(block);
+
+block.moveTo({ x: 0, y: 1, z: 0 });
+block.moveRight(2);
+block.moveUp(1);
+block.moveForward(3);
+
+block.turnRight(45);
+block.pitchUp(10);
+block.rollLeft(15);
+
+block.setScale(2, 1, 1);
+block.setUniformScale(1.5);
+block.scaleBy(1.1);</code></pre>
+          <p>For 3D objects, <code>moveTo</code> expects one target point/reference. Use an object for coordinates. If you want the three-number form, use <code>setWorldPosition</code>.</p>
+          <pre><code class="language-ts">block.moveTo({ x: 0, y: 1, z: 0 });
+block.setWorldPosition(0, 1, 0);</code></pre>
+          <p>You can also use the lower-level transform component.</p>
+          <pre><code class="language-ts">block.transform.setPosition(0, 2, 0);
+block.transform.setScale(1, 2, 1);
+block.transform.moveAlong(Direction.Up, 1);</code></pre>
+        </div>
+      </article>
+
+      <article class="lesson" id="lesson-4" data-lesson="4" data-keywords="material color palette PALETTE COLOR texture roughness metallic assets">
+        <header class="lesson-head">
+          <div><h2>Lesson 4: Materials, Colors, and Textures</h2><p>Start with colors, then add texture and material assets.</p></div>
+          <label class="check"><input type="checkbox" data-complete="lesson-4"> Complete</label>
+        </header>
+        <div class="lesson-body">
+          <p>You can use CSS-style hex strings, or WaveStudio's typed <code>PALETTE</code> constant. <code>COLOR</code> is also available as an alias with the same color map.</p>
+          <pre><code class="language-ts">const floor = new waveGround(30, 30, 8);
+floor.setColor(PALETTE.CHARCOAL);
+scene.add(floor);</code></pre>
+          <pre><code class="language-ts">const cube = new waveCube(2, 2, 2);
+cube.setColor(PALETTE.CYAN);
+cube.moveTo({ x: 0, y: 1, z: 0 });
+scene.add(cube);
+
+const accent = new waveSphere(0.6, 32);
+accent.setColor(PALETTE.lighten(PALETTE.COBALT, 20));
+accent.moveTo({ x: 2, y: 1, z: 0 });
+scene.add(accent);</code></pre>
+          <p>Common choices include <code>PALETTE.WHITE</code>, <code>PALETTE.BLACK</code>, <code>PALETTE.RED</code>, <code>PALETTE.ORANGE</code>, <code>PALETTE.YELLOW</code>, <code>PALETTE.GREEN</code>, <code>PALETTE.BLUE</code>, <code>PALETTE.CYAN</code>, <code>PALETTE.PURPLE</code>, <code>PALETTE.PINK</code>, <code>PALETTE.TEAL</code>, <code>PALETTE.GOLD</code>, <code>PALETTE.SILVER</code>, <code>PALETTE.WARM_WHITE</code>, and <code>PALETTE.CHARCOAL</code>.</p>
+          <pre><code class="language-ts">const panel = new waveCube(4, 0.2, 2);
+panel.setBaseTexture(textures.milkyway);
+panel.setRoughness(0.6);
+panel.setMetallic(0.1);
+scene.add(panel);</code></pre>
+          <pre><code class="language-ts">const platform = new waveCube(6, 0.4, 6);
+platform.useMaterial(materials.PavingStones);
+platform.moveTo({ x: 0, y: 0.2, z: 0 });
+scene.add(platform);</code></pre>
+          <h3>Material and Palette Gallery</h3>
+          <p>Use this gallery when you want to compare visual styles without changing the shape. Color, roughness, metallic response, opacity, and emissive glow are separate controls.</p>
+          <table>
+            <thead><tr><th>Style</th><th>Good for</th><th>Main APIs</th></tr></thead>
+            <tbody>
+              <tr><td>Matte</td><td>Clay, plastic, painted props</td><td><code>setColor</code>, <code>setRoughness</code></td></tr>
+              <tr><td>Metallic</td><td>Coins, machines, sci-fi panels</td><td><code>setMetallic</code>, <code>setRoughness</code></td></tr>
+              <tr><td>Transparent</td><td>Glassy overlays, ghost objects</td><td><code>setOpacity</code></td></tr>
+              <tr><td>Emissive</td><td>Neon, pickups, magic objects</td><td><code>setEmissiveColor</code>, <code>setEmissiveIntensity</code></td></tr>
+              <tr><td>Palette derived</td><td>Theme variants</td><td><code>PALETTE.lighten</code>, <code>PALETTE.darken</code></td></tr>
+            </tbody>
+          </table>
+          <pre><code class="language-ts">type MaterialStyle = {
+  label: string;
+  color: number;
+  apply: (object: waveCube) =&gt; void;
+};
+
+const materialStyles: MaterialStyle[] = [
+  {
+    label: "matte",
+    color: PALETTE.SAGE,
+    apply: (object) =&gt; {
+      object.setRoughness(1);
+      object.setMetallic(0);
+    },
+  },
+  {
+    label: "metal",
+    color: PALETTE.SILVER,
+    apply: (object) =&gt; {
+      object.setMetallic(1);
+      object.setRoughness(0.25);
+    },
+  },
+  {
+    label: "glass",
+    color: PALETTE.SKY,
+    apply: (object) =&gt; {
+      object.setOpacity(0.45);
+      object.setRoughness(0.05);
+    },
+  },
+  {
+    label: "emissive",
+    color: PALETTE.FUCHSIA,
+    apply: (object) =&gt; {
+      object.setEmissiveColor(PALETTE.FUCHSIA);
+      object.setEmissiveIntensity(1.5);
+    },
+  },
+  {
+    label: "palette mix",
+    color: PALETTE.lighten(PALETTE.COBALT, 25),
+    apply: (object) =&gt; {
+      object.setRoughness(0.45);
+      object.setEmissiveColor(PALETTE.darken(PALETTE.COBALT, 20));
+      object.setEmissiveIntensity(0.4);
+    },
+  },
+];
+
+const styleSpacing = 2.2;
+
+for (let i = 0; i &lt; materialStyles.length; i++) {
+  const style = materialStyles[i];
+  const sample = new waveCube(1.3, 1.3, 1.3);
+
+  sample.setColor(style.color);
+  sample.moveTo({ x: (i - 2) * styleSpacing, y: 1, z: 0 });
+  style.apply(sample);
+  scene.add(sample);
+
+  sample.whenClickedOn(() =&gt; scene.print(style.label));
+}</code></pre>
+        </div>
+      </article>
+
+      <article class="lesson" id="lesson-5" data-lesson="5" data-keywords="model asset models wave3DObject spaceship xwing">
+        <header class="lesson-head">
+          <div><h2>Lesson 5: Using Model Assets</h2><p>Use <code>wave3DObject</code> for imported models.</p></div>
+          <label class="check"><input type="checkbox" data-complete="lesson-5"> Complete</label>
+        </header>
+        <div class="lesson-body">
+          <pre><code class="language-ts">const ship = new wave3DObject(models.Spaceship);
+ship.moveTo({ x: 0, y: 2, z: 0 });
+ship.setUniformScale(0.4);
+ship.turnRight(30);
+scene.add(ship);</code></pre>
+          <p>Swap a model later with <code>useModel</code>.</p>
+          <pre><code class="language-ts">ship.useModel(models.XWingStarfighter);</code></pre>
+        </div>
+      </article>
+
+      <article class="lesson" id="lesson-6" data-lesson="6" data-keywords="animation tick deltaTime every seconds after">
+        <header class="lesson-head">
+          <div><h2>Lesson 6: Animation Over Time</h2><p>Use <code>onTick</code> for frame-by-frame behavior.</p></div>
+          <label class="check"><input type="checkbox" data-complete="lesson-6"> Complete</label>
+        </header>
+        <div class="lesson-body">
+          <pre><code class="language-ts">const spinner = new waveCube(2, 2, 2);
+spinner.setColor(PALETTE.SAGE);
+spinner.moveTo({ x: 0, y: 2, z: 0 });
+scene.add(spinner);
+
+spinner.onTick((_self, deltaTime) =&gt; {
+  spinner.turnRight(90 * deltaTime);
+  spinner.moveUp(Math.sin(Date.now() * 0.004) * 0.01);
+});</code></pre>
+          <pre><code class="language-ts">spinner.onTick(() =&gt; {
+  scene.print(`FPS: ${engine.getCurrentFPS().toFixed(0)}`);
+}, every(1, Seconds));
+
+spinner.after(2, Seconds).do(() =&gt; {
+  spinner.setColor(PALETTE.FUCHSIA);
+});</code></pre>
+          <h3>Completion Chains</h3>
+          <p>Animation builders return a lifecycle handle from <code>.play()</code>. That handle can run code when the animation finishes with <code>.onComplete(...)</code>.</p>
+          <pre><code class="language-ts">const myCube = new Cube()
+  .placeAt(0, 5, 0)
+  .setColor(COLOR.BLUE);
+
+scene.add(myCube);
+
+const boom = () =&gt; {
+  myCube
+    .exploding()
+    .intoPieces(15)
+    .apply();
+};
+
+myCube
+  .faceMaterial(WaveSurface.Left)
+  .setColor(COLOR.RED, Animate)
+  .over(3, Seconds)
+  .play()
+  .onComplete(boom);</code></pre>
+          <p>Read this from top to bottom: select one cube side with <code>faceMaterial(WaveSurface.Left)</code>, create a material animation with <code>setColor(COLOR.RED, Animate)</code>, set the duration with <code>over(3, Seconds)</code>, start it with <code>play()</code>, then run <code>boom</code> after completion.</p>
+          <h3>Motion Pattern Gallery</h3>
+          <p>Animation in WaveStudio is a small set of repeatable patterns: frame updates, scheduled actions, transform builders, and material builders.</p>
+          <table>
+            <thead><tr><th>Pattern</th><th>Use it for</th><th>Main APIs</th></tr></thead>
+            <tbody>
+              <tr><td>Tick spin</td><td>Continuous simulation</td><td><code>onTick</code>, <code>deltaTime</code></td></tr>
+              <tr><td>Timed transform</td><td>One movement over a duration</td><td><code>moveAlong(..., Animate).over(...)</code></td></tr>
+              <tr><td>Delayed action</td><td>Something that happens later</td><td><code>after(...).do(...)</code></td></tr>
+              <tr><td>Color animation</td><td>Smooth material change</td><td><code>setColor(..., Animate)</code></td></tr>
+            </tbody>
+          </table>
+          <pre><code class="language-ts">type MotionPattern = {
+  label: string;
+  create: () =&gt; waveCube;
+  animate: (object: waveCube) =&gt; void;
+};
+
+const motionPatterns: MotionPattern[] = [
+  {
+    label: "tick spin",
+    create: () =&gt; new waveCube(1, 1, 1),
+    animate: (object) =&gt; {
+      object.onTick((_self, deltaTime) =&gt; {
+        object.turnRight(90 * deltaTime);
+      });
+    },
+  },
+  {
+    label: "timed rise",
+    create: () =&gt; new waveCube(1, 1, 1),
+    animate: (object) =&gt; {
+      object
+        .moveAlong(Direction.Up, 2, Animate)
+        .over(1.5, Seconds)
+        .withEasingEffect(GSAPEasing.SineInOut)
+        .play();
+    },
+  },
+  {
+    label: "delayed push",
+    create: () =&gt; new waveCube(1, 1, 1),
+    animate: (object) =&gt; {
+      object.after(1, Seconds).do(() =&gt; {
+        object
+          .moveAlong(Direction.Forward, 2, Animate)
+          .over(1, Seconds)
+          .play();
+      });
+    },
+  },
+  {
+    label: "color fade",
+    create: () =&gt; new waveCube(1, 1, 1),
+    animate: (object) =&gt; {
+      object
+        .setColor(PALETTE.FUCHSIA, Animate)
+        .over(2, Seconds)
+        .play();
+    },
+  },
+];
+
+const motionColors = [
+  PALETTE.CYAN,
+  PALETTE.GOLDENROD,
+  PALETTE.SAGE,
+  PALETTE.COBALT,
+];
+const motionSpacing = 2.3;
+
+for (let i = 0; i &lt; motionPatterns.length; i++) {
+  const pattern = motionPatterns[i];
+  const object = pattern.create();
+
+  object.setColor(motionColors[i]);
+  object.moveTo({ x: (i - 1.5) * motionSpacing, y: 1, z: 0 });
+  object.addTag("motion-demo");
+  scene.add(object);
+
+  pattern.animate(object);
+  object.whenClickedOn(() =&gt; scene.print(pattern.label));
+}</code></pre>
+        </div>
+      </article>
+
+      <article class="lesson" id="lesson-7" data-lesson="7" data-keywords="input keyboard press holding driving car debug showDirection showPosition showCoordinate click pointer interaction whenPress whenHolding whenClickedOn">
+        <header class="lesson-head">
+          <div><h2>Lesson 7: Input</h2><p>Connect keyboard and pointer events to object behavior.</p></div>
+          <label class="check"><input type="checkbox" data-complete="lesson-7"> Complete</label>
+        </header>
+        <div class="lesson-body">
+          <pre><code class="language-ts">const player = new waveCube(1, 1, 1);
+player.setColor(PALETTE.TURQUOISE);
+player.moveTo({ x: 0, y: 1, z: 0 });
+scene.add(player);
+
+player.whenPress(Keyboard.W, () =&gt; player.moveForward(0.5));
+player.whenPress(Keyboard.S, () =&gt; player.moveBackward(0.5));
+player.whenPress(Keyboard.A, () =&gt; player.moveLeft(0.5));
+player.whenPress(Keyboard.D, () =&gt; player.moveRight(0.5));
+player.whenPress(Keyboard.Space, () =&gt; player.moveUp(1));</code></pre>
+          <h3>Debug Helpers and Keyboard Driving</h3>
+          <p>For game-like controls, <code>whenHolding</code> feels smoother than <code>whenPress</code> because the callback keeps firing while the key is down. Debug helpers make the object's state visible while you tune movement.</p>
+          <table>
+            <thead><tr><th>Helper</th><th>What to use it for</th></tr></thead>
+            <tbody>
+              <tr><td><code>showDirection()</code></td><td>Draw the object's forward arrow.</td></tr>
+              <tr><td><code>showPosition()</code></td><td>Show the object's world position.</td></tr>
+              <tr><td><code>showCoordinate()</code></td><td>Show local axes so turns are easier to reason about.</td></tr>
+              <tr><td><code>showBoundingBox()</code></td><td>Show the object's occupied bounds.</td></tr>
+              <tr><td><code>showSpeed()</code></td><td>Show motion speed while tuning movement.</td></tr>
+            </tbody>
+          </table>
+          <pre><code class="language-ts">const car = new Cube()
+  .placeAt(0, 0.5, 0)
+  .setColor(PALETTE.BLUE);
+
+car.setScale(1.6, 0.35, 2.6);
+car.showDirection();
+car.showPosition();
+car.showCoordinate();
+car.showBoundingBox();
+scene.add(car);
+
+const driveDistancePerTick = 0.18;
+const reverseDistancePerTick = 0.1;
+const turnDegreesPerTick = 4;
+
+car.whenHolding(Keyboard.W, () =&gt; car.moveForward(driveDistancePerTick));
+car.whenHolding(Keyboard.S, () =&gt; car.moveBackward(reverseDistancePerTick));
+car.whenHolding(Keyboard.A, () =&gt; car.turnLeft(turnDegreesPerTick));
+car.whenHolding(Keyboard.D, () =&gt; car.turnRight(turnDegreesPerTick));
+
+car.whenPress(Keyboard.Space, () =&gt; {
+  car.showSpeed();
+  scene.print("Debug overlays are on");
+});</code></pre>
+          <pre><code class="language-ts">const button = new waveSphere(0.8, 24);
+button.setColor(PALETTE.GOLDENROD);
+button.moveTo({ x: 0, y: 1, z: -3 });
+scene.add(button);
+
+button.whenClickedOn(() =&gt; {
+  button.setColor(PALETTE.ORANGE);
+  button.enlargeBy(1.2);
+});</code></pre>
+        </div>
+      </article>
+
+      <article class="lesson" id="lesson-8" data-lesson="8" data-keywords="physics collision force impulse dynamic static kinematic body">
+        <header class="lesson-head">
+          <div><h2>Lesson 8: Physics</h2><p>Use static, dynamic, and kinematic bodies for different motion styles.</p></div>
+          <label class="check"><input type="checkbox" data-complete="lesson-8"> Complete</label>
+        </header>
+        <div class="lesson-body">
+          <pre><code class="language-ts">const floor = new waveGround(20, 20, 4);
+floor.setColor(PALETTE.CHARCOAL);
+floor.useStaticBody();
+floor.addTag("floor");
+scene.add(floor);
+
+const ball = new waveSphere(1, 32);
+ball.setColor(PALETTE.GOLDENROD);
+ball.moveTo({ x: 0, y: 8, z: 0 });
+ball.useDynamicBody();
+ball.setMass(2);
+ball.setRestitution(0.8);
+scene.add(ball);
+
+ball.onCollisionBeginByTag("floor", () =&gt; {
+  ball.setColor(PALETTE.SKY);
+});</code></pre>
+<pre><code class="language-ts">ball.applyImpulse(Direction.Up, 8);
+ball.applyForce(Direction.Forward, 20);
+ball.setLinearVelocity(Direction.Forward, 4);</code></pre>
+          <h3>Physics Body Gallery</h3>
+          <p>The body type is the first physics decision. Static objects do not move, dynamic objects are controlled by physics, and kinematic objects are moved by your code while still respecting collision checks.</p>
+          <table>
+            <thead><tr><th>Body style</th><th>Use it for</th><th>Main APIs</th></tr></thead>
+            <tbody>
+              <tr><td>Static</td><td>Floors, walls, ramps</td><td><code>useStaticBody</code></td></tr>
+              <tr><td>Dynamic</td><td>Balls, crates, debris</td><td><code>useDynamicBody</code>, <code>setMass</code>, <code>applyImpulse</code></td></tr>
+              <tr><td>Kinematic</td><td>Players, platforms, doors</td><td><code>useKinematicBody</code>, <code>moveWithCollisions</code></td></tr>
+              <tr><td>Collision reaction</td><td>Game rules when things touch</td><td><code>onCollisionBeginByTag</code></td></tr>
+            </tbody>
+          </table>
+          <pre><code class="language-ts">type PhysicsExample = {
+  label: string;
+  create: () =&gt; waveCube | waveSphere;
+  setup: (object: waveCube | waveSphere) =&gt; void;
+};
+
+const physicsExamples: PhysicsExample[] = [
+  {
+    label: "static floor",
+    create: () =&gt; new waveCube(2.5, 0.25, 2.5),
+    setup: (object) =&gt; {
+      object.useStaticBody();
+      object.addTag("physics-floor");
+      object.setColor(PALETTE.CHARCOAL);
+    },
+  },
+  {
+    label: "dynamic ball",
+    create: () =&gt; new waveSphere(0.55, 32),
+    setup: (object) =&gt; {
+      object.useDynamicBody();
+      object.setMass(1);
+      object.setRestitution(0.85);
+      object.setColor(PALETTE.GOLDENROD);
+      object.applyImpulse(Direction.Up, 2);
+      object.onCollisionBeginByTag("physics-floor", () =&gt; {
+        object.setColor(PALETTE.SKY);
+      });
+    },
+  },
+  {
+    label: "kinematic mover",
+    create: () =&gt; new waveCube(1, 1, 1),
+    setup: (object) =&gt; {
+      object.useKinematicBody();
+      object.setColor(PALETTE.TURQUOISE);
+      object.whenPress(Keyboard.ArrowUp, () =&gt; {
+        object.moveWithCollisions(Direction.Forward, 0.4);
+      });
+    },
+  },
+];
+
+const physicsSpacing = 3;
+
+for (let i = 0; i &lt; physicsExamples.length; i++) {
+  const example = physicsExamples[i];
+  const object = example.create();
+
+  object.moveTo({ x: (i - 1) * physicsSpacing, y: 1, z: 0 });
+  object.addTag("physics-demo");
+  example.setup(object);
+  scene.add(object);
+
+  object.whenClickedOn(() =&gt; scene.print(example.label));
+}</code></pre>
+        </div>
+      </article>
+
+      <article class="lesson" id="lesson-9" data-lesson="9" data-keywords="camera lighting sky fog orbit ambient sun atmosphere">
+        <header class="lesson-head">
+          <div><h2>Lesson 9: Camera, Lighting, and Atmosphere</h2><p>Configure the scene with fluent configurators.</p></div>
+          <label class="check"><input type="checkbox" data-complete="lesson-9"> Complete</label>
+        </header>
+        <div class="lesson-body">
+          <pre><code class="language-ts">scene.camera
+  .orbit({
+    target: { x: 0, y: 1, z: 0 },
+    distance: 10,
+    fov: 60,
+    rotateSensitivity: 0.8,
+  })
+  .gestureOrbit({ enabled: true })
+  .apply();
+
+scene.lighting
+  .sun({
+    direction: { x: -1, y: -2, z: -1 },
+    color: PALETTE.WHITE,
+    intensity: 1.2,
+    shadowEnabled: true,
+  })
+  .ambient({ color: PALETTE.SKY, intensity: 0.35 })
+  .apply();
+
+scene.sky.backgroundColor(PALETTE.MIDNIGHT).brightness(0.8).apply();
+scene.fog.exp2().color(PALETTE.SKY).density(0.01).apply();</code></pre>
+          <h3>Camera, Light, and Atmosphere Gallery</h3>
+          <p>Use scene configurators for global setup, and use <code>waveCamera</code> or <code>waveLight</code> when you want cameras and lights to behave like movable scene objects.</p>
+          <table>
+            <thead><tr><th>Tool</th><th>Use it for</th><th>Main APIs</th></tr></thead>
+            <tbody>
+              <tr><td>Orbit camera</td><td>Inspecting a scene interactively</td><td><code>scene.camera.orbit</code>, <code>gestureOrbit</code></td></tr>
+              <tr><td>Camera entity</td><td>Cutscenes or switchable views</td><td><code>waveCamera</code>, <code>activate</code>, <code>assignToNum1</code></td></tr>
+              <tr><td>Point light</td><td>Local glow from a lamp or pickup</td><td><code>waveLight.asPointLight</code></td></tr>
+              <tr><td>Spotlight</td><td>Cones, flashlights, stage lights</td><td><code>asSpotlight</code>, <code>aimAt</code></td></tr>
+              <tr><td>Sky and fog</td><td>World mood and depth</td><td><code>scene.sky</code>, <code>scene.fog</code></td></tr>
+            </tbody>
+          </table>
+          <pre><code class="language-ts">scene.camera
+  .orbit({
+    target: { x: 0, y: 1, z: 0 },
+    distance: 12,
+    fov: 55,
+  })
+  .gestureOrbit({ enabled: true })
+  .apply();
+
+scene.sky
+  .backgroundColor(PALETTE.MIDNIGHT)
+  .brightness(0.75)
+  .apply();
+
+scene.fog
+  .exp2()
+  .color(PALETTE.SKY)
+  .density(0.012)
+  .apply();
+
+const cinematicCamera = new waveCamera();
+cinematicCamera.moveTo({ x: 0, y: 4, z: -8 });
+cinematicCamera.turnCameraTo(0, 1, 0);
+cinematicCamera.setFov(50);
+cinematicCamera.assignToNum1();
+scene.add(cinematicCamera);
+
+const pointLight = new waveLight();
+pointLight.asPointLight();
+pointLight.setLightColor(PALETTE.GOLDENROD);
+pointLight.setIntensity(1.4);
+pointLight.setRange(8);
+pointLight.moveTo({ x: -3, y: 3, z: 0 });
+scene.add(pointLight);
+
+const spotlight = new waveLight();
+spotlight.asSpotlight();
+spotlight.setLightColor(PALETTE.CYAN);
+spotlight.setIntensity(2);
+spotlight.setAngle(45);
+spotlight.moveTo({ x: 3, y: 4, z: -2 });
+spotlight.aimAt(0, 1, 0);
+scene.add(spotlight);</code></pre>
+        </div>
+      </article>
+
+      <article class="lesson" id="lesson-10" data-lesson="10" data-keywords="query names tags getByTag find scene organization">
+        <header class="lesson-head">
+          <div><h2>Lesson 10: Scene Queries and Organization</h2><p>Use names and tags to manage objects.</p></div>
+          <label class="check"><input type="checkbox" data-complete="lesson-10"> Complete</label>
+        </header>
+        <div class="lesson-body">
+          <pre><code class="language-ts">const door = new waveCube(2, 3, 0.3);
+door.setName("main-door");
+door.addTag("door");
+door.addTag("interactive");
+scene.add(door);
+
+const doors = scene.getByTag("door");
+const mainDoor = scene.getFirstByName("main-door");
+
+for (const entity of doors) {
+  entity.showBoundingBox();
+}
+
+if (mainDoor) {
+  mainDoor.hideBoundingBox();
+}</code></pre>
+          <pre><code class="language-ts">scene.getAll();
+scene.getByName("main-door");
+scene.getByTag("interactive");
+scene.find((entity) =&gt; entity.hasTag("door"));
+scene.destroyByTag("temporary");</code></pre>
+        </div>
+      </article>
+
+      <article class="lesson" id="lesson-11" data-lesson="11" data-keywords="groups spawning spawnInGrid spawnOnPath spawnAround row grid">
+        <header class="lesson-head">
+          <div><h2>Lesson 11: Groups and Spawning</h2><p>Group related entities and place repeated objects.</p></div>
+          <label class="check"><input type="checkbox" data-complete="lesson-11"> Complete</label>
+        </header>
+        <div class="lesson-body">
+          <pre><code class="language-ts">const row = scene.createGroup&lt;waveCube&gt;("row");
+
+for (let i = 0; i &lt; 5; i++) {
+  const cube = new waveCube(1, 1, 1);
+  cube.setColor(PALETTE.CYAN);
+  cube.moveTo({ x: i * 1.4 - 2.8, y: 0.5, z: 0 });
+  scene.add(cube);
+  row.add(cube);
+}</code></pre>
+          <pre><code class="language-ts">const tile = new waveCube(1, 0.2, 1);
+tile.setColor(PALETTE.LIGHT_GRAY);
+
+const grid = scene.spawnInGrid(tile, {
+  origin: { x: -2, y: 0.1, z: -2 },
+  rows: 4,
+  cols: 4,
+  spacing: 1.25,
+});</code></pre>
+        </div>
+      </article>
+
+      <article class="lesson" id="lesson-12" data-lesson="12" data-keywords="ui overlay text button score label waveUIText">
+        <header class="lesson-head">
+          <div><h2>Lesson 12: UI Overlays</h2><p>Create 2D UI entities like labels, buttons, and sliders.</p></div>
+          <label class="check"><input type="checkbox" data-complete="lesson-12"> Complete</label>
+        </header>
+        <div class="lesson-body">
+          <pre><code class="language-ts">const hudBackground = PALETTE.modifyAlphaChannel(PALETTE.BLACK, 55);
+
+const scoreLabel = new waveUIText();
+scoreLabel.setText("Score: 0");
+scoreLabel.setFontSize(28);
+scoreLabel.setColor(PALETTE.WHITE);
+scoreLabel.setBackgroundColor(hudBackground);
+scoreLabel.setSize(180, 48);
+scoreLabel.setScreenPositionPixels(24, 24);
+scene.add(scoreLabel);</code></pre>
+          <pre><code class="language-ts">let score = 0;
+
+function addScore(points: number) {
+  score += points;
+  scoreLabel.setText(`Score: ${score}`);
+}</code></pre>
+          <h3>UI Widget Gallery</h3>
+          <p>UI objects use the same basic workflow as 3D objects: create, configure, place, add to the scene, then attach callbacks when the widget should react.</p>
+          <table>
+            <thead><tr><th>Widget</th><th>Use it for</th><th>Main APIs</th></tr></thead>
+            <tbody>
+              <tr><td><code>waveUIText</code></td><td>Score, labels, status text</td><td><code>setText</code>, <code>setFontSize</code></td></tr>
+              <tr><td><code>waveUIButton</code></td><td>Clickable commands</td><td><code>setText</code>, <code>onClick</code></td></tr>
+              <tr><td><code>waveUIProgressBar</code></td><td>Health, progress, loading</td><td><code>setProgress</code>, <code>setProgressColor</code></td></tr>
+              <tr><td><code>waveUISlider</code></td><td>Tunable numeric values</td><td><code>setRange</code>, <code>setValue</code>, <code>onChange</code></td></tr>
+              <tr><td><code>waveUICrosshair</code></td><td>Reticles and pointer overlays</td><td><code>setCrosshairColor</code>, <code>setDot</code></td></tr>
+            </tbody>
+          </table>
+          <pre><code class="language-ts">const panelColor = PALETTE.modifyAlphaChannel(PALETTE.BLACK, 55);
+
+const title = new waveUIText();
+title.setText("WaveStudio HUD");
+title.setFontSize(30);
+title.setColor(PALETTE.WHITE);
+title.setBackgroundColor(panelColor);
+title.setSize(260, 48);
+title.setScreenPositionPixels(24, 24);
+scene.add(title);
+
+const startButton = new waveUIButton();
+startButton.setText("Start");
+startButton.setFontSize(22);
+startButton.setColor(PALETTE.BLACK);
+startButton.setBackgroundColor(PALETTE.GOLDENROD);
+startButton.setSize(160, 44);
+startButton.setScreenPositionPixels(24, 84);
+startButton.onClick(() =&gt; scene.print("Button clicked"));
+scene.add(startButton);
+
+const energyBar = new waveUIProgressBar();
+energyBar.setProgress(72, 100);
+energyBar.setProgressColor(PALETTE.GREEN);
+energyBar.setBackgroundColor(panelColor);
+energyBar.setSize(220, 24);
+energyBar.setScreenPositionPixels(24, 144);
+scene.add(energyBar);
+
+const energySlider = new waveUISlider();
+energySlider.setRange(0, 100, 1);
+energySlider.setValue(72);
+energySlider.setBackgroundColor(panelColor);
+energySlider.setSize(220, 30);
+energySlider.setScreenPositionPixels(24, 184);
+energySlider.onChange((event) =&gt; {
+  energyBar.setProgress(event.data.value, 100);
+});
+scene.add(energySlider);
+
+const crosshair = new waveUICrosshair();
+crosshair.setCrosshairColor(PALETTE.CYAN);
+crosshair.setDot(3, PALETTE.WHITE);
+crosshair.setSize(80, 80);
+crosshair.setNormalizedScreenPosition(0.5, 0.5);
+scene.add(crosshair);</code></pre>
+        </div>
+      </article>
+
+      <article class="lesson" id="lesson-13" data-lesson="13" data-keywords="audio sound audios effects fx smoke particles">
+        <header class="lesson-head">
+          <div><h2>Lesson 13: Audio and Effects</h2><p>Play sounds and author simple FX from entities.</p></div>
+          <label class="check"><input type="checkbox" data-complete="lesson-13"> Complete</label>
+        </header>
+        <div class="lesson-body">
+          <pre><code class="language-ts">const speaker = new waveCube(1, 1, 1);
+speaker.moveTo({ x: 0, y: 1, z: 0 });
+scene.add(speaker);
+
+speaker.playSound(audios.studioSound, {
+  loop: false,
+  volume: 0.8,
+});</code></pre>
+          <pre><code class="language-ts">const emitter = new waveSphere(0.4, 16);
+emitter.setColor(PALETTE.WHITE);
+emitter.moveTo({ x: 0, y: 1, z: 0 });
+scene.add(emitter);
+
+emitter.fx
+  .createSmoke("soft-smoke")
+  .color(PALETTE.LIGHT_GRAY)
+  .rate(20)
+  .play();</code></pre>
+          <h3>Audio and FX Gallery</h3>
+          <p>Audio and effects can be attached to ordinary scene objects. A hidden or tiny anchor object is often enough when the effect is environmental rather than visible geometry.</p>
+          <table>
+            <thead><tr><th>Effect type</th><th>Use it for</th><th>Main APIs</th></tr></thead>
+            <tbody>
+              <tr><td>Sound</td><td>Clicks, pickups, ambience</td><td><code>playSound</code></td></tr>
+              <tr><td>Smoke</td><td>Exhaust, clouds, mystery</td><td><code>fx.createSmoke(...).play()</code></td></tr>
+              <tr><td>Preset burst</td><td>Sparks and impacts</td><td><code>waveFxPresets.impactSparks</code></td></tr>
+              <tr><td>Weather preset</td><td>Rain, snow, lightning</td><td><code>waveFxPresets.rain</code>, <code>fx.play</code></td></tr>
+              <tr><td>Explosion</td><td>Breakable objects</td><td><code>explode</code>, <code>exploding</code></td></tr>
+            </tbody>
+          </table>
+          <pre><code class="language-ts">const smokeOrb = new waveSphere(0.35, 16);
+smokeOrb.setColor(PALETTE.LIGHT_GRAY);
+smokeOrb.moveTo({ x: -3, y: 1, z: 0 });
+scene.add(smokeOrb);
+
+smokeOrb.fx
+  .createSmoke("gallery-smoke")
+  .rising()
+  .color(PALETTE.LIGHT_GRAY)
+  .rate(14)
+  .play();
+
+const sparkPad = new waveCube(1, 0.25, 1);
+sparkPad.setColor(PALETTE.GOLDENROD);
+sparkPad.moveTo({ x: 0, y: 0.5, z: 0 });
+scene.add(sparkPad);
+
+sparkPad.whenClickedOn(() =&gt; {
+  sparkPad.playSound(audios.studioSound, { volume: 0.7 });
+  sparkPad.fx.play(waveFxPresets.impactSparks());
+});
+
+const rainAnchor = new waveCube(0.2, 0.2, 0.2);
+rainAnchor.moveTo({ x: 0, y: 4, z: 0 });
+rainAnchor.hide();
+scene.add(rainAnchor);
+rainAnchor.fx.play(waveFxPresets.rain());
+
+const breakable = new waveCube(1, 1, 1);
+breakable.setColor(PALETTE.CORAL);
+breakable.moveTo({ x: 3, y: 1, z: 0 });
+scene.add(breakable);
+
+breakable.whenClickedOn(() =&gt; {
+  if (breakable.isDestroyed) return;
+  breakable.exploding().intoPieces(10).withStrength(5).apply();
+});</code></pre>
+        </div>
+      </article>
+
+      <article class="lesson" id="lesson-14" data-lesson="14" data-keywords="data myCloud cloud record save json persistent">
+        <header class="lesson-head">
+          <div><h2>Lesson 14: Persistent Scene Data</h2><p>Use <code>myCloud</code> to open, edit, and save JSON records.</p></div>
+          <label class="check"><input type="checkbox" data-complete="lesson-14"> Complete</label>
+        </header>
+        <div class="lesson-body">
+          <pre><code class="language-ts">async function incrementHighScore(points: number) {
+  const record = await myCloud.openRecord("scores");
+
+  const nextScore = myCloud.json.inc(record, "highScore", points);
+  myCloud.json.push(record, "events", {
+    kind: "score",
+    value: points,
+    at: Date.now(),
+  });
+
+  const result = await myCloud.saveRecord("scores", record);
+
+  if (result.ok) {
+    scene.print(`Saved high score: ${nextScore}`);
+  } else {
+    scene.print("Could not save score");
+  }
+}</code></pre>
+          <pre><code class="language-ts">if (!myCloud.available) {
+  scene.print(`Cloud data unavailable: ${myCloud.reason ?? "unknown reason"}`);
+}</code></pre>
+        </div>
+      </article>
+
+      <article class="lesson" id="lesson-15" data-lesson="15" data-keywords="mini project pickups score complete game player">
+        <header class="lesson-head">
+          <div><h2>Lesson 15: A Complete Mini Project</h2><p>A clickable collection scene with a camera, lighting, floor, pickups, and score UI.</p></div>
+          <label class="check"><input type="checkbox" data-complete="lesson-15"> Complete</label>
+        </header>
+        <div class="lesson-body">
+          <pre><code class="language-ts">let score = 0;
+const totalPickups = 5;
+const playerStepDistance = 0.75;
+const completionMessageFontSize = 32;
+const hudBackground = PALETTE.modifyAlphaChannel(PALETTE.BLACK, 55);
+
+scene.camera
+  .orbit({
+    target: { x: 0, y: 1, z: 0 },
+    distance: 12,
+    fov: 60,
+  })
+  .gestureOrbit({ enabled: true })
+  .apply();
+
+scene.lighting
+  .sun({
+    direction: { x: -1, y: -2, z: -1 },
+    intensity: 1.2,
+    shadowEnabled: true,
+  })
+  .ambient({ color: PALETTE.SKY, intensity: 0.35 })
+  .apply();
+
+const scoreLabel = new waveUIText();
+scoreLabel.setText(`Score: ${score}/${totalPickups}`);
+scoreLabel.setFontSize(28);
+scoreLabel.setColor(PALETTE.WHITE);
+scoreLabel.setBackgroundColor(hudBackground);
+scoreLabel.setSize(220, 48);
+scoreLabel.setScreenPositionPixels(24, 24);
+scene.add(scoreLabel);
+
+const floor = new waveGround(20, 20, 4);
+floor.setColor(PALETTE.CHARCOAL);
+floor.useStaticBody();
+floor.addTag("floor");
+scene.add(floor);
+
+const player = new waveCube(1, 1, 1);
+player.setColor(PALETTE.TURQUOISE);
+player.moveTo({ x: 0, y: 0.5, z: 0 });
+player.useKinematicBody();
+scene.add(player);
+
+player.whenPress(Keyboard.W, () =&gt; player.moveForward(playerStepDistance));
+player.whenPress(Keyboard.S, () =&gt; player.moveBackward(playerStepDistance));
+player.whenPress(Keyboard.A, () =&gt; player.moveLeft(playerStepDistance));
+player.whenPress(Keyboard.D, () =&gt; player.moveRight(playerStepDistance));
+
+function updateScore(points: number) {
+  score += points;
+  scoreLabel.setText(`Score: ${score}/${totalPickups}`);
+
+  if (score &gt;= totalPickups) {
+    scene.print("All pickups collected!", completionMessageFontSize, PALETTE.WHITE);
+  }
+}
+
+for (let i = 0; i &lt; totalPickups; i++) {
+  const pickup = new waveSphere(0.45, 24);
+  pickup.setColor(PALETTE.GOLDENROD);
+  pickup.moveTo({ x: i * 2 - 4, y: 0.75, z: -3 });
+  pickup.addTag("pickup");
+  scene.add(pickup);
+
+  pickup.onTick((_self, deltaTime) =&gt; {
+    pickup.turnRight(180 * deltaTime);
+  });
+
+  pickup.whenClickedOn(() =&gt; {
+    if (pickup.isDestroyed) return;
+
+    updateScore(1);
+    pickup.hide();
+    pickup.destroy();
+  });
+}</code></pre>
+        </div>
+      </article>
+
+      <article class="lesson" id="lesson-16" data-lesson="16" data-keywords="recursion recursive explode exploding split fracture click subdivision algorithm">
+        <header class="lesson-head">
+          <div><h2>Lesson 16: Recursive Click Explosions</h2><p>Click a shape, split it into smaller pieces, and let the children do the same thing.</p></div>
+          <label class="check"><input type="checkbox" data-complete="lesson-16"> Complete</label>
+        </header>
+        <div class="lesson-body">
+          <p>WaveStudio can do the concise recursive explosion pattern your friend showed: click a shape, fracture it into pieces, then give each new piece the same click handler. <code>Cube</code> is an alias for <code>waveCube</code>, and <code>Prop</code> is an alias for <code>waveProp</code>.</p>
+          <pre><code class="language-ts">const target = new Cube()
+  .placeAt(0, 5, 0)
+  .setColor(PALETTE.BLUE);
+
+scene.add(target);
+
+const boom = (object: Prop): void =&gt; {
+  object
+    .exploding()
+    .intoPieces(3)
+    .withStrength(2)
+    .apply()
+    ?.forEach((piece) =&gt; {
+      piece.whenClickedOn(() =&gt; boom(piece));
+    });
+};
+
+target.whenClickedOn(() =&gt; boom(target));</code></pre>
+          <p>That is recursion because <code>boom</code> attaches <code>boom</code> to every fragment it creates. The optional chain keeps the example type-safe because <code>apply()</code> is declared as <code>WaveGroup&lt;T&gt; | null</code>.</p>
+          <pre><code class="language-ts">const root = new Cube()
+  .placeAt(0, 5, 0)
+  .setColor(PALETTE.CYAN);
+
+scene.add(root);
+
+const maxDepth = 4;
+const maxPieces = 120;
+let pieceCount = 0;
+
+function boom(object: Prop, depth = maxDepth): void {
+  if (object.isDestroyed || depth &lt;= 0 || pieceCount &gt;= maxPieces) return;
+
+  pieceCount += 1;
+  const nextDepth = depth - 1;
+
+  object
+    .exploding()
+    .intoPieces(3)
+    .withStrength(2)
+    .withInteriorColor(PALETTE.MIDNIGHT)
+    .withLifeTime(4, Seconds)
+    .apply()
+    ?.forEach((piece) =&gt; {
+      piece.setColor(PALETTE.randomFrom([
+        PALETTE.CYAN,
+        PALETTE.GOLDENROD,
+        PALETTE.CORAL,
+        PALETTE.SAGE,
+      ], pieceCount));
+      piece.whenClickedOn(() =&gt; boom(piece, nextDepth));
+    });
+}
+
+root.whenClickedOn(() =&gt; boom(root));</code></pre>
+          <p>The manual split below is a different kind of recursion. It is useful when you want to teach the algorithm yourself instead of using WaveStudio's fracture system.</p>
+          <pre><code class="language-ts">const palette = [PALETTE.CYAN, PALETTE.GOLDENROD, PALETTE.CORAL, PALETTE.SAGE];
+const maxDepth = 4;
+const maxPieces = 256;
+const spinYawDegreesPerSecond = 20;
+const spinPitchDegreesPerSecond = 12;
+const childScale = 0.52;
+const childSpreadScale = 1.15;
+const splitPushScale = 0.35;
+const splitAnimationDuration = 0.25;
+let createdPieces = 0;
+
+function spawnPiece(
+  x: number,
+  y: number,
+  z: number,
+  size: number,
+  depth: number
+): waveCube | null {
+  if (createdPieces &gt;= maxPieces) return null;
+
+  createdPieces += 1;
+
+  const piece = new waveCube(size, size, size);
+  piece.setColor(palette[depth % palette.length] ?? PALETTE.WHITE);
+  piece.moveTo({ x, y, z });
+  piece.addTag("recursive-piece");
+  scene.add(piece);
+
+  piece.onTick((_self, deltaTime) =&gt; {
+    piece.turnRight(spinYawDegreesPerSecond * deltaTime);
+    piece.pitchUp(spinPitchDegreesPerSecond * deltaTime);
+  });
+
+  piece.whenClickedOn(() =&gt; {
+    splitPiece(piece, size, depth);
+  });
+
+  return piece;
+}
+
+function splitPiece(piece: waveCube, size: number, depth: number): void {
+  if (piece.isDestroyed || depth &lt;= 0) return;
+
+  const center = piece.getWorldPosition();
+  const nextDepth = depth - 1;
+  const childSize = size * childScale;
+  const spread = childSize * childSpreadScale;
+
+  piece.hide();
+  piece.destroy();
+
+  const offsets = [
+    [-spread, -spread, -spread],
+    [spread, -spread, -spread],
+    [-spread, spread, -spread],
+    [spread, spread, -spread],
+    [-spread, -spread, spread],
+    [spread, -spread, spread],
+    [-spread, spread, spread],
+    [spread, spread, spread],
+  ];
+
+  for (const [dx, dy, dz] of offsets) {
+    const child = spawnPiece(
+      center.x + dx,
+      center.y + dy,
+      center.z + dz,
+      childSize,
+      nextDepth
+    );
+
+    if (child) {
+      child
+        .moveBy({
+          x: dx * splitPushScale,
+          y: dy * splitPushScale,
+          z: dz * splitPushScale,
+        }, Animate)
+        .over(splitAnimationDuration, Seconds)
+        .play();
+    }
+  }
+
+  scene.print(`Depth left: ${nextDepth}`);
+}
+
+spawnPiece(0, 2, 0, 3, maxDepth);</code></pre>
+          <p>In the manual version, the recursive idea is the call chain:</p>
+          <ul>
+            <li><code>spawnPiece</code> creates one cube and gives it a click handler.</li>
+            <li><code>splitPiece</code> replaces one cube with eight smaller cubes.</li>
+            <li><code>depth</code> and <code>maxPieces</code> keep the recursion bounded.</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="lesson" id="lesson-17" data-lesson="17" data-keywords="complete object catalog all classes geometry animation api waveCube waveSphere waveTorus wavePath waveUI WaveGroup WaveField waveFx">
+        <header class="lesson-head">
+          <div><h2>Lesson 17: Complete Object Catalog</h2><p>A scene-facing map of the objects declared by the WaveStudio globals file.</p></div>
+          <label class="check"><input type="checkbox" data-complete="lesson-17"> Complete</label>
+        </header>
+        <div class="lesson-body">
+          <p class="catalog-note">The declaration file has hundreds of classes. This catalog focuses on the objects learners normally instantiate or call in scene code: shapes, 3D objects, groups, animation builders, UI, effects, assets, and scene services.</p>
+
+          <p><strong>All geometry classes.</strong> These extend <code>waveGeometry</code>, so they share transforms, materials, physics, animation playback, sound playback, click and hover input, cloning, part creation, and <code>explode</code> / <code>exploding</code>. <code>waveBox</code> is an alias of <code>waveCube</code>.</p>
+          <table class="reference-table">
+            <thead><tr><th>Object</th><th>Constructor or entry point</th><th>Use</th></tr></thead>
+            <tbody>
+              <tr><td><code>waveCube</code></td><td><code>(width?, height?, depth?, widthSegments?, heightSegments?, depthSegments?)</code></td><td>Boxes, platforms, walls, voxels.</td></tr>
+              <tr><td><code>waveBox</code></td><td>Alias of <code>waveCube</code></td><td>Same as <code>waveCube</code>.</td></tr>
+              <tr><td><code>waveSphere</code></td><td><code>(radius?, segments?)</code></td><td>Balls, planets, sensors, smooth markers.</td></tr>
+              <tr><td><code>waveCylinder</code></td><td><code>(height?, diameterTop?, diameterBottom?, tessellation?, heightSegments?)</code></td><td>Pillars, barrels, pipes, tapered tubes.</td></tr>
+              <tr><td><code>waveCapsule</code></td><td><code>(radius?, height?, tessellation?, heightSegments?, capSubdivisions?)</code></td><td>Characters, rounded collision bodies, pills.</td></tr>
+              <tr><td><code>waveCone</code></td><td><code>(height?, diameter?, tessellation?, heightSegments?)</code></td><td>Cones, arrows, spikes, markers.</td></tr>
+              <tr><td><code>waveTorus</code></td><td><code>(radius?, tubeRadius?, tessellation?)</code></td><td>Rings, portals, tires, handles.</td></tr>
+              <tr><td><code>waveTorusKnot</code></td><td><code>(radius?, tubeRadius?, tessellation?, p?, q?)</code></td><td>Knotted rings and mathematical shapes.</td></tr>
+              <tr><td><code>wavePlane</code></td><td><code>(width?, height?, doubleSided?, widthSegments?, heightSegments?)</code></td><td>Flat cards, screens, billboards, walls.</td></tr>
+              <tr><td><code>waveGround</code></td><td><code>(width?, height?, subdivisions?)</code></td><td>Floors and terrain-like flat surfaces.</td></tr>
+              <tr><td><code>waveDisc</code></td><td><code>(radius?, tessellation?)</code></td><td>Flat circles and partial circular panels.</td></tr>
+              <tr><td><code>waveRing</code></td><td><code>(outerRadius?, innerRadius?, tessellation?)</code></td><td>Flat rings and 2D circular frames.</td></tr>
+              <tr><td><code>wavePolygon</code></td><td><code>(radius?, sides?)</code></td><td>Regular or seeded polygons, flat or extruded.</td></tr>
+              <tr><td><code>waveLine</code></td><td><code>(start?, end?)</code></td><td>Straight segments and visual connectors.</td></tr>
+              <tr><td><code>waveArc</code></td><td><code>(radius?, startAngle?, endAngle?, segments?)</code></td><td>Curves, gauges, orbit arcs.</td></tr>
+              <tr><td><code>wavePath</code></td><td><code>(points?, closed?, curveType?, segments?, catmullRomTension?)</code></td><td>Editable paths, splines, sampled motion routes.</td></tr>
+              <tr><td><code>wavePointNet</code></td><td><code>(points?, options?)</code></td><td>Networks of points and linked path nodes.</td></tr>
+              <tr><td><code>wavePathExtrusion</code></td><td><code>(path, shape, options?)</code></td><td>Tubes, rails, swept profiles, custom extrusions.</td></tr>
+              <tr><td><code>waveTube</code></td><td><code>(radius?, tessellation?, path?)</code></td><td>Tubes following 3D point paths.</td></tr>
+              <tr><td><code>waveLathe</code></td><td><code>(radius?, tessellation?, shape?, arc?)</code></td><td>Revolved shapes like vases, bowls, turned parts.</td></tr>
+              <tr><td><code>waveIcoSphere</code></td><td><code>(radius?, subdivisions?, flat?)</code></td><td>Low-poly spheres and geodesic shapes.</td></tr>
+              <tr><td><code>waveDome</code></td><td><code>(diameter?, arc?, segments?)</code></td><td>Domes, caps, hemispheres.</td></tr>
+              <tr><td><code>waveWedge</code></td><td><code>(width?, height?, depth?, flipSlope?)</code></td><td>Ramps, triangular blocks, sloped pieces.</td></tr>
+              <tr><td><code>wavePrism</code></td><td><code>(sides?, radius?, height?, topRadius?)</code></td><td>Extruded polygons and tapered columns.</td></tr>
+              <tr><td><code>waveTrapezoid</code></td><td><code>(width?, height?, depth?, topWidth?, topDepth?)</code></td><td>Tapered boxes and frustums.</td></tr>
+              <tr><td><code>waveCavity</code></td><td><code>(width?, height?, depth?, options?)</code></td><td>Rooms, tunnels, interior spaces, openings.</td></tr>
+              <tr><td><code>waveCavityTopology</code></td><td><code>(options?)</code></td><td>Graph-like cave or room topology generation.</td></tr>
+            </tbody>
+          </table>
+
+          <p><strong>3D scene objects beyond raw geometry.</strong></p>
+          <ul class="catalog-columns">
+            <li><code>wave3DObject</code>: generic 3D model/object wrapper.</li>
+            <li><code>waveProp</code>, <code>xrProp</code>: prop-style objects.</li>
+            <li><code>waveActor</code>, <code>waveHumanoid</code>, <code>xrActor</code>: actor-style entities.</li>
+            <li><code>xr3DObject</code>: XR-ready 3D object.</li>
+            <li><code>wavePoint</code>: point, range, speed, and history helper.</li>
+            <li><code>waveMarker</code>: marker that can follow locators or world positions.</li>
+            <li><code>waveCamera</code>: camera entity and camera helpers.</li>
+            <li><code>waveLight</code>: spot, point, directional, hemispheric, area, shadows, beams.</li>
+            <li><code>waveTerrain</code>, <code>waveTerrainTile</code>: terrain and generated tiles.</li>
+            <li><code>waveDecal</code>: projected surface decals.</li>
+            <li><code>waveInstanceMesh</code>: single instance mesh with input and color controls.</li>
+            <li><code>waveInstanceGroup</code>: many model instances as one group.</li>
+            <li><code>waveThinBatch</code>: high-performance batched instances.</li>
+            <li><code>wavePointCloudBatch</code>: point-cloud batch effects.</li>
+          </ul>
+
+          <p><strong>Collections, spawning, rigs, soft bodies, and fields.</strong></p>
+          <ul class="catalog-columns">
+            <li><code>WaveGroup</code>: add, remove, filter, explode, implode, physics, destroy together.</li>
+            <li><code>Wave3DGrid</code>: arrange objects in rows, columns, and layers.</li>
+            <li><code>WaveRig</code>: group and attach entities for rigged structures.</li>
+            <li><code>WaveJointAssembly</code> and <code>WaveJointBuilder</code>: physics joints.</li>
+            <li><code>WaveCloth</code> and <code>WaveClothBuilder</code>: cloth grids, pins, anchors.</li>
+            <li><code>WaveRope</code> and <code>WaveRopeBuilder</code>: rope chains and anchors.</li>
+            <li><code>WaveRange</code>: AABB, sphere, model, or voxel query regions.</li>
+            <li><code>WaveField</code>: gravity, wind, vortex, buoyancy, radial, vector, and texture fields.</li>
+            <li><code>WaveSpawner</code>: spawn inline, around, in ranges, on paths, on surfaces, or in grids.</li>
+          </ul>
+
+          <p><strong>Animation and motion surfaces.</strong></p>
+          <ul class="catalog-columns">
+            <li><code>Animate</code>, <code>Apply</code>, <code>Snapshot</code>: transform and property modes.</li>
+            <li><code>WaveTransformAnimationBuilder</code>: <code>over</code>, <code>for</code>, <code>after</code>, <code>atRateOf</code>, <code>withEasingEffect</code>, <code>play</code>.</li>
+            <li><code>WaveTransformFitBetweenAnimationBuilder</code>: animated fit-between placement.</li>
+            <li><code>WaveMaterialPropertyAnimationBuilder</code>: material and color animation.</li>
+            <li><code>WaveUIPropertyAnimationBuilder</code>: UI property animation.</li>
+            <li><code>WaveAnimationClip</code>: clip loading, GSAP timelines, VAT, events, cloning.</li>
+            <li><code>AnimationGroup</code> and <code>AnimationEvent</code>: animation group and event types.</li>
+            <li><code>GSAPEasing</code>: named easing constants such as <code>GSAPEasing.Power2InOut</code>.</li>
+            <li><code>onTick</code>, <code>every</code>, <code>once</code>: behavior over time.</li>
+            <li><code>playAnimation</code>: play model or object animation clips by name.</li>
+          </ul>
+
+          <p><strong>UI objects.</strong></p>
+          <ul class="catalog-columns">
+            <li><code>waveUI</code>, <code>waveUIText</code>, <code>waveUIImage</code>, <code>waveUICanvas</code></li>
+            <li><code>waveUIFrame</code>, <code>waveUIButton</code>, <code>waveUIProgressBar</code>, <code>waveUISlider</code></li>
+            <li><code>waveUIInput</code>, <code>waveUITextArea</code>, <code>waveUIDropdown</code>, <code>waveUIToggle</code></li>
+            <li><code>waveUICrosshair</code>, <code>waveUIProgressRing</code>, <code>waveUITooltip</code>, <code>waveUINotification</code></li>
+            <li><code>waveUIDebugOverlay</code>, <code>waveUIHandGestureOverlay</code>, <code>waveUIInventory</code></li>
+            <li><code>waveUIHealthBar</code>, <code>waveUIDialogue</code>, <code>waveUIMinimap</code></li>
+            <li><code>netUI</code>, <code>netUIText</code>, <code>netUIImage</code>, <code>netUICanvas</code>, <code>netUIFrame</code></li>
+            <li><code>netUIButton</code>, <code>netUIProgressBar</code>, <code>netUISlider</code>, <code>netUIInput</code></li>
+            <li><code>netUITextArea</code>, <code>netUIDropdown</code>, <code>netUIToggle</code>, <code>netUIHealthBar</code>, <code>netUIDialogue</code></li>
+          </ul>
+
+          <p><strong>Effects, assets, time, and scene services.</strong></p>
+          <ul class="catalog-columns">
+            <li><code>scene</code>, <code>myScene</code>, <code>engine</code>, <code>ctx</code>: active runtime globals.</li>
+            <li><code>assetManager</code>: asset resolution, registration, metadata, geometry views.</li>
+            <li><code>models</code>, <code>textures</code>, <code>materials</code>, <code>animations</code>, <code>audios</code>, <code>videos</code>, <code>hdr</code>, <code>fonts</code>, <code>particles</code>: typed asset warehouses.</li>
+            <li><code>waveFx</code>: emitters, trails, wakes, exhaust, impacts, muzzle flashes, sparks.</li>
+            <li><code>waveFxPresets</code>: impact sparks, rain, snow, lightning.</li>
+            <li><code>WavePostFx</code>, <code>WaveScreenMedia</code>, <code>WaveOcclusionCulling</code>: scene visual services.</li>
+            <li><code>WaveEventBus</code>, <code>waveEventBus</code>: event subscription and emission.</li>
+            <li><code>WaveTime</code>, <code>WaveTimeSpan</code>, <code>WaveRate</code>, <code>Seconds</code>, <code>Ticks</code>, <code>UnitsPerSecond</code>, <code>DegreesPerSecond</code>: time and rate helpers.</li>
+            <li><code>myCloud</code>: persistent scene data store.</li>
+          </ul>
+        </div>
+      </article>
+    </main>
+
+    <aside class="right">
+      <section class="builder" aria-label="WaveStudio snippet builder">
+        <h2>Snippet Builder</h2>
+        <div class="field">
+          <label for="primitive">Built-in shape</label>
+          <select id="primitive">
+            <option value="waveCube">waveCube</option>
+            <option value="waveBox">waveBox</option>
+            <option value="waveSphere">waveSphere</option>
+            <option value="waveCylinder">waveCylinder</option>
+            <option value="waveCapsule">waveCapsule</option>
+            <option value="waveCone">waveCone</option>
+            <option value="waveTorus">waveTorus</option>
+            <option value="waveTorusKnot">waveTorusKnot</option>
+            <option value="wavePlane">wavePlane</option>
+            <option value="waveGround">waveGround</option>
+            <option value="waveDisc">waveDisc</option>
+            <option value="waveRing">waveRing</option>
+            <option value="wavePolygon">wavePolygon</option>
+            <option value="waveLine">waveLine</option>
+            <option value="waveArc">waveArc</option>
+            <option value="wavePath">wavePath</option>
+            <option value="wavePointNet">wavePointNet</option>
+            <option value="wavePathExtrusion">wavePathExtrusion</option>
+            <option value="waveTube">waveTube</option>
+            <option value="waveLathe">waveLathe</option>
+            <option value="waveIcoSphere">waveIcoSphere</option>
+            <option value="waveDome">waveDome</option>
+            <option value="waveWedge">waveWedge</option>
+            <option value="wavePrism">wavePrism</option>
+            <option value="waveTrapezoid">waveTrapezoid</option>
+            <option value="waveCavity">waveCavity</option>
+            <option value="waveCavityTopology">waveCavityTopology</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="objectName">Variable name</label>
+          <input id="objectName" type="text" value="object">
+        </div>
+        <div class="field">
+          <label for="color">Palette color</label>
+          <select id="color">
+            <option value="PALETTE.CYAN">CYAN</option>
+            <option value="PALETTE.TURQUOISE">TURQUOISE</option>
+            <option value="PALETTE.GOLDENROD">GOLDENROD</option>
+            <option value="PALETTE.CORAL">CORAL</option>
+            <option value="PALETTE.FUCHSIA">FUCHSIA</option>
+            <option value="PALETTE.SAGE">SAGE</option>
+            <option value="PALETTE.COBALT">COBALT</option>
+            <option value="PALETTE.WHITE">WHITE</option>
+            <option value="PALETTE.CHARCOAL">CHARCOAL</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Position</label>
+          <div class="xyz">
+            <input id="posX" type="number" value="0" step="0.5" aria-label="X position">
+            <input id="posY" type="number" value="1" step="0.5" aria-label="Y position">
+            <input id="posZ" type="number" value="0" step="0.5" aria-label="Z position">
+          </div>
+        </div>
+        <div class="code-card">
+          <div class="code-tools"><span>generated.ts</span><button id="copyGenerated" type="button">Copy</button></div>
+          <pre><code id="generatedCode" class="language-ts"></code></pre>
+        </div>
+      </section>
+
+      <section class="reference">
+        <h2>Quick Reference</h2>
+        <ul>
+          <li><code>scene.add(entity)</code></li>
+          <li><code>scene.getByTag(tag)</code></li>
+          <li><code>object.moveTo({ x: x, y: y, z: z })</code></li>
+          <li><code>object.onTick(fn)</code></li>
+          <li><code>object.whenHolding(Keyboard.W, fn)</code></li>
+          <li><code>object.whenClickedOn(fn)</code></li>
+          <li><code>object.showDirection()</code></li>
+          <li><code>object.showPosition()</code></li>
+          <li><code>object.exploding().apply()</code></li>
+          <li><code>object.useDynamicBody()</code></li>
+          <li><code>PALETTE.CYAN</code></li>
+          <li><code>myCloud.openRecord(name)</code></li>
+        </ul>
+      </section>
+    </aside>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite">Copied</div>
+
+  <script>
+    const storageKey = "wavestudioTutorialProgress.v1";
+    const lessons = Array.from(document.querySelectorAll(".lesson"));
+    const checks = Array.from(document.querySelectorAll("[data-complete]"));
+    const navLinks = Array.from(document.querySelectorAll("#lessonNav a"));
+    const searchInput = document.querySelector("#search");
+    const progressText = document.querySelector("#progressText");
+    const progressBar = document.querySelector("#progressBar");
+    const noResults = document.querySelector("#noResults");
+    const toast = document.querySelector("#toast");
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      window.clearTimeout(showToast.timer);
+      showToast.timer = window.setTimeout(() => toast.classList.remove("show"), 1400);
+    }
+
+    async function copyText(text) {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        return;
+      }
+
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.setAttribute("readonly", "");
+      textarea.style.position = "fixed";
+      textarea.style.left = "-9999px";
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      textarea.remove();
+    }
+
+    function loadProgress() {
+      try {
+        return JSON.parse(localStorage.getItem(storageKey) || "{}");
+      } catch {
+        return {};
+      }
+    }
+
+    function saveProgress(progress) {
+      localStorage.setItem(storageKey, JSON.stringify(progress));
+    }
+
+    function updateProgress() {
+      const progress = {};
+      let done = 0;
+      checks.forEach((input) => {
+        progress[input.dataset.complete] = input.checked;
+        if (input.checked) done += 1;
+      });
+      saveProgress(progress);
+      progressText.textContent = `${done} of ${checks.length} complete`;
+      progressBar.style.width = `${(done / checks.length) * 100}%`;
+      navLinks.forEach((link) => {
+        const target = link.getAttribute("href").slice(1);
+        link.classList.toggle("done", Boolean(progress[target]));
+      });
+    }
+
+    function setupProgress() {
+      const progress = loadProgress();
+      checks.forEach((input) => {
+        input.checked = Boolean(progress[input.dataset.complete]);
+        input.addEventListener("change", updateProgress);
+      });
+      updateProgress();
+    }
+
+    function setupCodeCards() {
+      document.querySelectorAll("pre > code").forEach((code, index) => {
+        const pre = code.parentElement;
+        if (pre.parentElement.classList.contains("code-card")) return;
+        const card = document.createElement("div");
+        card.className = "code-card";
+        const tools = document.createElement("div");
+        tools.className = "code-tools";
+        tools.innerHTML = `<span>typescript</span><button type="button" data-copy-code="${index}">Copy</button>`;
+        pre.replaceWith(card);
+        card.append(tools, pre);
+      });
+
+      document.addEventListener("click", async (event) => {
+        const button = event.target.closest("[data-copy-code]");
+        if (!button) return;
+        const code = button.closest(".code-card").querySelector("code").innerText;
+        await copyText(code);
+        showToast("Code copied");
+      });
+    }
+
+    function setupSearch() {
+      searchInput.addEventListener("input", () => {
+        const q = searchInput.value.trim().toLowerCase();
+        let visible = 0;
+        lessons.forEach((lesson) => {
+          const text = `${lesson.innerText} ${lesson.dataset.keywords}`.toLowerCase();
+          const match = !q || text.includes(q);
+          lesson.hidden = !match;
+          if (match) visible += 1;
+        });
+        noResults.classList.toggle("show", visible === 0);
+      });
+
+      window.addEventListener("keydown", (event) => {
+        if (event.key === "/" && document.activeElement !== searchInput) {
+          event.preventDefault();
+          searchInput.focus();
+        }
+      });
+    }
+
+    function setupActiveNav() {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          navLinks.forEach((link) => {
+            link.classList.toggle("active", link.getAttribute("href") === `#${entry.target.id}`);
+          });
+        });
+      }, { rootMargin: "-20% 0px -70% 0px", threshold: 0.01 });
+      lessons.forEach((lesson) => observer.observe(lesson));
+    }
+
+    function setupBuilder() {
+      const primitive = document.querySelector("#primitive");
+      const objectName = document.querySelector("#objectName");
+      const color = document.querySelector("#color");
+      const posX = document.querySelector("#posX");
+      const posY = document.querySelector("#posY");
+      const posZ = document.querySelector("#posZ");
+      const generatedCode = document.querySelector("#generatedCode");
+      const copyGenerated = document.querySelector("#copyGenerated");
+
+      const constructors = {
+        waveCube: "new waveCube(2, 2, 2)",
+        waveBox: "new waveBox(2, 2, 2)",
+        waveSphere: "new waveSphere(1, 32)",
+        waveCylinder: "new waveCylinder(2, 1.5, 1.5)",
+        waveCapsule: "new waveCapsule(0.5, 2, 24)",
+        waveCone: "new waveCone(2, 1.5, 32)",
+        waveTorus: "new waveTorus(1.2, 0.25)",
+        waveTorusKnot: "new waveTorusKnot(1.2, 0.18, 96, 2, 3)",
+        wavePlane: "new wavePlane(3, 2, true)",
+        waveGround: "new waveGround(20, 20, 4)",
+        waveDisc: "new waveDisc(1.5, 48)",
+        waveRing: "new waveRing(1.6, 0.9, 64)",
+        wavePolygon: "new wavePolygon(1.4, 6)",
+        waveLine: "new waveLine({ x: -1, y: 0, z: 0 }, { x: 1, y: 0, z: 0 })",
+        waveArc: "new waveArc(1.5, 0, 180, 48)",
+        wavePath: `new wavePath([
+  { x: -1, y: 0, z: 0 },
+  { x: 0, y: 1, z: 0 },
+  { x: 1, y: 0, z: 0 },
+])`,
+        wavePointNet: `new wavePointNet([
+  { x: -1, y: 0, z: 0 },
+  { x: 0, y: 1, z: 0 },
+  { x: 1, y: 0, z: 0 },
+])`,
+        wavePathExtrusion: `new wavePathExtrusion(
+  [
+    { x: -1.5, y: 0, z: 0 },
+    { x: 1.5, y: 0, z: 0 },
+  ],
+  [
+    { x: -0.15, y: -0.15, z: 0 },
+    { x: 0.15, y: -0.15, z: 0 },
+    { x: 0.15, y: 0.15, z: 0 },
+    { x: -0.15, y: 0.15, z: 0 },
+  ]
+)`,
+        waveTube: "new waveTube(0.2, 32)",
+        waveLathe: "new waveLathe(1, 48)",
+        waveIcoSphere: "new waveIcoSphere(1, 2, false)",
+        waveDome: "new waveDome(2, 0.5, 32)",
+        waveWedge: "new waveWedge(2, 1, 2)",
+        wavePrism: "new wavePrism(6, 1, 2)",
+        waveTrapezoid: "new waveTrapezoid(2, 1.5, 2, 1, 1)",
+        waveCavity: "new waveCavity(4, 3, 4)",
+        waveCavityTopology: "new waveCavityTopology()",
+      };
+
+      function cleanName(value) {
+        const cleaned = value.replace(/[^A-Za-z0-9_$]/g, "");
+        if (!cleaned || /^[0-9]/.test(cleaned)) return "object";
+        return cleaned;
+      }
+
+      function render() {
+        const name = cleanName(objectName.value);
+        const ctor = constructors[primitive.value];
+const code = `const ${name} = ${ctor};
+${name}.setColor(${color.value});
+${name}.moveTo({ x: ${Number(posX.value)}, y: ${Number(posY.value)}, z: ${Number(posZ.value)} });
+scene.add(${name});`;
+        generatedCode.textContent = code;
+      }
+
+      [primitive, objectName, color, posX, posY, posZ].forEach((input) => {
+        input.addEventListener("input", render);
+        input.addEventListener("change", render);
+      });
+
+      copyGenerated.addEventListener("click", async () => {
+        await copyText(generatedCode.textContent);
+        showToast("Generated snippet copied");
+      });
+
+      render();
+    }
+
+    document.querySelector("#focusToggle").addEventListener("click", (event) => {
+      document.body.classList.toggle("focus-mode");
+      event.currentTarget.textContent = document.body.classList.contains("focus-mode") ? "Show Lesson Text" : "Focus Code";
+    });
+
+    document.querySelector("#resetProgress").addEventListener("click", () => {
+      checks.forEach((input) => input.checked = false);
+      updateProgress();
+      showToast("Progress reset");
+    });
+
+    setupCodeCards();
+    setupProgress();
+    setupSearch();
+    setupActiveNav();
+    setupBuilder();
+  </script>
+</body>
+</html>
