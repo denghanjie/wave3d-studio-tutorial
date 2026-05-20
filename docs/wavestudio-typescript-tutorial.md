@@ -10,6 +10,25 @@ The live editor is available at:
 
 https://wave3d.ai/waveStudio/
 
+## Choose Your Creator Track
+
+WaveStudio is broad enough that learning it front-to-back can feel like reading
+an engine manual. A better way is to pick the kind of world you want to build,
+then follow the lessons and boss projects that feed that style.
+
+| Track | You learn to build | Start with | Boss projects to steal from |
+| --- | --- | --- | --- |
+| Artist Track | Shapes, materials, lights, decals, and mesh painting. | Lessons 2, 2A, 4, 9 | Geometry Surgery, Particle Weather Machine |
+| Animator Track | Fluent chains, timelines, paths, and completion callbacks. | Lessons 3, 6, 11 | Draw-to-World Magic Ink, Robot Arm Puzzle |
+| Game Track | Keyboard control, click handlers, HUDs, cameras, and scoring. | Lessons 7, 10, 12, 15 | Keyboard Driving Lab, Recursive Click Explosions |
+| Physics Track | Collisions, rigid bodies, joints, force fields, and destruction. | Lessons 8, 13, 16 | Tiny Solar System, Physics Piano |
+| Worldbuilding Track | Terrain, roads, cities, atmosphere, and performance views. | Lessons 9, 10, 11 | Terraforming Spellbook |
+| Human Interface Track | Voice commands, webcam hands, microphone events, and permissions. | Lessons 7, 12, 13 | Voice/Gesture Character Controller |
+
+You can jump between tracks at any time. The same object might be a painted
+sculpture in the Artist Track, a clickable game target in the Game Track, and a
+dynamic rigid body in the Physics Track.
+
 ## What You Are Writing
 
 WaveStudio code runs inside a scene context. In the editor, several globals are
@@ -1355,12 +1374,18 @@ Try changing this project in small steps:
 - Play a sound when a pickup is clicked.
 - Add `useDynamicBody()` and collision callbacks for a physics version.
 
-## Lesson 16: Recursive Click Explosions
+## Boss Project 1: Recursive Click Explosions
 
 WaveStudio can do the concise recursive explosion pattern your friend showed:
 click a shape, fracture it into pieces, then give each new piece the same click
 handler. The declaration file exposes the natural aliases used in that style:
 `Cube` is an alias for `waveCube`, and `Prop` is an alias for `waveProp`.
+
+### What You Build
+
+A clickable shape that splits into pieces. Each piece becomes clickable too, so
+the scene teaches recursion by letting the learner keep exploding smaller and
+smaller fragments.
 
 The core recursion looks like this:
 
@@ -1394,6 +1419,17 @@ The two important APIs are:
 - `object.whenClickedOn(...)` to react to clicks.
 - `object.exploding().intoPieces(...).withStrength(...).apply()` to create
   a `WaveGroup` of fracture fragments.
+
+### Fluent Chain Anatomy
+
+| Chain step | Meaning |
+| --- | --- |
+| `object.exploding()` | Start a destruction builder from the clicked object. |
+| `.intoPieces(3)` | Ask for three generated fragments. |
+| `.withStrength(2)` | Push the fragments outward with more force. |
+| `.withInteriorColor(PALETTE.MIDNIGHT)` | Color the newly exposed inside faces. |
+| `.withLifeTime(4, Seconds)` | Let fragments clean themselves up after four seconds. |
+| `.apply()` | Run the builder and return the created pieces. |
 
 Here is the same idea with a few practical guardrails: a maximum recursion
 depth, a maximum piece count, and temporary fragment lifetimes.
@@ -1538,6 +1574,357 @@ In the manual version, the recursive idea is the call chain:
 3. `splitPiece(...)` creates children with `spawnPiece(...)`.
 4. Each child gets the same click behavior.
 5. `depth` and `maxPieces` stop the recursion before it overwhelms the scene.
+
+### Remix Challenges
+
+- Color pieces by depth with `PALETTE.randomFrom(...)` or a fixed palette array.
+- Call `showBoundingBox()` on fragments while tuning the split distances.
+- Add a sound or `waveFx` burst inside `boom(...)`.
+- Stop recursion when the object is destroyed, the size is too small, or the
+  scene reaches `maxPieces`.
+- Replace the starting cube with `waveSphere`, `waveCapsule`, or a loaded model.
+
+## Advanced Gallery: Boss Projects
+
+The demos in `wave-engine/demo/do-not-edit` show WaveStudio acting less like a
+shape toy and more like a small creative engine. Use these as remixable recipes:
+learn the smallest pattern, then open the source demo when you want the full
+system.
+
+Each boss project below follows the same teaching format: what you build,
+smallest useful snippet, APIs to steal, natural-language constants, remix
+challenges, and source demo reference.
+
+### Boss Project 2: Draw-to-World Magic Ink
+
+**What you build:** draw on a `waveUICanvas`, release the pointer, and turn the
+stroke into a 3D `wavePath` on the floor.
+
+**Smallest useful snippet:**
+
+```ts
+const worldPaths = new Map<string, wavePath>();
+
+drawingCanvas
+  .pointerDraw()
+  .withColor(PALETTE.CANARY)
+  .withWidth(6)
+  .withOpacity(0.9)
+  .smooth()
+  .onFinish(({ stroke, pointCount }) => {
+    if (pointCount < 2) return;
+
+    const path = drawingCanvas
+      .curvePath(stroke.id)
+      .onXZPlane()
+      .withScale(0.04)
+      .centeredAt({ x: 0, y: 0.05, z: 0 })
+      .withCurveSegments(24)
+      .create();
+
+    path.setColor(PALETTE.CANARY);
+    worldPaths.set(stroke.id, path);
+  })
+  .enable();
+```
+
+**APIs to steal:** `waveUICanvas.pointerDraw`, `curvePath`, `wavePath`,
+`followPath`, `onFinish`.
+
+**Natural-language constants:** `PALETTE.CANARY`, `Seconds`, named centers such
+as `WORLD_DRAW_CENTER`.
+
+**Remix challenges:** make a car follow the drawn path, convert strokes into
+spell trails, add erase mode, or spawn particles along each path.
+
+**Source demo reference:** `wave-ui-canvas-pointer-drawing/main.ts`.
+
+### Boss Project 3: Keyboard Driving Lab
+
+**What you build:** a small car controlled by keyboard input, with debug helpers
+that make orientation, position, and bounds visible.
+
+**Smallest useful snippet:**
+
+```ts
+const car = new Cube()
+  .placeAt(0, 0.5, 0)
+  .setColor(PALETTE.BLUE);
+
+car.setScale(1.6, 0.35, 2.6);
+car.showDirection();
+car.showPosition();
+car.showBoundingBox();
+scene.add(car);
+
+car.whenHolding(Keyboard.W, () => car.moveForward(0.18));
+car.whenHolding(Keyboard.S, () => car.moveBackward(0.1));
+car.whenHolding(Keyboard.A, () => car.turnLeft(4));
+car.whenHolding(Keyboard.D, () => car.turnRight(4));
+```
+
+**APIs to steal:** `whenPress`, `whenHolding`, `showDirection`, `showPosition`,
+`showCoordinate`, `showBoundingBox`, camera follow patterns.
+
+**Natural-language constants:** `Keyboard.W`, `Keyboard.Space`,
+`PALETTE.BLUE`.
+
+**Remix challenges:** add obstacles, a finish line, drifting, a minimap camera,
+or health and lap counters with `waveUIText`.
+
+**Source demo reference:** `runway-runner/main.ts` and the input lesson above.
+
+### Boss Project 4: Tiny Solar System
+
+**What you build:** a sun, planets, and a gravity field that can be visualized
+with directional markers.
+
+**Smallest useful snippet:**
+
+```ts
+const gravityField = scene
+  .createField("solar-gravity")
+  .asSphere(30)
+  .anchorAt(sunBody)
+  .affects(sunBody, planetBody, cometBody)
+  .ignoreDefaultGravity()
+  .addGravity({
+    id: "sun-source-gravity",
+    source: sunBody,
+    gravityConstant: 9.8,
+    collisionRadius: 2,
+    forceLimit: 60,
+  })
+  .withVoxelGrid({
+    voxelSize: 4,
+    mode: WaveRangeVoxelFillMode.Center,
+  });
+```
+
+**APIs to steal:** `scene.createField`, `asSphere`, `anchorAt`, `affects`,
+`addGravity`, `withVoxelGrid`, `showDirection`.
+
+**Natural-language constants:** `WaveRangeVoxelFillMode.Center`,
+`PALETTE.GOLDENROD`, named values such as `GRAVITY_FIELD_RADIUS`.
+
+**Remix challenges:** add a slingshot comet, show field arrows, make the sun
+grow on click, or compare default gravity against field gravity.
+
+**Source demo reference:** `gravity-force-field/main.ts`.
+
+### Boss Project 5: Terraforming Spellbook
+
+**What you build:** paint dirt roads, stamp brush circles, and dent terrain
+where projectiles hit.
+
+**Smallest useful snippet:**
+
+```ts
+terrain
+  .paint()
+  .layer(ROAD_LAYER)
+  .path()
+  .along([startTerrainPoint, endTerrainPoint])
+  .width(4)
+  .strength(0.7)
+  .falloff("smooth")
+  .apply();
+
+terrain.author().lowerCircle(impactPoint, 2.5, 0.4, {
+  strength: 0.95,
+  falloff: "smooth",
+  jitter: 0.14,
+  noiseScale: 0.12,
+});
+```
+
+**APIs to steal:** `terrain.paint`, `layer`, `circle`, `path`, `terrain.author`,
+`lowerCircle`, `noiseCircle`, `smoothCircle`, `terrain.query().heightAt`.
+
+**Natural-language constants:** `ROAD_LAYER`, `PALETTE.SAGE`,
+`PALETTE.GOLDENROD`, named brush sizes.
+
+**Remix challenges:** build a road editor, crater spell, farming game, tank
+tracks, or terrain restoration brush.
+
+**Source demo reference:** `dirt-road-terrain/main.ts`.
+
+### Boss Project 6: Physics Piano
+
+**What you build:** each piano key is a dynamic rigid body connected by a hinge
+joint, and pressing it triggers sound.
+
+**Smallest useful snippet:**
+
+```ts
+const pianoAssembly = scene.createJointAssembly("physics-piano", body);
+
+const key = new waveCube(0.25, 0.06, 1.2);
+key.rigidBody
+  .asDynamic()
+  .autoFitFromBounds()
+  .setMass(0.2)
+  .disableGravity();
+
+pianoAssembly
+  .joint(body, key)
+  .named("middle-c-hinge")
+  .asHinge({ x: 1, y: 0, z: 0 })
+  .withAngleRange(-12, 0)
+  .build();
+```
+
+**APIs to steal:** `createJointAssembly`, `rigidBody.asDynamic`,
+`autoFitFromBounds`, `joint`, `asHinge`, `createActuationTrigger`,
+`audio.useInstrument`.
+
+**Natural-language constants:** `ConstraintAxis.ANGULAR_X`,
+`MotorMode.POSITION`, `RigidBodyActuationMetricKind.PitchAngle`.
+
+**Remix challenges:** build a drum kit, pinball flippers, drawbridge, trapdoor,
+or rhythm game.
+
+**Source demo reference:** `physics-piano/main.ts`.
+
+### Boss Project 7: Robot Arm Puzzle
+
+**What you build:** click target cubes and let an articulated model move its
+gripper toward them using an end-effector animation chain.
+
+**Smallest useful snippet:**
+
+```ts
+const gripper = roboticArm.getPart(GRIPPER_PART_NAME);
+
+if (gripper) {
+  gripper
+    .moveTo(targetCube.getWorldPosition(), Animate)
+    .over(TARGET_IK_MOVE_SECONDS, Seconds)
+    .play()
+    .onComplete(() => tryPickUpTarget(targetCube));
+}
+```
+
+**APIs to steal:** model parts, part metadata, the source demo's end-effector
+helper, `getPart`, `moveTo`, `onComplete`, click target registries.
+
+**Natural-language constants:** `GRIPPER_PART_NAME`,
+`TARGET_IK_MOVE_SECONDS`, `Animate`, `Seconds`.
+
+**Remix challenges:** sort colored cubes, stack blocks, build a claw machine,
+or make the robot solve a memory puzzle.
+
+**Source demo reference:** `articulated-robotic-arm/main.ts`.
+
+### Boss Project 8: Particle Weather Machine
+
+**What you build:** big expressive particle systems: dust wakes, rain, point
+fields, fireworks, and particles that follow paths.
+
+**Smallest useful snippet:**
+
+```ts
+const heroField = waveFx.emitter("emitter.heroPointField").pointField({
+  count: 34000,
+  bounds: { x: 38, y: 15, z: 14 },
+  palette: [
+    PALETTE.toNormalizedAlpha(PALETTE.CYAN),
+    PALETTE.toNormalizedAlpha(PALETTE.VIOLET),
+    PALETTE.toNormalizedAlpha(PALETTE.WHITE),
+  ],
+});
+
+const heroSystem = waveFx.system("system.heroField", [heroField]);
+waveFx.register(engine, heroSystem);
+```
+
+**APIs to steal:** `waveFx.emitter`, `pointField`, `burst`, `motion`,
+`followPath`, `alphaOverLife`, `sizeOverLife`, `waveFx.system`.
+
+**Natural-language constants:** `PALETTE.CYAN`, `PALETTE.VIOLET`, named emitter
+ids such as `emitter.heroPointField`.
+
+**Remix challenges:** make a storm controller, fireworks sequencer, engine
+exhaust, magic portal, or path-following swarm.
+
+**Source demo reference:** `wavefx-builder/main.ts`.
+
+### Boss Project 9: Voice/Gesture Character Controller
+
+**What you build:** speech commands, webcam hand gestures, and microphone snap
+detection that control a character.
+
+**Smallest useful snippet:**
+
+```ts
+const recognition = scene.director.sensing
+  .speechCommands()
+  .withCommands(speechCommandSpecs)
+  .withLanguage("en-US")
+  .withContinuousListening()
+  .withInterimTranscripts()
+  .withMinScore(0.68)
+  .onCommand(handleSpeechCommand)
+  .startListening();
+
+const handTracking = await scene.director.sensing
+  .webcamHands()
+  .withFacingMode("user")
+  .withGestureRecognition()
+  .withMaxHands(1)
+  .onGesture((data) => handleGestureCommand(data.name))
+  .startTracking();
+```
+
+**APIs to steal:** `director.sensing.speechCommands`,
+`director.sensing.webcamHands`, `director.audio.analyzeMicrophone`,
+`withGestureRecognition`, `onCommand`, `onGesture`, `onSnap`.
+
+**Natural-language constants:** `"en-US"`, named command specs, named gesture
+handlers such as `handleGestureCommand`.
+
+**Remix challenges:** voice-controlled robot, hand-pose spell casting,
+snap-to-switch-lights, or accessibility controls for a game.
+
+**Source demo reference:** `amy-voice-gesture/main.ts`.
+
+### Boss Project 10: Geometry Surgery
+
+**What you build:** fracture meshes, stamp decals, deform surfaces, and combine
+or cut geometry.
+
+**Smallest useful snippet:**
+
+```ts
+const result = ring.model
+  .fragmenting()
+  .intoPieces(5)
+  .withInteriorColor(PALETTE.GRAY)
+  .withSeed(1337)
+  .apply();
+
+if (result.success) {
+  result.fragments.forEach((fragment) => {
+    fragment.setColor(PALETTE.randomFrom([
+      PALETTE.CYAN,
+      PALETTE.GOLDENROD,
+      PALETTE.CORAL,
+    ]));
+  });
+}
+```
+
+**APIs to steal:** `model.fragmenting`, `model.deforming`, `addDecal`,
+`material`, `unioning`, `subtracting`, `intersecting`, `forceMergeMesh`.
+
+**Natural-language constants:** `WaveSurface.Up`, `PALETTE.GRAY`, named seeds
+for repeatable cuts.
+
+**Remix challenges:** make a wall that dents when hit, a graffiti system, a
+sculpting brush, or a CSG puzzle where players carve keys from blocks.
+
+**Source demo reference:** `mesh-sculpting/main.ts` and
+`vertex-color-pbr-painting/main.ts`.
 
 ## Complete Scene-Facing API Catalog
 

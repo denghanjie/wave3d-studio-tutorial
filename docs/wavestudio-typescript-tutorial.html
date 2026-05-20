@@ -182,6 +182,7 @@
       border-radius: var(--radius);
       background: rgba(255, 255, 255, 0.88);
       box-shadow: var(--shadow);
+      min-width: 0;
     }
 
     .side {
@@ -257,6 +258,7 @@
       background: rgba(255, 255, 255, 0.9);
       box-shadow: var(--shadow);
       padding: 1rem;
+      min-width: 0;
     }
 
     .intro h2 {
@@ -314,6 +316,98 @@
       font-size: 0.82rem;
     }
 
+    .track-panel {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.94);
+      box-shadow: var(--shadow);
+      margin-bottom: 1rem;
+      padding: 1rem;
+      scroll-margin-top: 5rem;
+      min-width: 0;
+    }
+
+    .track-panel h2 {
+      margin: 0 0 0.35rem;
+      font-size: 1.35rem;
+      letter-spacing: 0;
+    }
+
+    .track-panel > p {
+      margin: 0 0 0.9rem;
+      color: var(--muted);
+    }
+
+    .track-grid,
+    .boss-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+      gap: 0.75rem;
+      margin: 0.85rem 0 1rem;
+    }
+
+    .track-card,
+    .boss-card {
+      border: 1px solid #d8e3ee;
+      border-radius: var(--radius);
+      background: #fbfdff;
+      padding: 0.85rem;
+      min-width: 0;
+    }
+
+    .track-card strong,
+    .boss-card h3 {
+      display: block;
+      margin: 0 0 0.3rem;
+      font-size: 0.98rem;
+      color: #18324a;
+      letter-spacing: 0;
+    }
+
+    .track-card p,
+    .boss-card p {
+      margin: 0.35rem 0;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .mini-label {
+      display: inline-block;
+      margin-top: 0.45rem;
+      color: #405164;
+      font: 700 0.72rem var(--sans);
+      text-transform: uppercase;
+      letter-spacing: 0;
+    }
+
+    .source-note {
+      border-left: 3px solid var(--blue);
+      background: #eef5ff;
+      color: #28405f;
+      margin: 0.75rem 0 1rem;
+      padding: 0.65rem 0.8rem;
+      font-size: 0.88rem;
+    }
+
+    .remix-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin: 0.5rem 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .remix-list li {
+      margin: 0;
+      border: 1px solid #d9e2ec;
+      border-radius: 999px;
+      background: #ffffff;
+      color: #405164;
+      padding: 0.25rem 0.55rem;
+      font-size: 0.78rem;
+    }
+
     .lesson {
       border: 1px solid var(--line);
       border-radius: var(--radius);
@@ -322,6 +416,7 @@
       margin-bottom: 1rem;
       overflow: clip;
       scroll-margin-top: 5rem;
+      min-width: 0;
     }
 
     .lesson[hidden] {
@@ -631,6 +726,40 @@
         columns: 1;
       }
     }
+
+    @media (max-width: 520px) {
+      .layout {
+        padding: 0.75rem;
+      }
+
+      .brand h1 {
+        white-space: normal;
+      }
+
+      .actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .actions .primary {
+        grid-column: 1 / -1;
+        text-align: center;
+      }
+
+      .side nav,
+      .track-grid,
+      .boss-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .node {
+        grid-template-columns: 1fr;
+      }
+
+      pre {
+        font-size: 0.78rem;
+      }
+    }
   </style>
 </head>
 <body>
@@ -655,9 +784,10 @@
 
   <div class="layout">
     <aside class="side" aria-label="Tutorial navigation">
-      <div class="progress-label"><span id="progressText">0 of 18 complete</span></div>
+      <div class="progress-label"><span id="progressText">0 of 19 complete</span></div>
       <div class="meter" aria-hidden="true"><span id="progressBar"></span></div>
       <nav id="lessonNav">
+        <a href="#creator-tracks"><span class="dot"></span><span>Creator Tracks</span></a>
         <a href="#lesson-1"><span class="dot"></span><span>1. Smallest Scene</span></a>
         <a href="#lesson-2"><span class="dot"></span><span>2. Primitives</span></a>
         <a href="#lesson-shape-gallery"><span class="dot"></span><span>2A. Shape Gallery</span></a>
@@ -674,8 +804,9 @@
         <a href="#lesson-13"><span class="dot"></span><span>13. Audio and FX</span></a>
         <a href="#lesson-14"><span class="dot"></span><span>14. Data</span></a>
         <a href="#lesson-15"><span class="dot"></span><span>15. Mini Project</span></a>
-        <a href="#lesson-16"><span class="dot"></span><span>16. Recursion</span></a>
-        <a href="#lesson-17"><span class="dot"></span><span>17. Object Catalog</span></a>
+        <a href="#lesson-16"><span class="dot"></span><span>Boss 1. Recursion</span></a>
+        <a href="#lesson-17"><span class="dot"></span><span>17. Boss Gallery</span></a>
+        <a href="#lesson-18"><span class="dot"></span><span>18. Object Catalog</span></a>
       </nav>
     </aside>
 
@@ -686,7 +817,9 @@
           <p>This standalone page turns the tutorial into a searchable, copyable, trackable guide. Every code block has a copy button, and lesson progress is saved locally in your browser.</p>
           <p>The examples are based on <code>waveStudio-globals.d.ts</code>, the generated declaration file that powers WaveStudio's Monaco IntelliSense.</p>
           <div class="badges">
-            <span class="badge">18 lessons</span>
+            <span class="badge">19 lessons</span>
+            <span class="badge">6 creator tracks</span>
+            <span class="badge">Boss projects</span>
             <span class="badge">TypeScript snippets</span>
             <span class="badge">Local progress</span>
             <span class="badge">No build step</span>
@@ -697,6 +830,49 @@
           <div class="node"><strong>entity</strong><span>Move, color, animate, tag, collide.</span></div>
           <div class="node"><strong>assets</strong><span>Use typed names from models and textures.</span></div>
           <div class="node"><strong>myCloud</strong><span>Open and save JSON records.</span></div>
+        </div>
+      </section>
+
+      <section class="track-panel" id="creator-tracks" aria-labelledby="creator-tracks-title">
+        <h2 id="creator-tracks-title">Choose Your Creator Track</h2>
+        <p>WaveStudio is easier to learn when you pick the kind of world you want to build, then steal the patterns that feed that style.</p>
+        <div class="track-grid">
+          <div class="track-card">
+            <strong>Artist Track</strong>
+            <p>Shapes, materials, lights, decals, and mesh painting.</p>
+            <span class="mini-label">Start with</span>
+            <p>Lessons 2, 2A, 4, 9. Then try Geometry Surgery and Particle Weather Machine.</p>
+          </div>
+          <div class="track-card">
+            <strong>Animator Track</strong>
+            <p>Fluent chains, timelines, paths, and completion callbacks.</p>
+            <span class="mini-label">Start with</span>
+            <p>Lessons 3, 6, 11. Then try Draw-to-World Magic Ink and Robot Arm Puzzle.</p>
+          </div>
+          <div class="track-card">
+            <strong>Game Track</strong>
+            <p>Keyboard input, click handlers, HUDs, cameras, and scoring.</p>
+            <span class="mini-label">Start with</span>
+            <p>Lessons 7, 10, 12, 15. Then try Keyboard Driving Lab and Recursive Click Explosions.</p>
+          </div>
+          <div class="track-card">
+            <strong>Physics Track</strong>
+            <p>Collisions, rigid bodies, joints, force fields, and destruction.</p>
+            <span class="mini-label">Start with</span>
+            <p>Lessons 8, 13, 16. Then try Tiny Solar System and Physics Piano.</p>
+          </div>
+          <div class="track-card">
+            <strong>Worldbuilding Track</strong>
+            <p>Terrain, roads, cities, atmosphere, and performance views.</p>
+            <span class="mini-label">Start with</span>
+            <p>Lessons 9, 10, 11. Then try Terraforming Spellbook.</p>
+          </div>
+          <div class="track-card">
+            <strong>Human Interface Track</strong>
+            <p>Voice commands, webcam hands, microphone events, and permissions.</p>
+            <span class="mini-label">Start with</span>
+            <p>Lessons 7, 12, 13. Then try Voice/Gesture Character Controller.</p>
+          </div>
         </div>
       </section>
 
@@ -1773,13 +1949,15 @@ for (let i = 0; i &lt; totalPickups; i++) {
         </div>
       </article>
 
-      <article class="lesson" id="lesson-16" data-lesson="16" data-keywords="recursion recursive explode exploding split fracture click subdivision algorithm">
+      <article class="lesson" id="lesson-16" data-lesson="16" data-keywords="boss project recursion recursive explode exploding split fracture click subdivision algorithm fluent chain intoPieces withStrength lifetime">
         <header class="lesson-head">
-          <div><h2>Lesson 16: Recursive Click Explosions</h2><p>Click a shape, split it into smaller pieces, and let the children do the same thing.</p></div>
+          <div><h2>Boss Project 1: Recursive Click Explosions</h2><p>Click a shape, split it into smaller pieces, and let the children do the same thing.</p></div>
           <label class="check"><input type="checkbox" data-complete="lesson-16"> Complete</label>
         </header>
         <div class="lesson-body">
           <p>WaveStudio can do the concise recursive explosion pattern your friend showed: click a shape, fracture it into pieces, then give each new piece the same click handler. <code>Cube</code> is an alias for <code>waveCube</code>, and <code>Prop</code> is an alias for <code>waveProp</code>.</p>
+          <h3>What You Build</h3>
+          <p>A clickable shape that splits into pieces. Each piece becomes clickable too, so the scene teaches recursion by letting the learner keep exploding smaller and smaller fragments.</p>
           <pre><code class="language-ts">const target = new Cube()
   .placeAt(0, 5, 0)
   .setColor(PALETTE.BLUE);
@@ -1799,6 +1977,18 @@ const boom = (object: Prop): void =&gt; {
 
 target.whenClickedOn(() =&gt; boom(target));</code></pre>
           <p>That is recursion because <code>boom</code> attaches <code>boom</code> to every fragment it creates. The optional chain keeps the example type-safe because <code>apply()</code> is declared as <code>WaveGroup&lt;T&gt; | null</code>.</p>
+          <h3>Fluent Chain Anatomy</h3>
+          <table class="reference-table">
+            <thead><tr><th>Chain step</th><th>Meaning</th></tr></thead>
+            <tbody>
+              <tr><td><code>object.exploding()</code></td><td>Start a destruction builder from the clicked object.</td></tr>
+              <tr><td><code>.intoPieces(3)</code></td><td>Ask for three generated fragments.</td></tr>
+              <tr><td><code>.withStrength(2)</code></td><td>Push the fragments outward with more force.</td></tr>
+              <tr><td><code>.withInteriorColor(PALETTE.MIDNIGHT)</code></td><td>Color the newly exposed inside faces.</td></tr>
+              <tr><td><code>.withLifeTime(4, Seconds)</code></td><td>Let fragments clean themselves up after four seconds.</td></tr>
+              <tr><td><code>.apply()</code></td><td>Run the builder and return the created pieces.</td></tr>
+            </tbody>
+          </table>
           <pre><code class="language-ts">const root = new Cube()
   .placeAt(0, 5, 0)
   .setColor(PALETTE.CYAN);
@@ -1928,13 +2118,251 @@ spawnPiece(0, 2, 0, 3, maxDepth);</code></pre>
             <li><code>splitPiece</code> replaces one cube with eight smaller cubes.</li>
             <li><code>depth</code> and <code>maxPieces</code> keep the recursion bounded.</li>
           </ul>
+          <h3>Remix Challenges</h3>
+          <ul class="remix-list">
+            <li>Color pieces by depth.</li>
+            <li>Make fragments spin.</li>
+            <li>Add a sound or FX burst.</li>
+            <li>Stop at tiny sizes.</li>
+            <li>Start from a Capsule or model.</li>
+          </ul>
         </div>
       </article>
 
-      <article class="lesson" id="lesson-17" data-lesson="17" data-keywords="complete object catalog all classes geometry animation api waveCube waveSphere waveTorus wavePath waveUI WaveGroup WaveField waveFx">
+      <article class="lesson" id="lesson-17" data-lesson="17" data-keywords="advanced gallery boss projects draw to world magic ink keyboard driving lab solar system terrain physics piano robot arm particles voice gesture geometry surgery">
         <header class="lesson-head">
-          <div><h2>Lesson 17: Complete Object Catalog</h2><p>A scene-facing map of the objects declared by the WaveStudio globals file.</p></div>
+          <div><h2>Lesson 17: Advanced Gallery: Boss Projects</h2><p>Remix the wild demos into teachable patterns and small starter snippets.</p></div>
           <label class="check"><input type="checkbox" data-complete="lesson-17"> Complete</label>
+        </header>
+        <div class="lesson-body">
+          <p>The demos in <code>wave-engine/demo/do-not-edit</code> show WaveStudio acting less like a shape toy and more like a small creative engine. Use these as recipes: learn the smallest pattern, then open the source demo when you want the full system.</p>
+
+          <div class="boss-card">
+            <h3>Boss Project 2: Draw-to-World Magic Ink</h3>
+            <p><span class="mini-label">What you build</span> Draw on a <code>waveUICanvas</code>, release the pointer, and turn the stroke into a 3D <code>wavePath</code> on the floor.</p>
+            <pre><code class="language-ts">const worldPaths = new Map&lt;string, wavePath&gt;();
+
+drawingCanvas
+  .pointerDraw()
+  .withColor(PALETTE.CANARY)
+  .withWidth(6)
+  .withOpacity(0.9)
+  .smooth()
+  .onFinish(({ stroke, pointCount }) =&gt; {
+    if (pointCount &lt; 2) return;
+
+    const path = drawingCanvas
+      .curvePath(stroke.id)
+      .onXZPlane()
+      .withScale(0.04)
+      .centeredAt({ x: 0, y: 0.05, z: 0 })
+      .withCurveSegments(24)
+      .create();
+
+    path.setColor(PALETTE.CANARY);
+    worldPaths.set(stroke.id, path);
+  })
+  .enable();</code></pre>
+            <p><span class="mini-label">APIs to steal</span> <code>waveUICanvas.pointerDraw</code>, <code>curvePath</code>, <code>wavePath</code>, <code>followPath</code>, <code>onFinish</code>.</p>
+            <p><span class="mini-label">Natural-language constants</span> <code>PALETTE.CANARY</code>, <code>Seconds</code>, named centers such as <code>WORLD_DRAW_CENTER</code>.</p>
+            <ul class="remix-list"><li>Make a car follow the drawn path.</li><li>Convert strokes into spell trails.</li><li>Add erase mode.</li><li>Spawn particles along each path.</li></ul>
+            <p class="source-note">Source demo reference: <code>wave-ui-canvas-pointer-drawing/main.ts</code>.</p>
+          </div>
+
+          <div class="boss-card">
+            <h3>Boss Project 3: Keyboard Driving Lab</h3>
+            <p><span class="mini-label">What you build</span> A small car controlled by keyboard input, with debug helpers that make orientation, position, and bounds visible.</p>
+            <pre><code class="language-ts">const car = new Cube()
+  .placeAt(0, 0.5, 0)
+  .setColor(PALETTE.BLUE);
+
+car.setScale(1.6, 0.35, 2.6);
+car.showDirection();
+car.showPosition();
+car.showBoundingBox();
+scene.add(car);
+
+car.whenHolding(Keyboard.W, () =&gt; car.moveForward(0.18));
+car.whenHolding(Keyboard.S, () =&gt; car.moveBackward(0.1));
+car.whenHolding(Keyboard.A, () =&gt; car.turnLeft(4));
+car.whenHolding(Keyboard.D, () =&gt; car.turnRight(4));</code></pre>
+            <p><span class="mini-label">APIs to steal</span> <code>whenPress</code>, <code>whenHolding</code>, <code>showDirection</code>, <code>showPosition</code>, <code>showCoordinate</code>, camera follow patterns.</p>
+            <p><span class="mini-label">Natural-language constants</span> <code>Keyboard.W</code>, <code>Keyboard.Space</code>, <code>PALETTE.BLUE</code>.</p>
+            <ul class="remix-list"><li>Add obstacles.</li><li>Add a finish line.</li><li>Build a minimap camera.</li><li>Add health and lap counters.</li></ul>
+            <p class="source-note">Source demo reference: <code>runway-runner/main.ts</code> and Lesson 7.</p>
+          </div>
+
+          <div class="boss-card">
+            <h3>Boss Project 4: Tiny Solar System</h3>
+            <p><span class="mini-label">What you build</span> A sun, planets, and a gravity field that can be visualized with directional markers.</p>
+            <pre><code class="language-ts">const gravityField = scene
+  .createField("solar-gravity")
+  .asSphere(30)
+  .anchorAt(sunBody)
+  .affects(sunBody, planetBody, cometBody)
+  .ignoreDefaultGravity()
+  .addGravity({
+    id: "sun-source-gravity",
+    source: sunBody,
+    gravityConstant: 9.8,
+    collisionRadius: 2,
+    forceLimit: 60,
+  })
+  .withVoxelGrid({
+    voxelSize: 4,
+    mode: WaveRangeVoxelFillMode.Center,
+  });</code></pre>
+            <p><span class="mini-label">APIs to steal</span> <code>scene.createField</code>, <code>asSphere</code>, <code>anchorAt</code>, <code>affects</code>, <code>addGravity</code>, <code>withVoxelGrid</code>, <code>showDirection</code>.</p>
+            <p><span class="mini-label">Natural-language constants</span> <code>WaveRangeVoxelFillMode.Center</code>, <code>PALETTE.GOLDENROD</code>, named values such as <code>GRAVITY_FIELD_RADIUS</code>.</p>
+            <ul class="remix-list"><li>Add a slingshot comet.</li><li>Show field arrows.</li><li>Make the sun grow on click.</li><li>Compare gravity modes.</li></ul>
+            <p class="source-note">Source demo reference: <code>gravity-force-field/main.ts</code>.</p>
+          </div>
+
+          <div class="boss-card">
+            <h3>Boss Project 5: Terraforming Spellbook</h3>
+            <p><span class="mini-label">What you build</span> Paint dirt roads, stamp brush circles, and dent terrain where projectiles hit.</p>
+            <pre><code class="language-ts">terrain
+  .paint()
+  .layer(ROAD_LAYER)
+  .path()
+  .along([startTerrainPoint, endTerrainPoint])
+  .width(4)
+  .strength(0.7)
+  .falloff("smooth")
+  .apply();
+
+terrain.author().lowerCircle(impactPoint, 2.5, 0.4, {
+  strength: 0.95,
+  falloff: "smooth",
+  jitter: 0.14,
+  noiseScale: 0.12,
+});</code></pre>
+            <p><span class="mini-label">APIs to steal</span> <code>terrain.paint</code>, <code>layer</code>, <code>circle</code>, <code>path</code>, <code>terrain.author</code>, <code>lowerCircle</code>, <code>noiseCircle</code>, <code>smoothCircle</code>, <code>terrain.query().heightAt</code>.</p>
+            <p><span class="mini-label">Natural-language constants</span> <code>ROAD_LAYER</code>, <code>PALETTE.SAGE</code>, <code>PALETTE.GOLDENROD</code>, named brush sizes.</p>
+            <ul class="remix-list"><li>Build a road editor.</li><li>Add a crater spell.</li><li>Make tank tracks.</li><li>Add a restoration brush.</li></ul>
+            <p class="source-note">Source demo reference: <code>dirt-road-terrain/main.ts</code>.</p>
+          </div>
+
+          <div class="boss-card">
+            <h3>Boss Project 6: Physics Piano</h3>
+            <p><span class="mini-label">What you build</span> Each piano key is a dynamic rigid body connected by a hinge joint, and pressing it triggers sound.</p>
+            <pre><code class="language-ts">const pianoAssembly = scene.createJointAssembly("physics-piano", body);
+
+const key = new waveCube(0.25, 0.06, 1.2);
+key.rigidBody
+  .asDynamic()
+  .autoFitFromBounds()
+  .setMass(0.2)
+  .disableGravity();
+
+pianoAssembly
+  .joint(body, key)
+  .named("middle-c-hinge")
+  .asHinge({ x: 1, y: 0, z: 0 })
+  .withAngleRange(-12, 0)
+  .build();</code></pre>
+            <p><span class="mini-label">APIs to steal</span> <code>createJointAssembly</code>, <code>rigidBody.asDynamic</code>, <code>autoFitFromBounds</code>, <code>joint</code>, <code>asHinge</code>, <code>createActuationTrigger</code>, <code>audio.useInstrument</code>.</p>
+            <p><span class="mini-label">Natural-language constants</span> <code>ConstraintAxis.ANGULAR_X</code>, <code>MotorMode.POSITION</code>, <code>RigidBodyActuationMetricKind.PitchAngle</code>.</p>
+            <ul class="remix-list"><li>Build a drum kit.</li><li>Add pinball flippers.</li><li>Create a drawbridge.</li><li>Make a rhythm game.</li></ul>
+            <p class="source-note">Source demo reference: <code>physics-piano/main.ts</code>.</p>
+          </div>
+
+          <div class="boss-card">
+            <h3>Boss Project 7: Robot Arm Puzzle</h3>
+            <p><span class="mini-label">What you build</span> Click target cubes and let an articulated model move its gripper toward them using an end-effector animation chain.</p>
+            <pre><code class="language-ts">const gripper = roboticArm.getPart(GRIPPER_PART_NAME);
+
+if (gripper) {
+  gripper
+    .moveTo(targetCube.getWorldPosition(), Animate)
+    .over(TARGET_IK_MOVE_SECONDS, Seconds)
+    .play()
+    .onComplete(() =&gt; tryPickUpTarget(targetCube));
+}</code></pre>
+            <p><span class="mini-label">APIs to steal</span> model parts, part metadata, the source demo's end-effector helper, <code>getPart</code>, <code>moveTo</code>, <code>onComplete</code>, click target registries.</p>
+            <p><span class="mini-label">Natural-language constants</span> <code>GRIPPER_PART_NAME</code>, <code>TARGET_IK_MOVE_SECONDS</code>, <code>Animate</code>, <code>Seconds</code>.</p>
+            <ul class="remix-list"><li>Sort colored cubes.</li><li>Stack blocks.</li><li>Build a claw machine.</li><li>Solve a memory puzzle.</li></ul>
+            <p class="source-note">Source demo reference: <code>articulated-robotic-arm/main.ts</code>.</p>
+          </div>
+
+          <div class="boss-card">
+            <h3>Boss Project 8: Particle Weather Machine</h3>
+            <p><span class="mini-label">What you build</span> Big expressive particle systems: dust wakes, rain, point fields, fireworks, and particles that follow paths.</p>
+            <pre><code class="language-ts">const heroField = waveFx.emitter("emitter.heroPointField").pointField({
+  count: 34000,
+  bounds: { x: 38, y: 15, z: 14 },
+  palette: [
+    PALETTE.toNormalizedAlpha(PALETTE.CYAN),
+    PALETTE.toNormalizedAlpha(PALETTE.VIOLET),
+    PALETTE.toNormalizedAlpha(PALETTE.WHITE),
+  ],
+});
+
+const heroSystem = waveFx.system("system.heroField", [heroField]);
+waveFx.register(engine, heroSystem);</code></pre>
+            <p><span class="mini-label">APIs to steal</span> <code>waveFx.emitter</code>, <code>pointField</code>, <code>burst</code>, <code>motion</code>, <code>followPath</code>, <code>alphaOverLife</code>, <code>sizeOverLife</code>, <code>waveFx.system</code>.</p>
+            <p><span class="mini-label">Natural-language constants</span> <code>PALETTE.CYAN</code>, <code>PALETTE.VIOLET</code>, named emitter ids such as <code>emitter.heroPointField</code>.</p>
+            <ul class="remix-list"><li>Make a storm controller.</li><li>Add fireworks.</li><li>Create engine exhaust.</li><li>Build a portal swarm.</li></ul>
+            <p class="source-note">Source demo reference: <code>wavefx-builder/main.ts</code>.</p>
+          </div>
+
+          <div class="boss-card">
+            <h3>Boss Project 9: Voice/Gesture Character Controller</h3>
+            <p><span class="mini-label">What you build</span> Speech commands, webcam hand gestures, and microphone snap detection that control a character.</p>
+            <pre><code class="language-ts">const recognition = scene.director.sensing
+  .speechCommands()
+  .withCommands(speechCommandSpecs)
+  .withLanguage("en-US")
+  .withContinuousListening()
+  .withInterimTranscripts()
+  .withMinScore(0.68)
+  .onCommand(handleSpeechCommand)
+  .startListening();
+
+const handTracking = await scene.director.sensing
+  .webcamHands()
+  .withFacingMode("user")
+  .withGestureRecognition()
+  .withMaxHands(1)
+  .onGesture((data) =&gt; handleGestureCommand(data.name))
+  .startTracking();</code></pre>
+            <p><span class="mini-label">APIs to steal</span> <code>director.sensing.speechCommands</code>, <code>director.sensing.webcamHands</code>, <code>director.audio.analyzeMicrophone</code>, <code>withGestureRecognition</code>, <code>onCommand</code>, <code>onGesture</code>, <code>onSnap</code>.</p>
+            <p><span class="mini-label">Natural-language constants</span> <code>"en-US"</code>, named command specs, named gesture handlers such as <code>handleGestureCommand</code>.</p>
+            <ul class="remix-list"><li>Voice-control a robot.</li><li>Cast hand-pose spells.</li><li>Snap to switch lights.</li><li>Add accessibility controls.</li></ul>
+            <p class="source-note">Source demo reference: <code>amy-voice-gesture/main.ts</code>.</p>
+          </div>
+
+          <div class="boss-card">
+            <h3>Boss Project 10: Geometry Surgery</h3>
+            <p><span class="mini-label">What you build</span> Fracture meshes, stamp decals, deform surfaces, and combine or cut geometry.</p>
+            <pre><code class="language-ts">const result = ring.model
+  .fragmenting()
+  .intoPieces(5)
+  .withInteriorColor(PALETTE.GRAY)
+  .withSeed(1337)
+  .apply();
+
+if (result.success) {
+  result.fragments.forEach((fragment) =&gt; {
+    fragment.setColor(PALETTE.randomFrom([
+      PALETTE.CYAN,
+      PALETTE.GOLDENROD,
+      PALETTE.CORAL,
+    ]));
+  });
+}</code></pre>
+            <p><span class="mini-label">APIs to steal</span> <code>model.fragmenting</code>, <code>model.deforming</code>, <code>addDecal</code>, <code>material</code>, <code>unioning</code>, <code>subtracting</code>, <code>intersecting</code>, <code>forceMergeMesh</code>.</p>
+            <p><span class="mini-label">Natural-language constants</span> <code>WaveSurface.Up</code>, <code>PALETTE.GRAY</code>, named seeds for repeatable cuts.</p>
+            <ul class="remix-list"><li>Dent a wall when hit.</li><li>Add graffiti stamps.</li><li>Create a sculpting brush.</li><li>Carve CSG keys from blocks.</li></ul>
+            <p class="source-note">Source demo reference: <code>mesh-sculpting/main.ts</code> and <code>vertex-color-pbr-painting/main.ts</code>.</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="lesson" id="lesson-18" data-lesson="18" data-keywords="complete object catalog all classes geometry animation api waveCube waveSphere waveTorus wavePath waveUI WaveGroup WaveField waveFx">
+        <header class="lesson-head">
+          <div><h2>Lesson 18: Complete Object Catalog</h2><p>A scene-facing map of the objects declared by the WaveStudio globals file.</p></div>
+          <label class="check"><input type="checkbox" data-complete="lesson-18"> Complete</label>
         </header>
         <div class="lesson-body">
           <p class="catalog-note">The declaration file has hundreds of classes. This catalog focuses on the objects learners normally instantiate or call in scene code: shapes, 3D objects, groups, animation builders, UI, effects, assets, and scene services.</p>
@@ -2137,7 +2565,7 @@ spawnPiece(0, 2, 0, 3, maxDepth);</code></pre>
   <div class="toast" id="toast" role="status" aria-live="polite">Copied</div>
 
   <script>
-    const storageKey = "wavestudioTutorialProgress.v1";
+    const storageKey = "wavestudioTutorialProgress.v2";
     const lessons = Array.from(document.querySelectorAll(".lesson"));
     const checks = Array.from(document.querySelectorAll("[data-complete]"));
     const navLinks = Array.from(document.querySelectorAll("#lessonNav a"));
