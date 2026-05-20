@@ -2212,6 +2212,109 @@ myScene.director.whenPress(Keyboard.Escape, () => {
 Remix it into a driving game, stealth patrol, chase camera lab, VFX car toy,
 aircraft controller, or keyboard-input lesson.
 
+### Atlas Starter: Texture-to-3D Pixel Painting
+
+This is the learning shape behind the `sampleTexture` idea in
+`vertex-color-pbr-painting`: load an image into a hidden UI canvas, sample its
+pixels, then turn those samples into a grid of tiny 3D objects. It teaches
+texture data, instancing, grid placement, and per-cell callbacks all at once.
+
+Start with `60 x 40` while experimenting. Then scale up to `240 x 120` when you
+want the full sculpture.
+
+```ts
+myScene.sky.backgroundColor(COLOR.WHITE);
+
+const board = new waveUICanvas()
+  .setVisible(false)
+  .loadTexture(textures.FarmGirlHappy);
+
+const pictureGrid = board.sampleTexture(240, 120);
+
+const pixelAsset = new Sphere(0.08).createInstanceSource();
+const pixel = new waveInstanceMesh().useModel(pixelAsset.assetName);
+
+const painting = myScene
+  .placeInGrid(pixel)
+  .hideOriginal()
+  .at(pixel.position)
+  .withRows(240)
+  .withCols(120)
+  .withSpacing(0.08)
+  .onXZPlane()
+  .onEachCell((pixelEntity, row, col) => {
+    const sample = pictureGrid.cell(row, col);
+    const luminance = sample.luminance;
+
+    if (luminance > 0.99) {
+      pixelEntity.destroy();
+      return;
+    }
+
+    pixelEntity.setColor({
+      r: luminance,
+      g: luminance * 0.3,
+      b: luminance,
+    });
+
+    pixelEntity.moveUp(luminance * 3);
+  })
+  .place();
+```
+
+APIs to steal: `waveUICanvas.loadTexture`, `sampleTexture`, `cell(row, col)`,
+`createInstanceSource`, `waveInstanceMesh`, `placeInGrid`, `hideOriginal`, and
+`onEachCell`.
+
+Remix it into image relief sculpture, pixel terrain, bead art, height-map
+portraits, music-reactive mosaics, or a lesson on how images become data.
+
+### Atlas Starter: Tabletop Still Life Composer
+
+This is the learning shape behind expressive prop staging: stop hand-computing
+Y positions and use semantic placement. `placeAbove(table)` reads like the
+intention, and `placeAround(table)` makes circular layouts teachable.
+
+```ts
+const table = new Prop(models.Table_Large_Circular)
+  .enlargeBy(5)
+  .placeAbove(myScene.terrain);
+
+const vase = new Prop(models.vase_de_Nesle)
+  .shrinkBy(170)
+  .placeAbove(table)
+  .moveLeft(1);
+
+const book = new Prop(models.Books)
+  .enlargeBy(7)
+  .placeAbove(table)
+  .moveRight(1);
+
+const fruit = new Prop(models.Fruit_Bowl)
+  .enlargeBy(7)
+  .placeAbove(table)
+  .moveBackward(1.7);
+
+const chair = new Prop(models.Chair).enlargeBy(5);
+
+myScene
+  .placeAround(table)
+  .with(chair)
+  .inTotal(3)
+  .inRadius(3)
+  .onPerimeter()
+  .includingOriginal()
+  .faceCenter()
+  .place();
+```
+
+APIs to steal: `Prop`, `models.*`, `placeAbove`, `moveLeft`, `moveRight`,
+`moveBackward`, `placeAround`, `inTotal`, `inRadius`, `onPerimeter`,
+`includingOriginal`, and `faceCenter`.
+
+Remix it into room staging, a restaurant table generator, classroom seating,
+museum displays, inventory layouts, or a cozy scene-building exercise.
+
 ## Complete Scene-Facing API Catalog
 
 `waveStudio-globals.d.ts` declares hundreds of classes. Not every declared class
@@ -2490,12 +2593,14 @@ Core scene methods:
 - `scene.getFirstByName(name)`
 - `scene.find(predicate)`
 - `scene.createGroup(name)`
+- `myScene.placeInGrid(input)`
+- `myScene.placeAround(target)`
 - `scene.spawnInGrid(input, options)`
 - `scene.print(text)`
 
 Core entity methods:
 
-- `moveTo`, `moveBy`, `moveForward`, `moveUp`
+- `moveTo`, `moveBy`, `moveForward`, `moveUp`, `placeAbove`
 - `turnRight`, `turnLeft`, `pitchUp`, `rollLeft`
 - `setScale`, `setUniformScale`, `scaleBy`
 - `setColor`, `useMaterial`, `setBaseTexture`

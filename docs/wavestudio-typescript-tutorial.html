@@ -2312,7 +2312,7 @@ if (result.success) {
         </div>
       </article>
 
-      <article class="lesson" id="lesson-18" data-lesson="18" data-keywords="demo atlas project seeds wave engine demos vat crowd animal signal collision light projection ocean rigging occlusion visual piano crystal basin thinbatch tracked car voice gesture terrain piano gravity pointer drawing particle robot">
+      <article class="lesson" id="lesson-18" data-lesson="18" data-keywords="demo atlas project seeds wave engine demos vat crowd animal signal collision light projection ocean rigging occlusion visual piano crystal basin thinbatch tracked car voice gesture terrain piano gravity pointer drawing particle robot sampleTexture texture 3d painting placeAbove placeAround prop still life table">
         <header class="lesson-head">
           <div><h2>Lesson 18: Demo Atlas: 30 Project Seeds</h2><p>Turn the extracted wave-engine demos into a bigger map of project ideas.</p></div>
           <label class="check"><input type="checkbox" data-complete="lesson-18"> Complete</label>
@@ -2580,6 +2580,83 @@ myScene.director.whenPress(Keyboard.Escape, () =&gt; {
   car.camera.deactivate();
 });</code></pre>
           <p>Remix it into a driving game, stealth patrol, chase camera lab, VFX car toy, aircraft controller, or keyboard-input lesson.</p>
+
+          <h3>Atlas Starter: Texture-to-3D Pixel Painting</h3>
+          <p>Load an image into a hidden UI canvas, sample its pixels, then turn those samples into a grid of tiny 3D objects. Start with <code>60 x 40</code> while experimenting, then scale up to <code>240 x 120</code> for the full sculpture.</p>
+          <pre><code class="language-ts">myScene.sky.backgroundColor(COLOR.WHITE);
+
+const board = new waveUICanvas()
+  .setVisible(false)
+  .loadTexture(textures.FarmGirlHappy);
+
+const pictureGrid = board.sampleTexture(240, 120);
+
+const pixelAsset = new Sphere(0.08).createInstanceSource();
+const pixel = new waveInstanceMesh().useModel(pixelAsset.assetName);
+
+const painting = myScene
+  .placeInGrid(pixel)
+  .hideOriginal()
+  .at(pixel.position)
+  .withRows(240)
+  .withCols(120)
+  .withSpacing(0.08)
+  .onXZPlane()
+  .onEachCell((pixelEntity, row, col) =&gt; {
+    const sample = pictureGrid.cell(row, col);
+    const luminance = sample.luminance;
+
+    if (luminance &gt; 0.99) {
+      pixelEntity.destroy();
+      return;
+    }
+
+    pixelEntity.setColor({
+      r: luminance,
+      g: luminance * 0.3,
+      b: luminance,
+    });
+
+    pixelEntity.moveUp(luminance * 3);
+  })
+  .place();</code></pre>
+          <p><strong>APIs to steal:</strong> <code>waveUICanvas.loadTexture</code>, <code>sampleTexture</code>, <code>cell(row, col)</code>, <code>createInstanceSource</code>, <code>waveInstanceMesh</code>, <code>placeInGrid</code>, <code>hideOriginal</code>, and <code>onEachCell</code>.</p>
+          <p>Remix it into image relief sculpture, pixel terrain, bead art, height-map portraits, music-reactive mosaics, or a lesson on how images become data.</p>
+
+          <h3>Atlas Starter: Tabletop Still Life Composer</h3>
+          <p>Stop hand-computing Y positions and use semantic placement. <code>placeAbove(table)</code> reads like the intention, and <code>placeAround(table)</code> makes circular layouts teachable.</p>
+          <pre><code class="language-ts">const table = new Prop(models.Table_Large_Circular)
+  .enlargeBy(5)
+  .placeAbove(myScene.terrain);
+
+const vase = new Prop(models.vase_de_Nesle)
+  .shrinkBy(170)
+  .placeAbove(table)
+  .moveLeft(1);
+
+const book = new Prop(models.Books)
+  .enlargeBy(7)
+  .placeAbove(table)
+  .moveRight(1);
+
+const fruit = new Prop(models.Fruit_Bowl)
+  .enlargeBy(7)
+  .placeAbove(table)
+  .moveBackward(1.7);
+
+const chair = new Prop(models.Chair).enlargeBy(5);
+
+myScene
+  .placeAround(table)
+  .with(chair)
+  .inTotal(3)
+  .inRadius(3)
+  .onPerimeter()
+  .includingOriginal()
+  .faceCenter()
+  .place();</code></pre>
+          <p><strong>APIs to steal:</strong> <code>Prop</code>, <code>models.*</code>, <code>placeAbove</code>, <code>moveLeft</code>, <code>moveRight</code>, <code>moveBackward</code>, <code>placeAround</code>, <code>inTotal</code>, <code>inRadius</code>, <code>onPerimeter</code>, <code>includingOriginal</code>, and <code>faceCenter</code>.</p>
+          <p>Remix it into room staging, a restaurant table generator, classroom seating, museum displays, inventory layouts, or a cozy scene-building exercise.</p>
         </div>
       </article>
 
@@ -2770,7 +2847,10 @@ myScene.director.whenPress(Keyboard.Escape, () =&gt; {
         <h2>Quick Reference</h2>
         <ul>
           <li><code>scene.getByTag(tag)</code></li>
+          <li><code>myScene.placeInGrid(input)</code></li>
+          <li><code>myScene.placeAround(target)</code></li>
           <li><code>object.moveTo({ x: x, y: y, z: z })</code></li>
+          <li><code>object.placeAbove(target)</code></li>
           <li><code>object.onTick(fn)</code></li>
           <li><code>object.whenHolding(Keyboard.W, fn)</code></li>
           <li><code>object.whenClickedOn(fn)</code></li>
