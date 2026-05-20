@@ -1926,6 +1926,349 @@ sculpting brush, or a CSG puzzle where players carve keys from blocks.
 **Source demo reference:** `mesh-sculpting/main.ts` and
 `vertex-color-pbr-painting/main.ts`.
 
+## Demo Atlas: 30 Project Seeds from `wave-engine`
+
+The boss projects above teach a few patterns in depth. The atlas below is the
+next layer: every extracted demo becomes a project prompt. Treat each row as a
+small product idea you can build toward, not just a file to read.
+
+| Demo | Project seed | APIs and ideas to study | Remix challenge |
+| --- | --- | --- | --- |
+| `amy-vat-crowd` | **Dance-Crowd Stress Test** | `createVertexAnimation`, `useVertexAnimation`, `waveInstanceMesh`, procedural GPU animation. | Build a concert crowd where rows react to music or keyboard cues. |
+| `amy-voice-gesture` | **Talk-to-Amy Stage Director** | Speech commands, webcam hands, microphone snap analysis, character lighting. | Let voice pick animation states and hand gestures move the performer. |
+| `animal-signal-cartographer` | **Animal Signal Radar** | `waveUICanvas`, canvas sprites, `waveUIImage`, animal tags, animated signal arcs. | Make a wildlife tracker where clicking an animal updates a live radar panel. |
+| `articulated-robotic-arm` | **Factory Arm Pick-and-Place** | Model parts, target cubes, `getPart`, end-effector helper patterns, completion callbacks. | Turn it into a color-sorting factory puzzle. |
+| `collision-stress-lab` | **Physics Crash Museum** | `rigidBody.asStatic`, `asDynamic`, convex hulls, compound colliders, collision callbacks. | Build a test hall where each exhibit teaches one collider mistake. |
+| `colored-light-projection` | **Prism Light Theater** | Spotlights, `setProjectionPreset`, translucent materials, refraction, planar reflections. | Make a stage where keys cycle caustics, gradients, and stained-glass beams. |
+| `dirt-road-terrain` | **Mud Road Terraformer** | `terrain.paint`, splat layers, road paths, crater authoring, reset tools. | Build a road editor with brush size, flatten, roughen, and restore modes. |
+| `gravity-force-field` | **Vector Physics Planetarium** | `createField`, gravity sources, voxel grids, `wavePoint.showDirection`. | Make a gravity sandbox where arrows explain every invisible force. |
+| `material-surface-setter-probe-grid` | **Surface Material Inspector** | `WaveSurface`, face materials, probe grids, material setters. | Click cube faces to paint named surfaces instead of whole objects. |
+| `mesh-sculpting` | **Geometry Surgery Room** | Fragmenting, CSG, vertex editing, point nets, mesh repair patterns. | Build a sculpting classroom with one station per mesh operation. |
+| `multipart-demo-with-vfx` | **Creature FX Sandbox** | Multipart models, ranges, keyboard control, effects bound to moving parts. | Make a boss creature with weak spots, sparks, and staged attacks. |
+| `nme-ocean-showcase` | **Ocean Island Diorama** | Terrain height controls, water/ocean scene composition, atmospheric tuning. | Add boats, buoys, and weather presets that change the mood. |
+| `physics-cube-modes` | **Rigid Body Mode Playground** | Static/dynamic/kinematic modes, UI buttons, sliders, grid placement. | Let learners switch body modes and immediately see how motion changes. |
+| `physics-piano` | **Hinged Instrument Lab** | Joint assemblies, hinge constraints, actuation triggers, audio instruments. | Build drums, bells, pinball flippers, or a rhythm training game. |
+| `playground-3d` | **Placement Playground** | `placeOnPath`, `placeOnSurfaceOf`, `waveThinBatch`, terrain snapping, UI panels. | Make a level editor where learners scatter props along drawn routes. |
+| `rigging-workshop` | **Humanoid Rig Studio** | `waveHumanoid`, transform authoring tools, rig controls, camera and terrain staging. | Add sliders that pose arms, head, spine, and debug markers live. |
+| `room-color-lightshow` | **Programmable Room Lightshow** | Keyboard-driven lights, projection presets, room materials, color palettes. | Build a DJ light board with named scenes like warm, storm, neon, alarm. |
+| `runway-runner` | **Endless Runner Course** | Game states, spawning segments, HUD hearts, jump impulse, camera follow. | Turn it into a full lesson on game loops, failure states, and score. |
+| `sheep-migration` | **Pathfinding Farm** | `placeInGrid`, grid cells, destroyed obstacles, `pathfind`, `followPath`. | Visualize maze algorithms by making animals walk the computed route. |
+| `shooting-range` | **Multi-Camera Shuriken Range** | Projectiles, target registry, recursive fragments, picture-in-picture cameras. | Add four camera modes and make every broken target become a new target. |
+| `text-renderer` | **3D Typography Fireworks** | Text rendering, `waveFx.emitter().text`, keyboard-triggered word effects. | Let users type a word and explode it into particles. |
+| `thin-client-rendering` | **Thin Client Harness** | Minimal runtime shell and remote/thin rendering structure. | Use it as the smallest place to test loading and scene boot behavior. |
+| `thinbatch-gpu-pathfollow` | **GPU Path Parade** | `waveThinBatch`, `wavePath`, path-following batches, GPU-scale motion. | Create a parade of thousands of objects following braided paths. |
+| `tracked-car-spotlight` | **Night Patrol Car** | Vehicle tracking, `waveLight`, spotlights, ranges, terrain awareness. | Build a stealth game where patrol cones reveal hidden targets. |
+| `urban-occlusion-culling` | **Performance City** | Procedural city blocks, fade transitions, occlusion toggles, window effects. | Teach performance by showing the same city with culling on and off. |
+| `vertex-color-pbr-painting` | **Living Graffiti Wall** | Vertex painting, texture painting, decals, material layers, mesh deformation. | Let clicks paint, stamp, dent, fade, and restore surfaces. |
+| `visual-piano` | **UI Piano Composer** | Visual keys, UI controls, dropdowns, inputs, instrument/audio state. | Build a composition toy that records notes and replays patterns. |
+| `wave-range-crystal-basin` | **Crystal Range Scanner** | `createRange`, terrain placement, `waveThinBatch`, lighting and sky mood. | Show range membership by lighting crystals inside a moving scanner. |
+| `wave-ui-canvas-pointer-drawing` | **Draw-to-World Tool** | Pointer drawing, curve conversion, `wavePath`, erase/reset flows. | Turn sketches into roads, roller coasters, spell paths, or patrol routes. |
+| `wavefx-builder` | **Particle Weather Machine** | Point fields, bursts, rain, fire, text strikes, path-following particles. | Build a weather console with buttons for sparks, rain, dust, and fireworks. |
+
+### Atlas Starter: Pathfinding Farm
+
+This is the learning shape behind `sheep-migration`: make a grid, choose a
+target, compute a route, then animate a character along that route.
+
+```ts
+targetBrick.whenClickedOn(() => {
+  const points = brickGrid
+    .pathfind()
+    .fromCell(startCell.row, startCell.col, 0)
+    .to(targetBrick)
+    .asWorldPoints();
+
+  sheep.animator
+    .followPath(points)
+    .atSpeed(4)
+    .turnToFace()
+    .start();
+});
+```
+
+Remix it into A-star visualization, maze games, tower-defense routing, or an
+algorithm lesson where every visited cell lights up.
+
+### Atlas Starter: Light Projection Stage
+
+This is the learning shape behind `colored-light-projection` and
+`room-color-lightshow`: a light is not just illumination; it can be a projected
+texture, a moving gradient, or a controlled stage cue.
+
+```ts
+const projector = new waveLight()
+  .asSpotlight()
+  .setLightColor(PALETTE.WHITE)
+  .setIntensity(8)
+  .setAngle(50)
+  .setRange(40)
+  .setProjectionPreset({
+    type: "gradient",
+    config: {
+      colorStops: [
+        { position: 0, color: PALETTE.CYAN },
+        { position: 0.5, color: PALETTE.FUCHSIA },
+        { position: 1, color: PALETTE.GOLDENROD },
+      ],
+      direction: "radial",
+      animationMode: GradientAnimationMode.Scroll,
+      gpuDriven: true,
+    },
+  });
+
+scene.add(projector);
+```
+
+Remix it into a concert rig, museum installation, puzzle room, alarm system, or
+shader/color-theory lesson.
+
+### Atlas Starter: Performance City Toggle
+
+This is the learning shape behind `urban-occlusion-culling`: make performance
+visible by giving learners a switch they can understand.
+
+```ts
+let cullingEnabled = false;
+
+scene.director.whenPress(Keyboard.O, () => {
+  cullingEnabled = !cullingEnabled;
+
+  if (cullingEnabled) {
+    scene.occlusion.enable({
+      strategy: "optimistic",
+      algorithm: "conservative",
+    });
+    scene.print("Occlusion culling enabled");
+  } else {
+    scene.occlusion.disable();
+    scene.print("Occlusion culling disabled");
+  }
+});
+```
+
+Remix it into a performance lab with FPS labels, building fade masks, window
+flicker, and before/after camera tours.
+
+### Atlas Starter: Crowd Animation Lab
+
+This is the learning shape behind `amy-vat-crowd`: bake one animation, then
+reuse it across many instances instead of animating every model independently.
+
+```ts
+const vatAssetName = leader.createVertexAnimation("walking-vat", {
+  animation: animations.Walking,
+  range: "Walking",
+  fps: "source",
+  rootMotion: "lock",
+});
+
+leader.useVertexAnimation(vatAssetName, "Walking");
+
+for (const performer of crowd) {
+  performer.useVertexAnimation(vatAssetName, "Walking");
+}
+```
+
+Remix it into a parade, dance floor, stadium, school hallway, or background
+population system.
+
+### Atlas Starter: Voice and Gesture Stage Director
+
+This is the learning shape behind `amy-voice-gesture`: browser permissions
+become part of the creative interface. Speech can trigger animation, hands can
+steer focus, and microphone analysis can drive stage effects.
+
+```ts
+const speechCommandSpecs = [
+  { name: "dance", aliases: ["dance", "spin"], color: PALETTE.VIOLET },
+  { name: "wave", aliases: ["wave", "hello"], color: PALETTE.PINK },
+  { name: "boom", aliases: ["boom", "explode"], color: PALETTE.RED },
+];
+
+myScene.director.sensing
+  .speechCommands()
+  .withCommands(speechCommandSpecs)
+  .withLanguage("en-US")
+  .withContinuousListening()
+  .withInterimTranscripts()
+  .withMinScore(0.68)
+  .onCommand((match) => {
+    if (match.command === "dance") amy.playAnimation(ASSET_WAREHOUSE.animations.Crazy);
+    if (match.command === "wave") amy.playAnimation(ASSET_WAREHOUSE.animations.Waving);
+    if (match.command === "boom") supportBox.exploding().intoPieces(18).withStrength(34).apply();
+  })
+  .startListening();
+
+const startHands = async () => {
+  await myScene.director.sensing
+    .webcamHands()
+    .withFacingMode("user")
+    .withGestureRecognition()
+    .withMaxHands(1)
+    .onGesture(({ name }) => {
+      if (name === "open_palm") amy.playAnimation(ASSET_WAREHOUSE.animations.Waving);
+    })
+    .startTracking();
+};
+```
+
+Remix it into a voice-controlled actor, accessibility interface, gesture magic
+system, rhythm game, or classroom demo about browser sensors.
+
+### Atlas Starter: Terraforming Spell Brush
+
+This is the learning shape behind `dirt-road-terrain`,
+`wave-range-crystal-basin`, and `nme-ocean-showcase`: create ranges, then apply
+terrain paint, sculpting, erosion, water, and road strokes inside those ranges.
+
+```ts
+const terrain = myScene.terrain;
+const craterRange = myScene
+  .createRange("craterBrush")
+  .anchorAt(0, 0, 0)
+  .asSphere(24)
+  .showHelper();
+
+terrain.sculpt()
+  .noise()
+  .inRange(craterRange)
+  .amplitude(1.8)
+  .frequency(0.045)
+  .octaves(2)
+  .apply();
+
+terrain.paint()
+  .layer("dirt")
+  .path()
+  .along([{ x: -18, y: -8 }, { x: 0, y: 4 }, { x: 22, y: 1 }])
+  .width(6)
+  .strength(0.92)
+  .falloff("smooth")
+  .apply();
+
+terrain.erode()
+  .inRange(craterRange)
+  .preset("alpine")
+  .strength(0.72)
+  .apply();
+```
+
+Remix it into a terrain painter, road builder, crater spell, golf course
+designer, island generator, or explainable geology toy.
+
+### Atlas Starter: Vector Physics Planetarium
+
+This is the learning shape behind `gravity-force-field`: a force field is easier
+to teach when you draw the invisible vectors.
+
+```ts
+const gravityField = myScene
+  .createField("solarField")
+  .asSphere(42)
+  .anchorAt(sunBody)
+  .affects(sunBody, planetBody, cometBody)
+  .ignoreDefaultGravity()
+  .addGravity({
+    id: "sunGravity",
+    source: sunBody,
+    gravityConstant: ENGINE_GRAVITY_CONSTANT,
+    collisionRadius: 2.25,
+    forceLimit: 8,
+  })
+  .withVoxelGrid({
+    voxelSize: 6,
+    mode: WaveRangeVoxelFillMode.Center,
+  });
+
+const samplePoint = new Vector3(18, 28, 0);
+const sample = gravityField.sampleAt(samplePoint, { targetMass: 1 });
+
+new wavePoint()
+  .placeAt(samplePoint)
+  .showDirection(sample.netForce, {
+    showLabels: false,
+    coordinateSpace: WaveSpace.WORLD,
+  });
+```
+
+Remix it into a tiny solar system, magnet puzzle, wind tunnel, steering field,
+or "why did the comet curve?" physics lesson.
+
+### Atlas Starter: Hinged Physics Piano
+
+This is the learning shape behind `physics-piano`: a key is a dynamic rigid
+body, a hinge joint constrains it, and an actuation trigger turns motion into
+sound.
+
+```ts
+const body = new waveCube(4, 0.05, 0.6).placeAt(0, 1, 0);
+body.rigidBody.asStatic().withBox().disableGravity();
+
+const key = new waveCube(0.18, 0.05, 0.8).placeAt(0, 1.1, 0.15);
+key.rigidBody
+  .asDynamic()
+  .autoFitFromBounds()
+  .setMass(0.032)
+  .setAngularDamping(1)
+  .disableGravity();
+
+const pianoAssembly = myScene.createJointAssembly("physicsPiano", body);
+pianoAssembly
+  .joint(body, key)
+  .named("middleCHinge")
+  .asHinge({ x: 1, y: 0, z: 0 })
+  .atPivots({ x: 0, y: 0.02, z: -0.4 }, { x: 0, y: 0.02, z: -0.4 })
+  .withAngleRange(-0.095, 0)
+  .withMotor(ConstraintAxis.ANGULAR_X, MotorMode.POSITION, 0, 0.012)
+  .build();
+
+key.rigidBody
+  .createActuationTrigger({
+    id: "middleC",
+    metric: { kind: RigidBodyActuationMetricKind.PitchAngle, space: WaveSpace.PARENT },
+    actuateWhen: { crosses: RigidBodyActuationCrossing.Above, value: 1.35 },
+    rearmWhen: { crosses: RigidBodyActuationCrossing.Below, value: 0.35 },
+    requireImpact: true,
+  })
+  .onActuate(() => audio.playNote(60, { velocity: 1 }));
+```
+
+Remix it into drums, bells, pinball flippers, keyboard training, a music puzzle,
+or a machine where every collision becomes a note.
+
+### Atlas Starter: Vehicle Control Lab
+
+This is the learning shape behind `wavefx-builder`, `tracked-car-spotlight`, and
+`multipart-demo-with-vfx`: combine keyboard input, physics or kinematic motion,
+debug helpers, and a camera that follows the player.
+
+```ts
+const car = new waveActor();
+car.useModel(ASSET_WAREHOUSE.models.Toyoyo_Highlight);
+car.resetOrigin();
+car.transform.swapLeftForward().swapFrontBack();
+car.placeAt(0, 1, 0);
+
+car.movementController.useVehicleScheme({
+  baseSpeed: 30,
+  acceleration: 12,
+  brakeStrength: 20,
+  steeringSensitivity: 0.05,
+});
+
+car.kinematicController.autoFitCapsule();
+car.camera.possess().followFrom(car.backward, 10, 25).activate();
+car.showDirection({ length: 2 });
+car.showPosition();
+
+myScene.director.whenPress(Keyboard.Escape, () => {
+  car.camera.deactivate();
+});
+```
+
+Remix it into a driving game, stealth patrol, chase camera lab, VFX car toy,
+aircraft controller, or keyboard-input lesson.
+
 ## Complete Scene-Facing API Catalog
 
 `waveStudio-globals.d.ts` declares hundreds of classes. Not every declared class
