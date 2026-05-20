@@ -54,14 +54,14 @@ particles;
 ```
 
 Most beginner code uses `scene`, creates entities such as `waveCube` or
-`wave3DObject`, configures them with fluent methods, then adds them to the
-scene.
+`wave3DObject`, and configures them with fluent methods. In the WaveStudio
+editor, newly created scene objects are available in the active scene without a
+manual add step.
 
 ```ts
 const cube = new waveCube(2, 2, 2);
 cube.setColor(PALETTE.CYAN);
 cube.moveTo({ x: 0, y: 1, z: 0 });
-scene.add(cube);
 ```
 
 ### Fluent Dot Chaining
@@ -74,8 +74,6 @@ object, so the next `.method(...)` can keep working on that returned value.
 const target = new Cube()
   .placeAt(0, 5, 0)
   .setColor(PALETTE.BLUE);
-
-scene.add(target);
 ```
 
 That is the same basic setup as writing separate statements:
@@ -84,8 +82,6 @@ That is the same basic setup as writing separate statements:
 const target = new Cube();
 target.placeAt(0, 5, 0);
 target.setColor(PALETTE.BLUE);
-
-scene.add(target);
 ```
 
 The leading dot on a new line belongs to the expression above it. The semicolon
@@ -130,8 +126,6 @@ tutorialScene.withMain(({ scene }) => {
   const cube = new waveCube(2, 2, 2);
   cube.setColor(PALETTE.CYAN);
   cube.moveTo({ x: 0, y: 1, z: 0 });
-
-  scene.add(cube);
 });
 ```
 
@@ -142,10 +136,10 @@ Inside the WaveStudio editor, the shorter version is often enough because
 const cube = new waveCube(2, 2, 2);
 cube.setColor(PALETTE.CYAN);
 cube.moveTo({ x: 0, y: 1, z: 0 });
-scene.add(cube);
 ```
 
-Key idea: create an object, configure it, then `scene.add(...)`.
+Key idea: create an object and configure it. In Studio snippets, that is enough
+for normal objects.
 
 ## Lesson 2: Primitives
 
@@ -156,22 +150,18 @@ usually take dimensions.
 const ground = new waveGround(20, 20, 4);
 ground.setColor(PALETTE.CHARCOAL);
 ground.moveTo({ x: 0, y: 0, z: 0 });
-scene.add(ground);
 
 const cube = new waveCube(2, 2, 2);
 cube.setColor(PALETTE.TURQUOISE);
 cube.moveTo({ x: -3, y: 1, z: 0 });
-scene.add(cube);
 
 const sphere = new waveSphere(1, 32);
 sphere.setColor(PALETTE.GOLDENROD);
 sphere.moveTo({ x: 0, y: 1, z: 0 });
-scene.add(sphere);
 
 const cylinder = new waveCylinder(2, 1.5, 1.5);
 cylinder.setColor(PALETTE.FUCHSIA);
 cylinder.moveTo({ x: 3, y: 1, z: 0 });
-scene.add(cylinder);
 ```
 
 Useful primitive classes from the declarations include:
@@ -319,7 +309,6 @@ for (let i = 0; i < shapes.length; i++) {
   shape.setColor(palette[i % palette.length]);
   shape.moveTo({ x: (col - 2) * spacing, y: 1.2, z: row * spacing });
   shape.addTag("built-in-shape");
-  scene.add(shape);
 
   shape.onTick((_self, deltaTime) => {
     shape.turnRight(gallerySpinDegreesPerSecond * deltaTime);
@@ -340,7 +329,6 @@ Most 3D objects inherit transform helpers from `wave3DAbstract`.
 
 ```ts
 const block = new waveCube(1, 1, 1);
-scene.add(block);
 
 block.moveTo({ x: 0, y: 1, z: 0 });          // world position
 block.moveRight(2);             // semantic direction helper
@@ -391,7 +379,6 @@ hex strings:
 ```ts
 const floor = new waveGround(30, 30, 8);
 floor.setColor(PALETTE.CHARCOAL);
-scene.add(floor);
 ```
 
 WaveStudio also exposes a typed `PALETTE` constant. This is what you may have
@@ -401,12 +388,10 @@ seen as "Palette" in examples:
 const cube = new waveCube(2, 2, 2);
 cube.setColor(PALETTE.CYAN);
 cube.moveTo({ x: 0, y: 1, z: 0 });
-scene.add(cube);
 
 const accent = new waveSphere(0.6, 32);
 accent.setColor(PALETTE.lighten(PALETTE.COBALT, 20));
 accent.moveTo({ x: 2, y: 1, z: 0 });
-scene.add(accent);
 ```
 
 Useful palette names include `PALETTE.WHITE`, `PALETTE.BLACK`, `PALETTE.RED`,
@@ -422,7 +407,6 @@ const panel = new waveCube(4, 0.2, 2);
 panel.setBaseTexture(textures.milkyway);
 panel.setRoughness(0.6);
 panel.setMetallic(0.1);
-scene.add(panel);
 ```
 
 If you have named materials in the asset warehouse, use them by name:
@@ -431,7 +415,6 @@ If you have named materials in the asset warehouse, use them by name:
 const platform = new waveCube(6, 0.4, 6);
 platform.useMaterial(materials.PavingStones);
 platform.moveTo({ x: 0, y: 0.2, z: 0 });
-scene.add(platform);
 ```
 
 ### Material and Palette Gallery
@@ -508,7 +491,6 @@ for (let i = 0; i < materialStyles.length; i++) {
   sample.setColor(style.color);
   sample.moveTo({ x: (i - 2) * styleSpacing, y: 1, z: 0 });
   style.apply(sample);
-  scene.add(sample);
 
   sample.whenClickedOn(() => scene.print(style.label));
 }
@@ -523,7 +505,6 @@ const ship = new wave3DObject(models.Spaceship);
 ship.moveTo({ x: 0, y: 2, z: 0 });
 ship.setUniformScale(0.4);
 ship.turnRight(30);
-scene.add(ship);
 ```
 
 You can swap a model later:
@@ -544,7 +525,6 @@ the entity and `deltaTime`.
 const spinner = new waveCube(2, 2, 2);
 spinner.setColor(PALETTE.SAGE);
 spinner.moveTo({ x: 0, y: 2, z: 0 });
-scene.add(spinner);
 
 spinner.onTick((_self, deltaTime) => {
   spinner.turnRight(90 * deltaTime);
@@ -579,7 +559,6 @@ const myCube = new Cube()
   .placeAt(0, 5, 0)
   .setColor(COLOR.BLUE);
 
-scene.add(myCube);
 
 const boom = () => {
   myCube
@@ -684,7 +663,6 @@ for (let i = 0; i < motionPatterns.length; i++) {
   object.setColor(motionColors[i]);
   object.moveTo({ x: (i - 1.5) * motionSpacing, y: 1, z: 0 });
   object.addTag("motion-demo");
-  scene.add(object);
 
   pattern.animate(object);
   object.whenClickedOn(() => scene.print(pattern.label));
@@ -700,7 +678,6 @@ and `whenHolding`.
 const player = new waveCube(1, 1, 1);
 player.setColor(PALETTE.TURQUOISE);
 player.moveTo({ x: 0, y: 1, z: 0 });
-scene.add(player);
 
 player.whenPress(Keyboard.W, () => player.moveForward(0.5));
 player.whenPress(Keyboard.S, () => player.moveBackward(0.5));
@@ -733,7 +710,6 @@ car.showDirection();
 car.showPosition();
 car.showCoordinate();
 car.showBoundingBox();
-scene.add(car);
 
 const driveDistancePerTick = 0.18;
 const reverseDistancePerTick = 0.1;
@@ -756,7 +732,6 @@ Objects can also react to pointer interaction:
 const button = new waveSphere(0.8, 24);
 button.setColor(PALETTE.GOLDENROD);
 button.moveTo({ x: 0, y: 1, z: -3 });
-scene.add(button);
 
 button.whenClickedOn(() => {
   button.setColor(PALETTE.ORANGE);
@@ -774,7 +749,6 @@ const floor = new waveGround(20, 20, 4);
 floor.setColor(PALETTE.CHARCOAL);
 floor.useStaticBody();
 floor.addTag("floor");
-scene.add(floor);
 
 const ball = new waveSphere(1, 32);
 ball.setColor(PALETTE.GOLDENROD);
@@ -782,7 +756,6 @@ ball.moveTo({ x: 0, y: 8, z: 0 });
 ball.useDynamicBody();
 ball.setMass(2);
 ball.setRestitution(0.8);
-scene.add(ball);
 
 ball.onCollisionBeginByTag("floor", () => {
   ball.setColor(PALETTE.SKY);
@@ -803,7 +776,6 @@ For controlled movement with collision handling:
 const actor = new waveCube(1, 2, 1);
 actor.useKinematicBody();
 actor.moveTo({ x: 0, y: 1, z: 0 });
-scene.add(actor);
 
 actor.whenPress(Keyboard.ArrowUp, () => {
   actor.moveWithCollisions(Direction.Forward, 0.5);
@@ -876,7 +848,6 @@ for (let i = 0; i < physicsExamples.length; i++) {
   object.moveTo({ x: (i - 1) * physicsSpacing, y: 1, z: 0 });
   object.addTag("physics-demo");
   example.setup(object);
-  scene.add(object);
 
   object.whenClickedOn(() => scene.print(example.label));
 }
@@ -926,7 +897,6 @@ possess or activate a view:
 ```ts
 const cameraRig = new waveCube(0.2, 0.2, 0.2);
 cameraRig.moveTo({ x: 0, y: 5, z: -8 });
-scene.add(cameraRig);
 cameraRig.camera.setCameraLookAt(0, 1, 0);
 cameraRig.camera.activate();
 ```
@@ -970,7 +940,6 @@ cinematicCamera.moveTo({ x: 0, y: 4, z: -8 });
 cinematicCamera.turnCameraTo(0, 1, 0);
 cinematicCamera.setFov(50);
 cinematicCamera.assignToNum1();
-scene.add(cinematicCamera);
 
 const pointLight = new waveLight();
 pointLight.asPointLight();
@@ -978,7 +947,6 @@ pointLight.setLightColor(PALETTE.GOLDENROD);
 pointLight.setIntensity(1.4);
 pointLight.setRange(8);
 pointLight.moveTo({ x: -3, y: 3, z: 0 });
-scene.add(pointLight);
 
 const spotlight = new waveLight();
 spotlight.asSpotlight();
@@ -987,7 +955,6 @@ spotlight.setIntensity(2);
 spotlight.setAngle(45);
 spotlight.moveTo({ x: 3, y: 4, z: -2 });
 spotlight.aimAt(0, 1, 0);
-scene.add(spotlight);
 ```
 
 ## Lesson 10: Scene Queries and Organization
@@ -999,7 +966,6 @@ const door = new waveCube(2, 3, 0.3);
 door.setName("main-door");
 door.addTag("door");
 door.addTag("interactive");
-scene.add(door);
 
 const doors = scene.getByTag("door");
 const mainDoor = scene.getFirstByName("main-door");
@@ -1034,7 +1000,6 @@ for (let i = 0; i < 5; i++) {
   const cube = new waveCube(1, 1, 1);
   cube.setColor(PALETTE.CYAN);
   cube.moveTo({ x: i * 1.4 - 2.8, y: 0.5, z: 0 });
-  scene.add(cube);
   row.add(cube);
 }
 ```
@@ -1073,7 +1038,6 @@ scoreLabel.setColor(PALETTE.WHITE);
 scoreLabel.setBackgroundColor(hudBackground);
 scoreLabel.setSize(180, 48);
 scoreLabel.setScreenPositionPixels(24, 24);
-scene.add(scoreLabel);
 ```
 
 Update UI from gameplay:
@@ -1089,7 +1053,6 @@ function addScore(points: number) {
 const gem = new waveSphere(0.5, 24);
 gem.setColor(PALETTE.GOLDENROD);
 gem.moveTo({ x: 0, y: 1, z: -4 });
-scene.add(gem);
 
 gem.whenClickedOn(() => {
   addScore(1);
@@ -1121,7 +1084,6 @@ title.setColor(PALETTE.WHITE);
 title.setBackgroundColor(panelColor);
 title.setSize(260, 48);
 title.setScreenPositionPixels(24, 24);
-scene.add(title);
 
 const startButton = new waveUIButton();
 startButton.setText("Start");
@@ -1131,7 +1093,6 @@ startButton.setBackgroundColor(PALETTE.GOLDENROD);
 startButton.setSize(160, 44);
 startButton.setScreenPositionPixels(24, 84);
 startButton.onClick(() => scene.print("Button clicked"));
-scene.add(startButton);
 
 const energyBar = new waveUIProgressBar();
 energyBar.setProgress(72, 100);
@@ -1139,7 +1100,6 @@ energyBar.setProgressColor(PALETTE.GREEN);
 energyBar.setBackgroundColor(panelColor);
 energyBar.setSize(220, 24);
 energyBar.setScreenPositionPixels(24, 144);
-scene.add(energyBar);
 
 const energySlider = new waveUISlider();
 energySlider.setRange(0, 100, 1);
@@ -1150,14 +1110,12 @@ energySlider.setScreenPositionPixels(24, 184);
 energySlider.onChange((event) => {
   energyBar.setProgress(event.data.value, 100);
 });
-scene.add(energySlider);
 
 const crosshair = new waveUICrosshair();
 crosshair.setCrosshairColor(PALETTE.CYAN);
 crosshair.setDot(3, PALETTE.WHITE);
 crosshair.setSize(80, 80);
 crosshair.setNormalizedScreenPosition(0.5, 0.5);
-scene.add(crosshair);
 ```
 
 ## Lesson 13: Audio and Effects
@@ -1167,7 +1125,6 @@ Objects can play sounds by asset name or path:
 ```ts
 const speaker = new waveCube(1, 1, 1);
 speaker.moveTo({ x: 0, y: 1, z: 0 });
-scene.add(speaker);
 
 speaker.playSound(audios.studioSound, {
   loop: false,
@@ -1181,7 +1138,6 @@ Many 3D objects expose an `fx` facade:
 const emitter = new waveSphere(0.4, 16);
 emitter.setColor(PALETTE.WHITE);
 emitter.moveTo({ x: 0, y: 1, z: 0 });
-scene.add(emitter);
 
 emitter.fx
   .createSmoke("soft-smoke")
@@ -1211,7 +1167,6 @@ visible geometry.
 const smokeOrb = new waveSphere(0.35, 16);
 smokeOrb.setColor(PALETTE.LIGHT_GRAY);
 smokeOrb.moveTo({ x: -3, y: 1, z: 0 });
-scene.add(smokeOrb);
 
 smokeOrb.fx
   .createSmoke("gallery-smoke")
@@ -1223,7 +1178,6 @@ smokeOrb.fx
 const sparkPad = new waveCube(1, 0.25, 1);
 sparkPad.setColor(PALETTE.GOLDENROD);
 sparkPad.moveTo({ x: 0, y: 0.5, z: 0 });
-scene.add(sparkPad);
 
 sparkPad.whenClickedOn(() => {
   sparkPad.playSound(audios.studioSound, { volume: 0.7 });
@@ -1233,13 +1187,11 @@ sparkPad.whenClickedOn(() => {
 const rainAnchor = new waveCube(0.2, 0.2, 0.2);
 rainAnchor.moveTo({ x: 0, y: 4, z: 0 });
 rainAnchor.hide();
-scene.add(rainAnchor);
 rainAnchor.fx.play(waveFxPresets.rain());
 
 const breakable = new waveCube(1, 1, 1);
 breakable.setColor(PALETTE.CORAL);
 breakable.moveTo({ x: 3, y: 1, z: 0 });
-scene.add(breakable);
 
 breakable.whenClickedOn(() => {
   if (breakable.isDestroyed) return;
@@ -1317,19 +1269,16 @@ scoreLabel.setColor(PALETTE.WHITE);
 scoreLabel.setBackgroundColor(hudBackground);
 scoreLabel.setSize(220, 48);
 scoreLabel.setScreenPositionPixels(24, 24);
-scene.add(scoreLabel);
 
 const floor = new waveGround(20, 20, 4);
 floor.setColor(PALETTE.CHARCOAL);
 floor.useStaticBody();
 floor.addTag("floor");
-scene.add(floor);
 
 const player = new waveCube(1, 1, 1);
 player.setColor(PALETTE.TURQUOISE);
 player.moveTo({ x: 0, y: 0.5, z: 0 });
 player.useKinematicBody();
-scene.add(player);
 
 player.whenPress(Keyboard.W, () => player.moveForward(playerStepDistance));
 player.whenPress(Keyboard.S, () => player.moveBackward(playerStepDistance));
@@ -1350,7 +1299,6 @@ for (let i = 0; i < totalPickups; i++) {
   pickup.setColor(PALETTE.GOLDENROD);
   pickup.moveTo({ x: i * 2 - 4, y: 0.75, z: -3 });
   pickup.addTag("pickup");
-  scene.add(pickup);
 
   pickup.onTick((_self, deltaTime) => {
     pickup.turnRight(180 * deltaTime);
@@ -1394,7 +1342,6 @@ const target = new Cube()
   .placeAt(0, 5, 0)
   .setColor(PALETTE.BLUE);
 
-scene.add(target);
 
 const boom = (object: Prop): void => {
   object
@@ -1439,7 +1386,6 @@ const root = new Cube()
   .placeAt(0, 5, 0)
   .setColor(PALETTE.CYAN);
 
-scene.add(root);
 
 const maxDepth = 4;
 const maxPieces = 120;
@@ -1504,7 +1450,6 @@ function spawnPiece(
   piece.setColor(palette[depth % palette.length] ?? PALETTE.WHITE);
   piece.moveTo({ x, y, z });
   piece.addTag("recursive-piece");
-  scene.add(piece);
 
   piece.onTick((_self, deltaTime) => {
     piece.turnRight(spinYawDegreesPerSecond * deltaTime);
@@ -1655,7 +1600,6 @@ car.setScale(1.6, 0.35, 2.6);
 car.showDirection();
 car.showPosition();
 car.showBoundingBox();
-scene.add(car);
 
 car.whenHolding(Keyboard.W, () => car.moveForward(0.18));
 car.whenHolding(Keyboard.S, () => car.moveBackward(0.1));
@@ -2016,7 +1960,6 @@ const projector = new waveLight()
     },
   });
 
-scene.add(projector);
 ```
 
 Remix it into a concert rig, museum installation, puzzle room, alarm system, or
@@ -2322,7 +2265,6 @@ has `setBaseRadius`, `setBaseTubeRadius`, and `setBaseArc`.
 const ring = new waveTorus(2, 0.18, 96);
 ring.setColor(PALETTE.CYAN);
 ring.moveTo({ x: 0, y: 2, z: 0 });
-scene.add(ring);
 
 ring.moveAlong(Direction.Up, 1, Animate).over(2, Seconds).play();
 ```
@@ -2384,7 +2326,6 @@ material, UI, model clips, and frame updates.
 
 ```ts
 const block = new waveCube(1, 1, 1);
-scene.add(block);
 
 block.moveAlong(Direction.Right, 4, Animate)
   .over(1.5, Seconds)
@@ -2480,7 +2421,6 @@ Create and add:
 ```ts
 const object = new waveCube(1, 1, 1);
 object.moveTo({ x: 0, y: 1, z: 0 });
-scene.add(object);
 ```
 
 Find by tag:
@@ -2545,7 +2485,6 @@ Core globals:
 
 Core scene methods:
 
-- `scene.add(entity)`
 - `scene.remove(entityOrId)`
 - `scene.getByTag(tag)`
 - `scene.getFirstByName(name)`

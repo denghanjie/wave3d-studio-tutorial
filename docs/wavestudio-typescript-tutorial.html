@@ -887,38 +887,31 @@
 
       <article class="lesson" id="lesson-1" data-lesson="1" data-keywords="scene withMain globals ctx engine scene">
         <header class="lesson-head">
-          <div><h2>Lesson 1: The Smallest Scene</h2><p>Create an object, configure it, then add it to the scene.</p></div>
+          <div><h2>Lesson 1: The Smallest Scene</h2><p>Create an object and configure it in the active scene.</p></div>
           <label class="check"><input type="checkbox" data-complete="lesson-1"> Complete</label>
         </header>
         <div class="lesson-body">
-          <p>A scene is a world full of entities. In WaveStudio you often already have access to the global <code>scene</code>. If you are defining a reusable scene object, use <code>withMain</code>.</p>
+          <p>A scene is a world full of entities. In WaveStudio, newly created scene objects are available in the active scene without a manual add step. If you are defining a reusable scene object, use <code>withMain</code>.</p>
           <pre><code class="language-ts">const tutorialScene = new WaveScene("Tutorial");
 
 tutorialScene.withMain(({ scene }) =&gt; {
   const cube = new waveCube(2, 2, 2);
   cube.setColor(PALETTE.CYAN);
   cube.moveTo({ x: 0, y: 1, z: 0 });
-
-  scene.add(cube);
 });</code></pre>
           <p>Inside the WaveStudio editor, the shorter version is usually enough.</p>
           <pre><code class="language-ts">const cube = new waveCube(2, 2, 2);
 cube.setColor(PALETTE.CYAN);
-cube.moveTo({ x: 0, y: 1, z: 0 });
-scene.add(cube);</code></pre>
+cube.moveTo({ x: 0, y: 1, z: 0 });</code></pre>
           <h3>Fluent Dot Chaining</h3>
           <p>The repeated dots in examples such as <code>new Cube().placeAt(...).setColor(...)</code> are called method chaining, or a fluent API. Each method returns an object, so the next <code>.method(...)</code> can keep working on that returned value.</p>
           <pre><code class="language-ts">const target = new Cube()
   .placeAt(0, 5, 0)
-  .setColor(PALETTE.BLUE);
-
-scene.add(target);</code></pre>
+  .setColor(PALETTE.BLUE);</code></pre>
           <p>That is the same basic setup as writing separate statements.</p>
           <pre><code class="language-ts">const target = new Cube();
 target.placeAt(0, 5, 0);
-target.setColor(PALETTE.BLUE);
-
-scene.add(target);</code></pre>
+target.setColor(PALETTE.BLUE);</code></pre>
           <p>The leading dot on a new line belongs to the expression above it. The semicolon ends the whole chain. This is different from TypeScript's three-dot <code>...</code> spread/rest syntax.</p>
           <pre><code class="language-ts">const target = new Cube()
   .placeAt(0, 5, 0)
@@ -943,22 +936,18 @@ target
           <pre><code class="language-ts">const ground = new waveGround(20, 20, 4);
 ground.setColor(PALETTE.CHARCOAL);
 ground.moveTo({ x: 0, y: 0, z: 0 });
-scene.add(ground);
 
 const cube = new waveCube(2, 2, 2);
 cube.setColor(PALETTE.TURQUOISE);
 cube.moveTo({ x: -3, y: 1, z: 0 });
-scene.add(cube);
 
 const sphere = new waveSphere(1, 32);
 sphere.setColor(PALETTE.GOLDENROD);
 sphere.moveTo({ x: 0, y: 1, z: 0 });
-scene.add(sphere);
 
 const cylinder = new waveCylinder(2, 1.5, 1.5);
 cylinder.setColor(PALETTE.FUCHSIA);
-cylinder.moveTo({ x: 3, y: 1, z: 0 });
-scene.add(cylinder);</code></pre>
+cylinder.moveTo({ x: 3, y: 1, z: 0 });</code></pre>
           <ul>
             <li><code>waveCube(width, height, depth)</code></li>
             <li><code>waveBox(width, height, depth)</code></li>
@@ -1081,7 +1070,6 @@ for (let i = 0; i &lt; shapes.length; i++) {
   shape.setColor(palette[i % palette.length]);
   shape.moveTo({ x: (col - 2) * spacing, y: 1.2, z: row * spacing });
   shape.addTag("built-in-shape");
-  scene.add(shape);
 
   shape.onTick((_self, deltaTime) =&gt; {
     shape.turnRight(gallerySpinDegreesPerSecond * deltaTime);
@@ -1101,7 +1089,6 @@ for (let i = 0; i &lt; shapes.length; i++) {
         </header>
         <div class="lesson-body">
           <pre><code class="language-ts">const block = new waveCube(1, 1, 1);
-scene.add(block);
 
 block.moveTo({ x: 0, y: 1, z: 0 });
 block.moveRight(2);
@@ -1133,27 +1120,22 @@ block.transform.moveAlong(Direction.Up, 1);</code></pre>
         <div class="lesson-body">
           <p>You can use CSS-style hex strings, or WaveStudio's typed <code>PALETTE</code> constant. <code>COLOR</code> is also available as an alias with the same color map.</p>
           <pre><code class="language-ts">const floor = new waveGround(30, 30, 8);
-floor.setColor(PALETTE.CHARCOAL);
-scene.add(floor);</code></pre>
+floor.setColor(PALETTE.CHARCOAL);</code></pre>
           <pre><code class="language-ts">const cube = new waveCube(2, 2, 2);
 cube.setColor(PALETTE.CYAN);
 cube.moveTo({ x: 0, y: 1, z: 0 });
-scene.add(cube);
 
 const accent = new waveSphere(0.6, 32);
 accent.setColor(PALETTE.lighten(PALETTE.COBALT, 20));
-accent.moveTo({ x: 2, y: 1, z: 0 });
-scene.add(accent);</code></pre>
+accent.moveTo({ x: 2, y: 1, z: 0 });</code></pre>
           <p>Common choices include <code>PALETTE.WHITE</code>, <code>PALETTE.BLACK</code>, <code>PALETTE.RED</code>, <code>PALETTE.ORANGE</code>, <code>PALETTE.YELLOW</code>, <code>PALETTE.GREEN</code>, <code>PALETTE.BLUE</code>, <code>PALETTE.CYAN</code>, <code>PALETTE.PURPLE</code>, <code>PALETTE.PINK</code>, <code>PALETTE.TEAL</code>, <code>PALETTE.GOLD</code>, <code>PALETTE.SILVER</code>, <code>PALETTE.WARM_WHITE</code>, and <code>PALETTE.CHARCOAL</code>.</p>
           <pre><code class="language-ts">const panel = new waveCube(4, 0.2, 2);
 panel.setBaseTexture(textures.milkyway);
 panel.setRoughness(0.6);
-panel.setMetallic(0.1);
-scene.add(panel);</code></pre>
+panel.setMetallic(0.1);</code></pre>
           <pre><code class="language-ts">const platform = new waveCube(6, 0.4, 6);
 platform.useMaterial(materials.PavingStones);
-platform.moveTo({ x: 0, y: 0.2, z: 0 });
-scene.add(platform);</code></pre>
+platform.moveTo({ x: 0, y: 0.2, z: 0 });</code></pre>
           <h3>Material and Palette Gallery</h3>
           <p>Use this gallery when you want to compare visual styles without changing the shape. Color, roughness, metallic response, opacity, and emissive glow are separate controls.</p>
           <table>
@@ -1225,7 +1207,6 @@ for (let i = 0; i &lt; materialStyles.length; i++) {
   sample.setColor(style.color);
   sample.moveTo({ x: (i - 2) * styleSpacing, y: 1, z: 0 });
   style.apply(sample);
-  scene.add(sample);
 
   sample.whenClickedOn(() =&gt; scene.print(style.label));
 }</code></pre>
@@ -1241,8 +1222,7 @@ for (let i = 0; i &lt; materialStyles.length; i++) {
           <pre><code class="language-ts">const ship = new wave3DObject(models.Spaceship);
 ship.moveTo({ x: 0, y: 2, z: 0 });
 ship.setUniformScale(0.4);
-ship.turnRight(30);
-scene.add(ship);</code></pre>
+ship.turnRight(30);</code></pre>
           <p>Swap a model later with <code>useModel</code>.</p>
           <pre><code class="language-ts">ship.useModel(models.XWingStarfighter);</code></pre>
         </div>
@@ -1257,7 +1237,6 @@ scene.add(ship);</code></pre>
           <pre><code class="language-ts">const spinner = new waveCube(2, 2, 2);
 spinner.setColor(PALETTE.SAGE);
 spinner.moveTo({ x: 0, y: 2, z: 0 });
-scene.add(spinner);
 
 spinner.onTick((_self, deltaTime) =&gt; {
   spinner.turnRight(90 * deltaTime);
@@ -1276,7 +1255,6 @@ spinner.after(2, Seconds).do(() =&gt; {
   .placeAt(0, 5, 0)
   .setColor(COLOR.BLUE);
 
-scene.add(myCube);
 
 const boom = () =&gt; {
   myCube
@@ -1369,7 +1347,6 @@ for (let i = 0; i &lt; motionPatterns.length; i++) {
   object.setColor(motionColors[i]);
   object.moveTo({ x: (i - 1.5) * motionSpacing, y: 1, z: 0 });
   object.addTag("motion-demo");
-  scene.add(object);
 
   pattern.animate(object);
   object.whenClickedOn(() =&gt; scene.print(pattern.label));
@@ -1386,7 +1363,6 @@ for (let i = 0; i &lt; motionPatterns.length; i++) {
           <pre><code class="language-ts">const player = new waveCube(1, 1, 1);
 player.setColor(PALETTE.TURQUOISE);
 player.moveTo({ x: 0, y: 1, z: 0 });
-scene.add(player);
 
 player.whenPress(Keyboard.W, () =&gt; player.moveForward(0.5));
 player.whenPress(Keyboard.S, () =&gt; player.moveBackward(0.5));
@@ -1414,7 +1390,6 @@ car.showDirection();
 car.showPosition();
 car.showCoordinate();
 car.showBoundingBox();
-scene.add(car);
 
 const driveDistancePerTick = 0.18;
 const reverseDistancePerTick = 0.1;
@@ -1432,7 +1407,6 @@ car.whenPress(Keyboard.Space, () =&gt; {
           <pre><code class="language-ts">const button = new waveSphere(0.8, 24);
 button.setColor(PALETTE.GOLDENROD);
 button.moveTo({ x: 0, y: 1, z: -3 });
-scene.add(button);
 
 button.whenClickedOn(() =&gt; {
   button.setColor(PALETTE.ORANGE);
@@ -1451,7 +1425,6 @@ button.whenClickedOn(() =&gt; {
 floor.setColor(PALETTE.CHARCOAL);
 floor.useStaticBody();
 floor.addTag("floor");
-scene.add(floor);
 
 const ball = new waveSphere(1, 32);
 ball.setColor(PALETTE.GOLDENROD);
@@ -1459,7 +1432,6 @@ ball.moveTo({ x: 0, y: 8, z: 0 });
 ball.useDynamicBody();
 ball.setMass(2);
 ball.setRestitution(0.8);
-scene.add(ball);
 
 ball.onCollisionBeginByTag("floor", () =&gt; {
   ball.setColor(PALETTE.SKY);
@@ -1530,7 +1502,6 @@ for (let i = 0; i &lt; physicsExamples.length; i++) {
   object.moveTo({ x: (i - 1) * physicsSpacing, y: 1, z: 0 });
   object.addTag("physics-demo");
   example.setup(object);
-  scene.add(object);
 
   object.whenClickedOn(() =&gt; scene.print(example.label));
 }</code></pre>
@@ -1602,7 +1573,6 @@ cinematicCamera.moveTo({ x: 0, y: 4, z: -8 });
 cinematicCamera.turnCameraTo(0, 1, 0);
 cinematicCamera.setFov(50);
 cinematicCamera.assignToNum1();
-scene.add(cinematicCamera);
 
 const pointLight = new waveLight();
 pointLight.asPointLight();
@@ -1610,7 +1580,6 @@ pointLight.setLightColor(PALETTE.GOLDENROD);
 pointLight.setIntensity(1.4);
 pointLight.setRange(8);
 pointLight.moveTo({ x: -3, y: 3, z: 0 });
-scene.add(pointLight);
 
 const spotlight = new waveLight();
 spotlight.asSpotlight();
@@ -1618,8 +1587,7 @@ spotlight.setLightColor(PALETTE.CYAN);
 spotlight.setIntensity(2);
 spotlight.setAngle(45);
 spotlight.moveTo({ x: 3, y: 4, z: -2 });
-spotlight.aimAt(0, 1, 0);
-scene.add(spotlight);</code></pre>
+spotlight.aimAt(0, 1, 0);</code></pre>
         </div>
       </article>
 
@@ -1633,7 +1601,6 @@ scene.add(spotlight);</code></pre>
 door.setName("main-door");
 door.addTag("door");
 door.addTag("interactive");
-scene.add(door);
 
 const doors = scene.getByTag("door");
 const mainDoor = scene.getFirstByName("main-door");
@@ -1665,7 +1632,6 @@ for (let i = 0; i &lt; 5; i++) {
   const cube = new waveCube(1, 1, 1);
   cube.setColor(PALETTE.CYAN);
   cube.moveTo({ x: i * 1.4 - 2.8, y: 0.5, z: 0 });
-  scene.add(cube);
   row.add(cube);
 }</code></pre>
           <pre><code class="language-ts">const tile = new waveCube(1, 0.2, 1);
@@ -1694,8 +1660,7 @@ scoreLabel.setFontSize(28);
 scoreLabel.setColor(PALETTE.WHITE);
 scoreLabel.setBackgroundColor(hudBackground);
 scoreLabel.setSize(180, 48);
-scoreLabel.setScreenPositionPixels(24, 24);
-scene.add(scoreLabel);</code></pre>
+scoreLabel.setScreenPositionPixels(24, 24);</code></pre>
           <pre><code class="language-ts">let score = 0;
 
 function addScore(points: number) {
@@ -1723,7 +1688,6 @@ title.setColor(PALETTE.WHITE);
 title.setBackgroundColor(panelColor);
 title.setSize(260, 48);
 title.setScreenPositionPixels(24, 24);
-scene.add(title);
 
 const startButton = new waveUIButton();
 startButton.setText("Start");
@@ -1733,7 +1697,6 @@ startButton.setBackgroundColor(PALETTE.GOLDENROD);
 startButton.setSize(160, 44);
 startButton.setScreenPositionPixels(24, 84);
 startButton.onClick(() =&gt; scene.print("Button clicked"));
-scene.add(startButton);
 
 const energyBar = new waveUIProgressBar();
 energyBar.setProgress(72, 100);
@@ -1741,7 +1704,6 @@ energyBar.setProgressColor(PALETTE.GREEN);
 energyBar.setBackgroundColor(panelColor);
 energyBar.setSize(220, 24);
 energyBar.setScreenPositionPixels(24, 144);
-scene.add(energyBar);
 
 const energySlider = new waveUISlider();
 energySlider.setRange(0, 100, 1);
@@ -1752,14 +1714,12 @@ energySlider.setScreenPositionPixels(24, 184);
 energySlider.onChange((event) =&gt; {
   energyBar.setProgress(event.data.value, 100);
 });
-scene.add(energySlider);
 
 const crosshair = new waveUICrosshair();
 crosshair.setCrosshairColor(PALETTE.CYAN);
 crosshair.setDot(3, PALETTE.WHITE);
 crosshair.setSize(80, 80);
-crosshair.setNormalizedScreenPosition(0.5, 0.5);
-scene.add(crosshair);</code></pre>
+crosshair.setNormalizedScreenPosition(0.5, 0.5);</code></pre>
         </div>
       </article>
 
@@ -1771,7 +1731,6 @@ scene.add(crosshair);</code></pre>
         <div class="lesson-body">
           <pre><code class="language-ts">const speaker = new waveCube(1, 1, 1);
 speaker.moveTo({ x: 0, y: 1, z: 0 });
-scene.add(speaker);
 
 speaker.playSound(audios.studioSound, {
   loop: false,
@@ -1780,7 +1739,6 @@ speaker.playSound(audios.studioSound, {
           <pre><code class="language-ts">const emitter = new waveSphere(0.4, 16);
 emitter.setColor(PALETTE.WHITE);
 emitter.moveTo({ x: 0, y: 1, z: 0 });
-scene.add(emitter);
 
 emitter.fx
   .createSmoke("soft-smoke")
@@ -1802,7 +1760,6 @@ emitter.fx
           <pre><code class="language-ts">const smokeOrb = new waveSphere(0.35, 16);
 smokeOrb.setColor(PALETTE.LIGHT_GRAY);
 smokeOrb.moveTo({ x: -3, y: 1, z: 0 });
-scene.add(smokeOrb);
 
 smokeOrb.fx
   .createSmoke("gallery-smoke")
@@ -1814,7 +1771,6 @@ smokeOrb.fx
 const sparkPad = new waveCube(1, 0.25, 1);
 sparkPad.setColor(PALETTE.GOLDENROD);
 sparkPad.moveTo({ x: 0, y: 0.5, z: 0 });
-scene.add(sparkPad);
 
 sparkPad.whenClickedOn(() =&gt; {
   sparkPad.playSound(audios.studioSound, { volume: 0.7 });
@@ -1824,13 +1780,11 @@ sparkPad.whenClickedOn(() =&gt; {
 const rainAnchor = new waveCube(0.2, 0.2, 0.2);
 rainAnchor.moveTo({ x: 0, y: 4, z: 0 });
 rainAnchor.hide();
-scene.add(rainAnchor);
 rainAnchor.fx.play(waveFxPresets.rain());
 
 const breakable = new waveCube(1, 1, 1);
 breakable.setColor(PALETTE.CORAL);
 breakable.moveTo({ x: 3, y: 1, z: 0 });
-scene.add(breakable);
 
 breakable.whenClickedOn(() =&gt; {
   if (breakable.isDestroyed) return;
@@ -1906,19 +1860,16 @@ scoreLabel.setColor(PALETTE.WHITE);
 scoreLabel.setBackgroundColor(hudBackground);
 scoreLabel.setSize(220, 48);
 scoreLabel.setScreenPositionPixels(24, 24);
-scene.add(scoreLabel);
 
 const floor = new waveGround(20, 20, 4);
 floor.setColor(PALETTE.CHARCOAL);
 floor.useStaticBody();
 floor.addTag("floor");
-scene.add(floor);
 
 const player = new waveCube(1, 1, 1);
 player.setColor(PALETTE.TURQUOISE);
 player.moveTo({ x: 0, y: 0.5, z: 0 });
 player.useKinematicBody();
-scene.add(player);
 
 player.whenPress(Keyboard.W, () =&gt; player.moveForward(playerStepDistance));
 player.whenPress(Keyboard.S, () =&gt; player.moveBackward(playerStepDistance));
@@ -1939,7 +1890,6 @@ for (let i = 0; i &lt; totalPickups; i++) {
   pickup.setColor(PALETTE.GOLDENROD);
   pickup.moveTo({ x: i * 2 - 4, y: 0.75, z: -3 });
   pickup.addTag("pickup");
-  scene.add(pickup);
 
   pickup.onTick((_self, deltaTime) =&gt; {
     pickup.turnRight(180 * deltaTime);
@@ -1969,7 +1919,6 @@ for (let i = 0; i &lt; totalPickups; i++) {
   .placeAt(0, 5, 0)
   .setColor(PALETTE.BLUE);
 
-scene.add(target);
 
 const boom = (object: Prop): void =&gt; {
   object
@@ -2000,7 +1949,6 @@ target.whenClickedOn(() =&gt; boom(target));</code></pre>
   .placeAt(0, 5, 0)
   .setColor(PALETTE.CYAN);
 
-scene.add(root);
 
 const maxDepth = 4;
 const maxPieces = 120;
@@ -2058,7 +2006,6 @@ function spawnPiece(
   piece.setColor(palette[depth % palette.length] ?? PALETTE.WHITE);
   piece.moveTo({ x, y, z });
   piece.addTag("recursive-piece");
-  scene.add(piece);
 
   piece.onTick((_self, deltaTime) =&gt; {
     piece.turnRight(spinYawDegreesPerSecond * deltaTime);
@@ -2187,7 +2134,6 @@ car.setScale(1.6, 0.35, 2.6);
 car.showDirection();
 car.showPosition();
 car.showBoundingBox();
-scene.add(car);
 
 car.whenHolding(Keyboard.W, () =&gt; car.moveForward(0.18));
 car.whenHolding(Keyboard.S, () =&gt; car.moveBackward(0.1));
@@ -2445,8 +2391,7 @@ if (result.success) {
       gpuDriven: true,
     },
   });
-
-scene.add(projector);</code></pre>
+</code></pre>
           <p>Remix it into a concert rig, museum installation, puzzle room, alarm system, or shader/color-theory lesson.</p>
 
           <h3>Atlas Starter: Performance City Toggle</h3>
@@ -2824,7 +2769,6 @@ myScene.director.whenPress(Keyboard.Escape, () =&gt; {
       <section class="reference">
         <h2>Quick Reference</h2>
         <ul>
-          <li><code>scene.add(entity)</code></li>
           <li><code>scene.getByTag(tag)</code></li>
           <li><code>object.moveTo({ x: x, y: y, z: z })</code></li>
           <li><code>object.onTick(fn)</code></li>
@@ -3040,8 +2984,7 @@ myScene.director.whenPress(Keyboard.Escape, () =&gt; {
         const ctor = constructors[primitive.value];
 const code = `const ${name} = ${ctor};
 ${name}.setColor(${color.value});
-${name}.moveTo({ x: ${Number(posX.value)}, y: ${Number(posY.value)}, z: ${Number(posZ.value)} });
-scene.add(${name});`;
+${name}.moveTo({ x: ${Number(posX.value)}, y: ${Number(posY.value)}, z: ${Number(posZ.value)} });`;
         generatedCode.textContent = code;
       }
 
