@@ -496,6 +496,169 @@ for (let i = 0; i < materialStyles.length; i++) {
 }
 ```
 
+### Material Studio Gallery
+
+The Shape Gallery is useful because it lets learners compare many objects in
+one scene. Materials deserve the same treatment. Build a material studio with
+three rows: palette swatches, surface presets, and texture/face/decal examples.
+
+#### Row 1: Palette Swatches
+
+This row teaches named colors, derived colors, and the difference between
+`PALETTE` / `COLOR` constants and raw hex strings.
+
+```ts
+const colorSwatches = [
+  { label: "WHITE", color: PALETTE.WHITE },
+  { label: "BLACK", color: PALETTE.BLACK },
+  { label: "RED", color: PALETTE.RED },
+  { label: "ORANGE", color: PALETTE.ORANGE },
+  { label: "YELLOW", color: PALETTE.YELLOW },
+  { label: "GREEN", color: PALETTE.GREEN },
+  { label: "BLUE", color: PALETTE.BLUE },
+  { label: "CYAN", color: PALETTE.CYAN },
+  { label: "PURPLE", color: PALETTE.PURPLE },
+  { label: "PINK", color: PALETTE.PINK },
+  { label: "COBALT + LIGHT", color: PALETTE.lighten(PALETTE.COBALT, 25) },
+  { label: "CHARCOAL + DARK", color: PALETTE.darken(PALETTE.CHARCOAL, 12) },
+];
+
+for (let i = 0; i < colorSwatches.length; i++) {
+  const swatch = colorSwatches[i];
+  const chip = new waveCube(0.8, 0.25, 0.8);
+
+  chip.setName(`palette-${swatch.label}`);
+  chip.setColor(swatch.color);
+  chip.placeAt((i - 5.5) * 1.05, 0.5, -5);
+  chip.showLabel(swatch.label);
+  chip.whenClickedOn(() => scene.print(`PALETTE.${swatch.label}`));
+}
+```
+
+#### Row 2: Surface Presets
+
+Use `SurfacePreset` when you want a natural-language material recipe instead of
+remembering roughness, metallic, opacity, and emissive numbers every time.
+
+```ts
+const surfaceSwatches = [
+  { label: "Matte", preset: SurfacePreset.Matte, color: PALETTE.SAGE },
+  { label: "Satin", preset: SurfacePreset.Satin, color: PALETTE.TEAL },
+  { label: "Gloss", preset: SurfacePreset.Gloss, color: PALETTE.CYAN },
+  { label: "Plastic", preset: SurfacePreset.Plastic, color: PALETTE.ORANGE },
+  { label: "Rubber", preset: SurfacePreset.Rubber, color: PALETTE.CHARCOAL },
+  { label: "Metal", preset: SurfacePreset.Metal, color: PALETTE.SILVER },
+  { label: "Chrome", preset: SurfacePreset.Chrome, color: PALETTE.WHITE },
+  { label: "Glass", preset: SurfacePreset.Glass, color: PALETTE.SKY },
+  { label: "Frosted", preset: SurfacePreset.FrostedGlass, color: PALETTE.WARM_WHITE },
+  { label: "Toon", preset: SurfacePreset.Toon, color: PALETTE.YELLOW },
+  { label: "Emissive", preset: SurfacePreset.Emissive, color: PALETTE.FUCHSIA },
+];
+
+for (let i = 0; i < surfaceSwatches.length; i++) {
+  const swatch = surfaceSwatches[i];
+  const sphere = new waveSphere(0.42, 32);
+
+  sphere.setName(`surface-${swatch.label}`);
+  sphere.setColor(swatch.color);
+  sphere.setSurfacePreset(swatch.preset);
+  sphere.placeAt((i - 5) * 1.2, 1.2, -2.5);
+  sphere.showLabel(swatch.label);
+
+  sphere.whenClickedOn(() => {
+    scene.print(`SurfacePreset.${swatch.label}`);
+  });
+}
+```
+
+#### Row 3: Textures, Faces, and Decals
+
+Use object materials for the whole mesh, `faceMaterial(...)` for one surface,
+and decals when you want to stamp an image on top of a receiver.
+
+```ts
+const faceCube = new waveCube(1.8, 1.8, 1.8);
+faceCube.placeAt(-4, 1.1, 1.5);
+faceCube.showLabel("six face colors");
+
+faceCube.faceMaterial(WaveSurface.Up).setColor(PALETTE.WARM_WHITE);
+faceCube.faceMaterial(WaveSurface.Down).setColor(PALETTE.CHARCOAL);
+faceCube.faceMaterial(WaveSurface.Forward).setColor(PALETTE.CYAN);
+faceCube.faceMaterial(WaveSurface.Backward).setColor(PALETTE.PURPLE);
+faceCube.faceMaterial(WaveSurface.Left).setColor(PALETTE.ORANGE);
+faceCube.faceMaterial(WaveSurface.Right).setColor(PALETTE.YELLOW);
+
+const textureCube = new waveCube(1.8, 1.8, 1.8);
+textureCube.placeAt(0, 1.1, 1.5);
+textureCube.showLabel("texture + UV motion");
+textureCube.setBaseTexture(textures.milkyway);
+textureCube.setRoughness(0.35);
+textureCube.setMetallic(0.15);
+
+textureCube
+  .faceMaterial(WaveSurface.Forward)
+  .setUVRotation(360, Animate)
+  .over(4, Seconds)
+  .play();
+
+const decalWall = new waveCube(3.2, 2.2, 0.25);
+decalWall.placeAt(4, 1.3, 1.5);
+decalWall.setColor(PALETTE.SLATE);
+decalWall.setSurfacePreset(SurfacePreset.Matte);
+decalWall.showLabel("decal stamp");
+
+const poster = decalWall
+  .addDecal(textures.FarmGirlHappy)
+  .at(new Vector3(4, 1.4, 1.65))
+  .surface(WaveSurface.Forward)
+  .sized(1.6, 1.6)
+  .paint();
+
+poster.material()
+  .setOpacity(0.85)
+  .setBlendMode("multiply")
+  .setColor(PALETTE.PINK);
+```
+
+#### Animated Material Chain
+
+Material methods can also join animation chains. Read this as: choose one face,
+animate its color, give the animation a duration, play it, then trigger a
+callback.
+
+```ts
+const boom = () => textureCube.exploding().intoPieces(15).apply();
+
+textureCube
+  .faceMaterial(WaveSurface.Left)
+  .setColor(COLOR.RED, Animate)
+  .over(3, Seconds)
+  .play()
+  .onComplete(boom);
+```
+
+APIs to steal: `setColor`, `setSurfacePreset`, `setRoughness`, `setMetallic`,
+`setOpacity`, `setEmissiveColor`, `setEmissiveIntensity`, `enableGlow`,
+`setBaseTexture`, `faceMaterial`, `setUVScale`, `setUVOffset`, `setUVRotation`,
+`addDecal`, `paint`, `material`, and `setBlendMode`.
+
+Natural-language constants to prefer: `PALETTE.CYAN`, `COLOR.RED`,
+`SurfacePreset.Chrome`, `SurfacePreset.FrostedGlass`, `WaveSurface.Up`,
+`WaveSurface.Forward`, `Animate`, and `Seconds`.
+
+Remix challenges:
+
+- Make a clickable material inspector where each click cycles `SurfacePreset`.
+- Build a six-sided dice cube where every face has a different color or image.
+- Make a neon sign by combining `setEmissiveColor`, `setEmissiveIntensity`, and
+  `enableGlow`.
+- Stamp decals onto a wall, then animate decal opacity or UV rotation.
+- Use `sampleTexture` from the Demo Atlas to turn a material into a 3D pixel
+  sculpture.
+
+Source demo references: `material-surface-setter-probe-grid/main.ts`,
+`vertex-color-pbr-painting/main.ts`, and `colored-light-projection/main.ts`.
+
 ## Lesson 5: Using Model Assets
 
 Use `wave3DObject` when you want to place an imported model asset.
