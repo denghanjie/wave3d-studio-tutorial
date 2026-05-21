@@ -141,6 +141,46 @@ cube.moveTo({ x: 0, y: 1, z: 0 });
 Key idea: create an object and configure it. In Studio snippets, that is enough
 for normal objects.
 
+### Scene Starter Gallery
+
+Most useful scenes start with the same four ingredients: a ground or anchor,
+one hero object, one visual cue, and one line of feedback. Treat this as the
+"hello world" pattern for creative scenes.
+
+| Starter | What it teaches | APIs to notice |
+| --- | --- | --- |
+| Hero object | Create and style one thing | `new Cube`, `setColor`, `placeAt` |
+| Ground plane | Give the scene spatial context | `waveGround`, `setColor` |
+| Debug label | Make the object explain itself | `showLabel`, `showName` |
+| Scene message | Give the learner feedback | `scene.print` |
+
+```ts
+myScene.sky.backgroundColor(PALETTE.WHITE);
+
+const ground = new waveGround(16, 16, 4);
+ground.setColor(PALETTE.lighten(PALETTE.SLATE, 24));
+ground.placeAt(0, 0, 0);
+
+const hero = new Cube()
+  .placeAt(0, 1, 0)
+  .setColor(PALETTE.CYAN);
+
+hero.setName("First Hero Cube");
+hero.showLabel("click me");
+
+hero.whenClickedOn(() => {
+  hero.turnRight(45, Animate).over(0.35, Seconds).play();
+  scene.print("The cube is already in the active scene.");
+});
+```
+
+Remix challenges:
+
+- Replace the hero cube with `Sphere`, `Capsule`, or `Prop`.
+- Add `showDirection()` and `showPosition()` while you learn transforms.
+- Change the sky color when the hero is clicked.
+- Turn this into a two-object scene: a player and a goal.
+
 ## Lesson 2: Primitives
 
 WaveStudio includes geometry classes for common shapes. Their constructors
@@ -370,6 +410,51 @@ cube.moveTo({ x: 0, y: 1, z: 0 });
 cube.setColor(PALETTE.WHITE);
 cube.useDynamicBody();
 ```
+
+### Transform Playground Gallery
+
+Transforms are easier to learn when each object demonstrates one movement idea.
+Build a tiny playground where the labels explain the operation.
+
+| Pattern | Use it for | APIs |
+| --- | --- | --- |
+| Absolute placement | Put an object exactly somewhere | `placeAt`, `moveTo`, `setWorldPosition` |
+| Relative movement | Nudge from the current position | `moveLeft`, `moveUp`, `moveForward` |
+| Orientation | Make direction visible | `turnRight`, `pitchUp`, `showDirection` |
+| Scale | Resize without changing the mesh class | `setScale`, `setUniformScale`, `enlargeBy` |
+| Targeting | Face or align with another object | `turnTo`, `fitBetween`, `placeAbove` |
+
+```ts
+const origin = new wavePoint().placeAt(0, 0.1, 0);
+origin.showLabel("origin");
+
+const mover = new Cube().placeAt(-4, 0.5, 0).setColor(PALETTE.CYAN);
+mover.showLabel("moveForward");
+mover.showDirection();
+mover.whenClickedOn(() => mover.moveForward(1, Animate).over(0.4, Seconds).play());
+
+const spinner = new Capsule().placeAt(-1.5, 1, 0).setColor(PALETTE.ORANGE);
+spinner.showLabel("turnRight");
+spinner.showDirection();
+spinner.onTick((_self, dt) => spinner.turnRight(70 * dt));
+
+const scaler = new Sphere(0.6).placeAt(1.5, 0.8, 0).setColor(PALETTE.PINK);
+scaler.showLabel("scale");
+scaler.whenClickedOn(() => {
+  scaler.enlargeBy(1.2, Animate).over(0.25, Seconds).play();
+});
+
+const bridge = new waveCylinder(1, 0.12, 0.12).setColor(PALETTE.GOLD);
+bridge.showLabel("fitBetween");
+bridge.fitBetween(mover, scaler).along(Direction.Up).apply();
+```
+
+Remix challenges:
+
+- Make the bridge update on tick as the endpoints move.
+- Add `showCoordinate()` to compare local and world axes.
+- Use `placeAbove(table)` from the still-life example instead of numeric Y.
+- Make a transform obstacle course controlled with keyboard input.
 
 ## Lesson 4: Materials, Colors, and Textures
 
@@ -679,6 +764,65 @@ ship.useModel(models.XWingStarfighter);
 The global asset aliases are typed, so `models.` and `textures.` should
 autocomplete inside the WaveStudio editor.
 
+### Asset Staging Gallery
+
+Model assets become much easier to teach when you stage them like props: one
+asset per pedestal, with labels, scale helpers, and optional part access.
+
+| Asset task | Use it for | APIs |
+| --- | --- | --- |
+| Place a prop | Furniture, vehicles, characters | `new Prop(models.X)`, `placeAbove` |
+| Normalize size | Imported models vary wildly | `enlargeBy`, `shrinkBy`, `setUniformScale` |
+| Reorient | Model forward axes differ | `turnRight`, `resetOrigin`, `transform.swap...` |
+| Inspect parts | Robot arms, doors, wheels | `getPart`, `showBoundingBox` |
+| Swap assets | Character skins or vehicles | `useModel` |
+
+```ts
+const pedestal = new waveCylinder(0.25, 2.2, 2.2, 48);
+pedestal.setColor(PALETTE.SLATE);
+pedestal.placeAt(0, 0.15, 0);
+pedestal.showLabel("asset pedestal");
+
+const table = new Prop(models.Table_Large_Circular)
+  .enlargeBy(4)
+  .placeAbove(pedestal);
+
+const vase = new Prop(models.vase_de_Nesle)
+  .shrinkBy(170)
+  .placeAbove(table)
+  .moveLeft(0.8);
+
+const books = new Prop(models.Books)
+  .enlargeBy(6)
+  .placeAbove(table)
+  .moveRight(0.8);
+
+table.whenClickedOn(() => {
+  table.showBoundingBox();
+  scene.print("Use scale helpers before tuning exact positions.");
+});
+```
+
+For multipart models, inspect named parts instead of treating the model as a
+single opaque object:
+
+```ts
+const robot = new Prop(models.roboticArm);
+robot.placeAt(0, 0, 4);
+robot.showPosition();
+
+const gripper = robot.getPart("gripper");
+gripper?.setColor(PALETTE.CYAN);
+gripper?.showBoundingBox();
+```
+
+Remix challenges:
+
+- Build a museum shelf with one model per pedestal.
+- Add click handlers that swap each model between two variants.
+- Make a "scale fixer" lesson where every model starts too large or too small.
+- Combine this with `placeAround` to stage chairs, trees, enemies, or crystals.
+
 ## Lesson 6: Animation Over Time
 
 Use `onTick` when you want behavior to run every update. The callback receives
@@ -832,6 +976,33 @@ for (let i = 0; i < motionPatterns.length; i++) {
 }
 ```
 
+### Timeline Remix Ladder
+
+Once the four animation patterns make sense, combine them into tiny sequences.
+
+```ts
+const dancer = new Cube().placeAt(0, 1, 0).setColor(PALETTE.PURPLE);
+
+const dance = () => {
+  dancer.moveUp(1, Animate).over(0.35, Seconds).play()
+    .onComplete(() => {
+      dancer.turnRight(180, Animate).over(0.35, Seconds).play()
+        .onComplete(() => {
+          dancer.moveDown(1, Animate).over(0.35, Seconds).play();
+        });
+    });
+};
+
+dancer.whenClickedOn(dance);
+```
+
+Remix challenges:
+
+- Turn the nested callbacks into named functions: `jump`, `spin`, `land`.
+- Add a color fade at the same time as the jump.
+- Use `after(3, Seconds).do(dance)` for an automatic loop.
+- Trigger a particle effect only when the final animation completes.
+
 ## Lesson 7: Input
 
 Many 3D entities expose keyboard helpers such as `whenPress`, `whenRelease`,
@@ -901,6 +1072,57 @@ button.whenClickedOn(() => {
   button.enlargeBy(1.2);
 });
 ```
+
+### Input Mode Gallery
+
+Good interactive scenes usually need more than one input style. This gallery
+shows a small command system: keyboard for movement, click for selection, and a
+mode key for changing what clicks mean.
+
+| Input style | Best for | APIs |
+| --- | --- | --- |
+| `whenPress` | One-shot commands | Jump, toggle debug, reset |
+| `whenHolding` | Continuous movement | Driving, flying, walking |
+| `whenClickedOn` | Object-specific actions | Select, explode, inspect |
+| Director sensing | Global shortcuts | `myScene.director.whenPress` |
+
+```ts
+let editMode: "paint" | "inspect" = "paint";
+
+const target = new Cube().placeAt(0, 1, 0).setColor(PALETTE.CYAN);
+target.showDirection();
+target.showPosition();
+
+myScene.director.whenPress(Keyboard.Tab, () => {
+  editMode = editMode === "paint" ? "inspect" : "paint";
+  scene.print(`Mode: ${editMode}`);
+});
+
+target.whenHolding(Keyboard.W, () => target.moveForward(0.12));
+target.whenHolding(Keyboard.A, () => target.turnLeft(2));
+target.whenHolding(Keyboard.D, () => target.turnRight(2));
+
+target.whenClickedOn(() => {
+  if (editMode === "paint") {
+    target.setColor(PALETTE.randomFrom([
+      PALETTE.CYAN,
+      PALETTE.GOLDENROD,
+      PALETTE.PINK,
+      PALETTE.GREEN,
+    ]));
+  } else {
+    target.showBoundingBox();
+    scene.print(target.name ?? "unnamed target");
+  }
+});
+```
+
+Remix challenges:
+
+- Add `erase`, `clone`, and `explode` modes.
+- Use a `waveUIText` label to display the current mode.
+- Add keyboard shortcuts for camera changes.
+- Turn the car example into a small driving course with debug toggles.
 
 ## Lesson 8: Physics
 
@@ -1016,6 +1238,43 @@ for (let i = 0; i < physicsExamples.length; i++) {
 }
 ```
 
+### Physics Interaction Lab
+
+Physics gets interesting when collisions change the scene. Build a pressure pad
+that opens a door, then swap the ball for crates, cars, or fragments.
+
+```ts
+const pad = new waveCube(2, 0.18, 2);
+pad.placeAt(0, 0.1, 0);
+pad.setColor(PALETTE.SAGE);
+pad.useStaticBody();
+pad.addTag("pressure-pad");
+
+const door = new waveCube(2, 3, 0.3);
+door.placeAt(0, 1.5, 3);
+door.setColor(PALETTE.CHARCOAL);
+door.useStaticBody();
+
+const ball = new waveSphere(0.55, 32);
+ball.placeAt(0, 4, -2);
+ball.setColor(PALETTE.GOLDENROD);
+ball.useDynamicBody();
+ball.setMass(1.2);
+
+ball.onCollisionBeginByTag("pressure-pad", () => {
+  pad.setColor(PALETTE.GREEN);
+  door.moveUp(3, Animate).over(0.8, Seconds).play();
+  scene.print("Door opened by collision");
+});
+```
+
+Remix challenges:
+
+- Require two pads before the door opens.
+- Add `setLifeTime` to falling objects.
+- Make a pinball bumper using `applyImpulse`.
+- Use `exploding().enablePhysics(true)` to create physical debris.
+
 ## Lesson 9: Camera, Lighting, and Atmosphere
 
 The scene has configurators for camera, sky, fog, lighting, weather, terrain,
@@ -1120,6 +1379,58 @@ spotlight.moveTo({ x: 3, y: 4, z: -2 });
 spotlight.aimAt(0, 1, 0);
 ```
 
+### Mood Preset Gallery
+
+Camera and atmosphere settings are design tools. A small preset system lets
+learners compare moods without rewriting the scene.
+
+```ts
+const moods = {
+  study: {
+    sky: PALETTE.WHITE,
+    fog: PALETTE.SKY,
+    sun: PALETTE.WARM_WHITE,
+    intensity: 0.9,
+  },
+  night: {
+    sky: PALETTE.MIDNIGHT,
+    fog: PALETTE.BLUE,
+    sun: PALETTE.CYAN,
+    intensity: 0.35,
+  },
+  alarm: {
+    sky: PALETTE.CHARCOAL,
+    fog: PALETTE.RED,
+    sun: PALETTE.RED,
+    intensity: 1.6,
+  },
+};
+
+function applyMood(name: keyof typeof moods) {
+  const mood = moods[name];
+
+  scene.sky.backgroundColor(mood.sky).brightness(mood.intensity).apply();
+  scene.fog.exp2().color(mood.fog).density(0.012).apply();
+  scene.lighting
+    .sun({ direction: { x: -1, y: -2, z: -1 }, color: mood.sun, intensity: mood.intensity })
+    .ambient({ color: mood.fog, intensity: 0.25 })
+    .apply();
+
+  scene.print(`Mood: ${name}`);
+}
+
+myScene.director.whenPress(Keyboard.Num1, () => applyMood("study"));
+myScene.director.whenPress(Keyboard.Num2, () => applyMood("night"));
+myScene.director.whenPress(Keyboard.Num3, () => applyMood("alarm"));
+```
+
+Remix challenges:
+
+- Add rain or snow to one mood.
+- Add a spotlight that follows the player in the night preset.
+- Make a photo-mode UI with buttons instead of number keys.
+- Store the last selected mood with `myCloud`.
+
 ## Lesson 10: Scene Queries and Organization
 
 Names and tags make scenes easier to manage.
@@ -1151,6 +1462,51 @@ scene.getByTag("interactive");
 scene.find((entity) => entity.hasTag("door"));
 scene.destroyByTag("temporary");
 ```
+
+### Query and Tag Inspector
+
+Tags are not only for cleanup. They let you build systems that affect whole
+families of objects: all enemies, all pickups, all lights, all temporary
+helpers.
+
+```ts
+const categories = [
+  { tag: "enemy", color: PALETTE.RED, x: -3 },
+  { tag: "pickup", color: PALETTE.GOLDENROD, x: 0 },
+  { tag: "helper", color: PALETTE.CYAN, x: 3 },
+];
+
+for (const category of categories) {
+  for (let i = 0; i < 3; i++) {
+    const marker = new waveSphere(0.35, 16);
+    marker.setColor(category.color);
+    marker.placeAt(category.x, 0.6, i * 1.1);
+    marker.addTag(category.tag);
+    marker.showLabel(category.tag);
+  }
+}
+
+function highlightTag(tag: string) {
+  for (const entity of scene.getByTag(tag)) {
+    entity.showBoundingBox();
+    entity.enlargeBy(1.15, Animate).over(0.2, Seconds).play();
+  }
+
+  scene.print(`${scene.getByTag(tag).length} object(s) tagged ${tag}`);
+}
+
+myScene.director.whenPress(Keyboard.Num1, () => highlightTag("enemy"));
+myScene.director.whenPress(Keyboard.Num2, () => highlightTag("pickup"));
+myScene.director.whenPress(Keyboard.Num3, () => highlightTag("helper"));
+myScene.director.whenPress(Keyboard.Delete, () => scene.destroyByTag("helper"));
+```
+
+Remix challenges:
+
+- Add a `selected` tag when an object is clicked.
+- Make a cleanup key for every object tagged `temporary`.
+- Use names for unique objects and tags for groups.
+- Build a scene debugger that prints counts by tag.
 
 ## Lesson 11: Groups and Spawning
 
@@ -1185,6 +1541,61 @@ const grid = scene.spawnInGrid(tile, {
 If your editor complains about option names, open autocomplete on the second
 argument. The generated declaration file contains the exact `SpawnInGridOptions`
 shape.
+
+### Spawning Pattern Gallery
+
+Spawning is how small code creates large scenes. Use a different placement
+pattern depending on the shape of the idea.
+
+| Pattern | Use it for | APIs |
+| --- | --- | --- |
+| Row or grid | tiles, seats, pixels, crops | `placeInGrid`, `withRows`, `withCols` |
+| Circle | chairs, enemies, crystals | `placeAround`, `inRadius`, `faceCenter` |
+| Path | roads, patrol routes, particle trails | `wavePath`, `placeOnPath`, `followPath` |
+| Group | move or hide many objects together | `createGroup`, `group.add` |
+
+```ts
+const treeSource = new Cone(2, 1.2);
+treeSource.setColor(PALETTE.GREEN);
+
+const treeAsset = treeSource.createInstanceSource();
+const tree = new waveInstanceMesh().useModel(treeAsset.assetName);
+
+const orchard = myScene
+  .placeInGrid(tree)
+  .hideOriginal()
+  .at({ x: -5, y: 1, z: -5 })
+  .withRows(5)
+  .withCols(5)
+  .withSpacing(2)
+  .onEachCell((entity, row, col) => {
+    entity.setName(`tree-${row}-${col}`);
+    entity.moveUp(Math.random() * 0.25);
+  })
+  .place();
+
+const campfire = new Cylinder(0.4, 0.8, 0.8);
+campfire.placeAt(4, 0.2, 0);
+campfire.setColor(PALETTE.ORANGE);
+
+const chair = new Prop(models.Chair).enlargeBy(5);
+
+myScene
+  .placeAround(campfire)
+  .with(chair)
+  .inTotal(6)
+  .inRadius(3)
+  .onPerimeter()
+  .faceCenter()
+  .place();
+```
+
+Remix challenges:
+
+- Scatter pickups in a grid, then remove random cells.
+- Make every spawned object clickable.
+- Use `placeAround` for enemies and `faceCenter()` so they look at the player.
+- Convert a drawn `wavePath` into a patrol route.
 
 ## Lesson 12: UI Overlays
 
@@ -1226,8 +1637,8 @@ gem.whenClickedOn(() => {
 
 ### UI Widget Gallery
 
-UI objects use the same basic workflow as 3D objects: create, configure, place,
-add to the scene, then attach callbacks when the widget should react.
+UI objects use the same basic workflow as 3D objects: create, configure, place
+in the active scene, then attach callbacks when the widget should react.
 
 | Widget | Use it for | Main APIs |
 | --- | --- | --- |
@@ -1280,6 +1691,45 @@ crosshair.setDot(3, PALETTE.WHITE);
 crosshair.setSize(80, 80);
 crosshair.setNormalizedScreenPosition(0.5, 0.5);
 ```
+
+### HUD Recipe Gallery
+
+A useful HUD usually has three layers: always-visible status, contextual
+prompts, and controls that change the world.
+
+```ts
+const status = new waveUIText()
+  .setText("Mode: build")
+  .setFontSize(20)
+  .setColor(PALETTE.WHITE)
+  .setBackgroundColor(PALETTE.modifyAlphaChannel(PALETTE.BLACK, 55))
+  .setSize(220, 40)
+  .setScreenPositionPixels(24, 24);
+
+const prompt = new waveUIText()
+  .setText("Click a cube to paint it")
+  .setFontSize(18)
+  .setColor(PALETTE.CYAN)
+  .setScreenPositionPixels(24, 72);
+
+const resetButton = new waveUIButton()
+  .setText("Reset")
+  .setSize(120, 40)
+  .setScreenPositionPixels(24, 112);
+
+resetButton.onClick(() => {
+  scene.destroyByTag("temporary");
+  status.setText("Mode: reset complete");
+});
+```
+
+Remix challenges:
+
+- Add a health bar and update it from collisions.
+- Add a slider that controls light intensity.
+- Add a dropdown for mood presets from Lesson 9.
+- Use `waveUICanvas` when text/widgets are not enough and you want custom
+  drawing.
 
 ## Lesson 13: Audio and Effects
 
@@ -1362,6 +1812,40 @@ breakable.whenClickedOn(() => {
 });
 ```
 
+### Triggered FX Recipes
+
+Effects feel best when they are tied to a clear event: click, collision, speed,
+state change, or completion callback.
+
+```ts
+const portal = new Torus(1.2, 0.12);
+portal.placeAt(0, 1.5, 0);
+portal.setColor(PALETTE.CYAN);
+portal.setEmissiveColor(PALETTE.CYAN);
+portal.setEmissiveIntensity(1.2);
+portal.enableGlow(0.8, PALETTE.CYAN);
+
+portal.onTick((_self, dt) => {
+  portal.turnRight(90 * dt);
+});
+
+portal.whenClickedOn(() => {
+  portal.playSound(audios.studioSound, { volume: 0.8 });
+  portal.fx.play(waveFxPresets.impactSparks());
+  portal
+    .setColor(PALETTE.FUCHSIA, Animate)
+    .over(0.4, Seconds)
+    .play();
+});
+```
+
+Remix challenges:
+
+- Trigger smoke while a vehicle is moving.
+- Play a sound only on the first collision.
+- Add a cooldown so effects cannot spam.
+- Pair every visual effect with a small UI message.
+
 ## Lesson 14: Persistent Scene Data
 
 `myCloud` is a `WaveSceneDataStore`. It can open, edit, and save JSON records.
@@ -1394,6 +1878,54 @@ if (!myCloud.available) {
   scene.print(`Cloud data unavailable: ${myCloud.reason ?? "unknown reason"}`);
 }
 ```
+
+### Persistence Pattern Gallery
+
+Persistence is most useful when records have a simple shape. Keep one record
+per system, then store small values and arrays inside it.
+
+| Pattern | Record | Keys |
+| --- | --- | --- |
+| High score | `"scores"` | `highScore`, `events` |
+| Settings | `"settings"` | `musicVolume`, `lastMood`, `difficulty` |
+| World state | `"world"` | `unlockedDoors`, `collectedPickups` |
+| Study/tutorial progress | `"tutorial"` | `completedLessons`, `lastOpenedAt` |
+
+```ts
+async function saveSettings(settings: {
+  musicVolume: number;
+  lastMood: string;
+  difficulty: "easy" | "normal" | "hard";
+}) {
+  if (!myCloud.available) {
+    scene.print("Settings are local-only in this environment.");
+    return;
+  }
+
+  const record = await myCloud.openRecord("settings");
+
+  myCloud.json.set(record, "musicVolume", settings.musicVolume);
+  myCloud.json.set(record, "lastMood", settings.lastMood);
+  myCloud.json.set(record, "difficulty", settings.difficulty);
+  myCloud.json.set(record, "savedAt", Date.now());
+
+  const result = await myCloud.saveRecord("settings", record);
+  scene.print(result.ok ? "Settings saved" : "Settings save failed");
+}
+
+saveSettings({
+  musicVolume: 0.7,
+  lastMood: "night",
+  difficulty: "normal",
+});
+```
+
+Remix challenges:
+
+- Save the number of exploded fragments from Boss Project 1.
+- Save the last selected material preset from Lesson 4.
+- Save player position and restore it on load.
+- Add a "clear progress" button in UI that resets a record.
 
 ## Lesson 15: A Complete Mini Project
 
@@ -1484,6 +2016,53 @@ Try changing this project in small steps:
 - Save the score with `myCloud`.
 - Play a sound when a pickup is clicked.
 - Add `useDynamicBody()` and collision callbacks for a physics version.
+
+### Mini Project Upgrade Map
+
+The mini project is intentionally small. Use it as a base and upgrade one
+system at a time.
+
+| Upgrade | What changes | Lessons to reuse |
+| --- | --- | --- |
+| Better world | Replace the floor with terrain, props, and lights | Lessons 4, 5, 9 |
+| Better controls | Use `whenHolding`, debug overlays, camera follow | Lessons 7, 9 |
+| Better pickups | Spawn in grid/circle/path and add effects | Lessons 11, 13 |
+| Better rules | Add timers, win state, reset button | Lessons 6, 12 |
+| Better memory | Save high score and chosen mood | Lesson 14 |
+
+```ts
+const pickupGroup = scene.createGroup<waveSphere>("pickup-group");
+const pickupPrototype = new waveSphere(0.45, 24);
+pickupPrototype.setColor(PALETTE.GOLDENROD);
+
+myScene
+  .placeInGrid(pickupPrototype)
+  .hideOriginal()
+  .at({ x: -4, y: 0.75, z: -4 })
+  .withRows(2)
+  .withCols(5)
+  .withSpacing(2)
+  .onEachCell((pickup) => {
+    pickup.addTag("pickup");
+    pickupGroup.add(pickup);
+    pickup.onTick((_self, dt) => pickup.turnRight(180 * dt));
+    pickup.whenClickedOn(() => {
+      if (pickup.isDestroyed) return;
+      pickup.fx.play(waveFxPresets.impactSparks());
+      updateScore(1);
+      pickup.destroy();
+    });
+  })
+  .place();
+```
+
+Boss-mode remix:
+
+- Add a timer and fail state.
+- Add a moving enemy that uses `whenHolding` or `onTick`.
+- Save the best completion time with `myCloud`.
+- Replace click collection with collision collection.
+- Add a final recursive explosion when every pickup is collected.
 
 ## Boss Project 1: Recursive Click Explosions
 

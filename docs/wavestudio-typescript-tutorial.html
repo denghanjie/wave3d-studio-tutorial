@@ -885,7 +885,7 @@
 
       <div id="noResults" class="no-results">No lessons match that search.</div>
 
-      <article class="lesson" id="lesson-1" data-lesson="1" data-keywords="scene withMain globals ctx engine scene">
+      <article class="lesson" id="lesson-1" data-lesson="1" data-keywords="scene withMain globals ctx engine scene starter hero ground label print">
         <header class="lesson-head">
           <div><h2>Lesson 1: The Smallest Scene</h2><p>Create an object and configure it in the active scene.</p></div>
           <label class="check"><input type="checkbox" data-complete="lesson-1"> Complete</label>
@@ -923,6 +923,40 @@ target
   .withStrength(2)
   .apply();</code></pre>
           <p>Use chaining when it reads naturally. If autocomplete becomes confusing, or a method returns <code>void</code>, <code>null</code>, or a different builder type than you expected, split the code into separate statements.</p>
+          <h3>Scene Starter Gallery</h3>
+          <p>Most useful scenes start with the same four ingredients: a ground or anchor, one hero object, one visual cue, and one line of feedback.</p>
+          <table class="reference-table">
+            <thead><tr><th>Starter</th><th>What it teaches</th><th>APIs to notice</th></tr></thead>
+            <tbody>
+              <tr><td>Hero object</td><td>Create and style one thing</td><td><code>new Cube</code>, <code>setColor</code>, <code>placeAt</code></td></tr>
+              <tr><td>Ground plane</td><td>Give the scene spatial context</td><td><code>waveGround</code>, <code>setColor</code></td></tr>
+              <tr><td>Debug label</td><td>Make the object explain itself</td><td><code>showLabel</code>, <code>showName</code></td></tr>
+              <tr><td>Scene message</td><td>Give the learner feedback</td><td><code>scene.print</code></td></tr>
+            </tbody>
+          </table>
+          <pre><code class="language-ts">myScene.sky.backgroundColor(PALETTE.WHITE);
+
+const ground = new waveGround(16, 16, 4);
+ground.setColor(PALETTE.lighten(PALETTE.SLATE, 24));
+ground.placeAt(0, 0, 0);
+
+const hero = new Cube()
+  .placeAt(0, 1, 0)
+  .setColor(PALETTE.CYAN);
+
+hero.setName("First Hero Cube");
+hero.showLabel("click me");
+
+hero.whenClickedOn(() =&gt; {
+  hero.turnRight(45, Animate).over(0.35, Seconds).play();
+  scene.print("The cube is already in the active scene.");
+});</code></pre>
+          <ul class="remix-list">
+            <li>Replace the hero cube with <code>Sphere</code>, <code>Capsule</code>, or <code>Prop</code>.</li>
+            <li>Add <code>showDirection()</code> and <code>showPosition()</code> while you learn transforms.</li>
+            <li>Change the sky color when the hero is clicked.</li>
+            <li>Turn this into a two-object scene: a player and a goal.</li>
+          </ul>
         </div>
       </article>
 
@@ -1082,7 +1116,7 @@ for (let i = 0; i &lt; shapes.length; i++) {
         </div>
       </article>
 
-      <article class="lesson" id="lesson-3" data-lesson="3" data-keywords="transform move rotate scale position direction">
+      <article class="lesson" id="lesson-3" data-lesson="3" data-keywords="transform move rotate scale position direction playground placeAt fitBetween showDirection coordinate">
         <header class="lesson-head">
           <div><h2>Lesson 3: Position, Rotation, and Scale</h2><p>Transform helpers are inherited by most 3D objects.</p></div>
           <label class="check"><input type="checkbox" data-complete="lesson-3"> Complete</label>
@@ -1109,6 +1143,46 @@ block.setWorldPosition(0, 1, 0);</code></pre>
           <pre><code class="language-ts">block.transform.setPosition(0, 2, 0);
 block.transform.setScale(1, 2, 1);
 block.transform.moveAlong(Direction.Up, 1);</code></pre>
+          <h3>Transform Playground Gallery</h3>
+          <p>Transforms are easier to learn when each object demonstrates one movement idea. Build a tiny playground where the labels explain the operation.</p>
+          <table class="reference-table">
+            <thead><tr><th>Pattern</th><th>Use it for</th><th>APIs</th></tr></thead>
+            <tbody>
+              <tr><td>Absolute placement</td><td>Put an object exactly somewhere</td><td><code>placeAt</code>, <code>moveTo</code>, <code>setWorldPosition</code></td></tr>
+              <tr><td>Relative movement</td><td>Nudge from the current position</td><td><code>moveLeft</code>, <code>moveUp</code>, <code>moveForward</code></td></tr>
+              <tr><td>Orientation</td><td>Make direction visible</td><td><code>turnRight</code>, <code>pitchUp</code>, <code>showDirection</code></td></tr>
+              <tr><td>Scale</td><td>Resize without changing the mesh class</td><td><code>setScale</code>, <code>setUniformScale</code>, <code>enlargeBy</code></td></tr>
+              <tr><td>Targeting</td><td>Face or align with another object</td><td><code>turnTo</code>, <code>fitBetween</code>, <code>placeAbove</code></td></tr>
+            </tbody>
+          </table>
+          <pre><code class="language-ts">const origin = new wavePoint().placeAt(0, 0.1, 0);
+origin.showLabel("origin");
+
+const mover = new Cube().placeAt(-4, 0.5, 0).setColor(PALETTE.CYAN);
+mover.showLabel("moveForward");
+mover.showDirection();
+mover.whenClickedOn(() =&gt; mover.moveForward(1, Animate).over(0.4, Seconds).play());
+
+const spinner = new Capsule().placeAt(-1.5, 1, 0).setColor(PALETTE.ORANGE);
+spinner.showLabel("turnRight");
+spinner.showDirection();
+spinner.onTick((_self, dt) =&gt; spinner.turnRight(70 * dt));
+
+const scaler = new Sphere(0.6).placeAt(1.5, 0.8, 0).setColor(PALETTE.PINK);
+scaler.showLabel("scale");
+scaler.whenClickedOn(() =&gt; {
+  scaler.enlargeBy(1.2, Animate).over(0.25, Seconds).play();
+});
+
+const bridge = new waveCylinder(1, 0.12, 0.12).setColor(PALETTE.GOLD);
+bridge.showLabel("fitBetween");
+bridge.fitBetween(mover, scaler).along(Direction.Up).apply();</code></pre>
+          <ul class="remix-list">
+            <li>Make the bridge update on tick as the endpoints move.</li>
+            <li>Add <code>showCoordinate()</code> to compare local and world axes.</li>
+            <li>Use <code>placeAbove(table)</code> from the still-life example instead of numeric Y.</li>
+            <li>Make a transform obstacle course controlled with keyboard input.</li>
+          </ul>
         </div>
       </article>
 
@@ -1340,7 +1414,7 @@ textureCube
         </div>
       </article>
 
-      <article class="lesson" id="lesson-5" data-lesson="5" data-keywords="model asset models wave3DObject spaceship xwing">
+      <article class="lesson" id="lesson-5" data-lesson="5" data-keywords="model asset models wave3DObject spaceship xwing prop staging placeAbove getPart scale">
         <header class="lesson-head">
           <div><h2>Lesson 5: Using Model Assets</h2><p>Use <code>wave3DObject</code> for imported models.</p></div>
           <label class="check"><input type="checkbox" data-complete="lesson-5"> Complete</label>
@@ -1352,10 +1426,58 @@ ship.setUniformScale(0.4);
 ship.turnRight(30);</code></pre>
           <p>Swap a model later with <code>useModel</code>.</p>
           <pre><code class="language-ts">ship.useModel(models.XWingStarfighter);</code></pre>
+          <h3>Asset Staging Gallery</h3>
+          <p>Model assets become much easier to teach when you stage them like props: one asset per pedestal, with labels, scale helpers, and optional part access.</p>
+          <table class="reference-table">
+            <thead><tr><th>Asset task</th><th>Use it for</th><th>APIs</th></tr></thead>
+            <tbody>
+              <tr><td>Place a prop</td><td>Furniture, vehicles, characters</td><td><code>new Prop(models.X)</code>, <code>placeAbove</code></td></tr>
+              <tr><td>Normalize size</td><td>Imported models vary wildly</td><td><code>enlargeBy</code>, <code>shrinkBy</code>, <code>setUniformScale</code></td></tr>
+              <tr><td>Reorient</td><td>Model forward axes differ</td><td><code>turnRight</code>, <code>resetOrigin</code>, transform swaps</td></tr>
+              <tr><td>Inspect parts</td><td>Robot arms, doors, wheels</td><td><code>getPart</code>, <code>showBoundingBox</code></td></tr>
+              <tr><td>Swap assets</td><td>Character skins or vehicles</td><td><code>useModel</code></td></tr>
+            </tbody>
+          </table>
+          <pre><code class="language-ts">const pedestal = new waveCylinder(0.25, 2.2, 2.2, 48);
+pedestal.setColor(PALETTE.SLATE);
+pedestal.placeAt(0, 0.15, 0);
+pedestal.showLabel("asset pedestal");
+
+const table = new Prop(models.Table_Large_Circular)
+  .enlargeBy(4)
+  .placeAbove(pedestal);
+
+const vase = new Prop(models.vase_de_Nesle)
+  .shrinkBy(170)
+  .placeAbove(table)
+  .moveLeft(0.8);
+
+const books = new Prop(models.Books)
+  .enlargeBy(6)
+  .placeAbove(table)
+  .moveRight(0.8);
+
+table.whenClickedOn(() =&gt; {
+  table.showBoundingBox();
+  scene.print("Use scale helpers before tuning exact positions.");
+});</code></pre>
+          <pre><code class="language-ts">const robot = new Prop(models.roboticArm);
+robot.placeAt(0, 0, 4);
+robot.showPosition();
+
+const gripper = robot.getPart("gripper");
+gripper?.setColor(PALETTE.CYAN);
+gripper?.showBoundingBox();</code></pre>
+          <ul class="remix-list">
+            <li>Build a museum shelf with one model per pedestal.</li>
+            <li>Add click handlers that swap each model between two variants.</li>
+            <li>Make a scale-fixer lesson where every model starts too large or too small.</li>
+            <li>Combine this with <code>placeAround</code> to stage chairs, trees, enemies, or crystals.</li>
+          </ul>
         </div>
       </article>
 
-      <article class="lesson" id="lesson-6" data-lesson="6" data-keywords="animation tick deltaTime every seconds after">
+      <article class="lesson" id="lesson-6" data-lesson="6" data-keywords="animation tick deltaTime every seconds after timeline completion callbacks motion ladder">
         <header class="lesson-head">
           <div><h2>Lesson 6: Animation Over Time</h2><p>Use <code>onTick</code> for frame-by-frame behavior.</p></div>
           <label class="check"><input type="checkbox" data-complete="lesson-6"> Complete</label>
@@ -1478,10 +1600,31 @@ for (let i = 0; i &lt; motionPatterns.length; i++) {
   pattern.animate(object);
   object.whenClickedOn(() =&gt; scene.print(pattern.label));
 }</code></pre>
+          <h3>Timeline Remix Ladder</h3>
+          <p>Once the four animation patterns make sense, combine them into tiny sequences.</p>
+          <pre><code class="language-ts">const dancer = new Cube().placeAt(0, 1, 0).setColor(PALETTE.PURPLE);
+
+const dance = () =&gt; {
+  dancer.moveUp(1, Animate).over(0.35, Seconds).play()
+    .onComplete(() =&gt; {
+      dancer.turnRight(180, Animate).over(0.35, Seconds).play()
+        .onComplete(() =&gt; {
+          dancer.moveDown(1, Animate).over(0.35, Seconds).play();
+        });
+    });
+};
+
+dancer.whenClickedOn(dance);</code></pre>
+          <ul class="remix-list">
+            <li>Turn the nested callbacks into named functions: <code>jump</code>, <code>spin</code>, <code>land</code>.</li>
+            <li>Add a color fade at the same time as the jump.</li>
+            <li>Use <code>after(3, Seconds).do(dance)</code> for an automatic loop.</li>
+            <li>Trigger a particle effect only when the final animation completes.</li>
+          </ul>
         </div>
       </article>
 
-      <article class="lesson" id="lesson-7" data-lesson="7" data-keywords="input keyboard press holding driving car debug showDirection showPosition showCoordinate click pointer interaction whenPress whenHolding whenClickedOn">
+      <article class="lesson" id="lesson-7" data-lesson="7" data-keywords="input keyboard press holding driving car debug showDirection showPosition showCoordinate click pointer interaction whenPress whenHolding whenClickedOn mode inspector">
         <header class="lesson-head">
           <div><h2>Lesson 7: Input</h2><p>Connect keyboard and pointer events to object behavior.</p></div>
           <label class="check"><input type="checkbox" data-complete="lesson-7"> Complete</label>
@@ -1539,10 +1682,55 @@ button.whenClickedOn(() =&gt; {
   button.setColor(PALETTE.ORANGE);
   button.enlargeBy(1.2);
 });</code></pre>
+          <h3>Input Mode Gallery</h3>
+          <p>Good interactive scenes usually need more than one input style. This gallery shows a small command system: keyboard for movement, click for selection, and a mode key for changing what clicks mean.</p>
+          <table class="reference-table">
+            <thead><tr><th>Input style</th><th>Best for</th><th>APIs</th></tr></thead>
+            <tbody>
+              <tr><td><code>whenPress</code></td><td>One-shot commands</td><td>Jump, toggle debug, reset</td></tr>
+              <tr><td><code>whenHolding</code></td><td>Continuous movement</td><td>Driving, flying, walking</td></tr>
+              <tr><td><code>whenClickedOn</code></td><td>Object-specific actions</td><td>Select, explode, inspect</td></tr>
+              <tr><td>Director sensing</td><td>Global shortcuts</td><td><code>myScene.director.whenPress</code></td></tr>
+            </tbody>
+          </table>
+          <pre><code class="language-ts">let editMode: "paint" | "inspect" = "paint";
+
+const target = new Cube().placeAt(0, 1, 0).setColor(PALETTE.CYAN);
+target.showDirection();
+target.showPosition();
+
+myScene.director.whenPress(Keyboard.Tab, () =&gt; {
+  editMode = editMode === "paint" ? "inspect" : "paint";
+  scene.print(`Mode: ${editMode}`);
+});
+
+target.whenHolding(Keyboard.W, () =&gt; target.moveForward(0.12));
+target.whenHolding(Keyboard.A, () =&gt; target.turnLeft(2));
+target.whenHolding(Keyboard.D, () =&gt; target.turnRight(2));
+
+target.whenClickedOn(() =&gt; {
+  if (editMode === "paint") {
+    target.setColor(PALETTE.randomFrom([
+      PALETTE.CYAN,
+      PALETTE.GOLDENROD,
+      PALETTE.PINK,
+      PALETTE.GREEN,
+    ]));
+  } else {
+    target.showBoundingBox();
+    scene.print(target.name ?? "unnamed target");
+  }
+});</code></pre>
+          <ul class="remix-list">
+            <li>Add <code>erase</code>, <code>clone</code>, and <code>explode</code> modes.</li>
+            <li>Use a <code>waveUIText</code> label to display the current mode.</li>
+            <li>Add keyboard shortcuts for camera changes.</li>
+            <li>Turn the car example into a small driving course with debug toggles.</li>
+          </ul>
         </div>
       </article>
 
-      <article class="lesson" id="lesson-8" data-lesson="8" data-keywords="physics collision force impulse dynamic static kinematic body">
+      <article class="lesson" id="lesson-8" data-lesson="8" data-keywords="physics collision force impulse dynamic static kinematic body pressure pad door collision lab">
         <header class="lesson-head">
           <div><h2>Lesson 8: Physics</h2><p>Use static, dynamic, and kinematic bodies for different motion styles.</p></div>
           <label class="check"><input type="checkbox" data-complete="lesson-8"> Complete</label>
@@ -1632,10 +1820,40 @@ for (let i = 0; i &lt; physicsExamples.length; i++) {
 
   object.whenClickedOn(() =&gt; scene.print(example.label));
 }</code></pre>
+          <h3>Physics Interaction Lab</h3>
+          <p>Physics gets interesting when collisions change the scene. Build a pressure pad that opens a door, then swap the ball for crates, cars, or fragments.</p>
+          <pre><code class="language-ts">const pad = new waveCube(2, 0.18, 2);
+pad.placeAt(0, 0.1, 0);
+pad.setColor(PALETTE.SAGE);
+pad.useStaticBody();
+pad.addTag("pressure-pad");
+
+const door = new waveCube(2, 3, 0.3);
+door.placeAt(0, 1.5, 3);
+door.setColor(PALETTE.CHARCOAL);
+door.useStaticBody();
+
+const ball = new waveSphere(0.55, 32);
+ball.placeAt(0, 4, -2);
+ball.setColor(PALETTE.GOLDENROD);
+ball.useDynamicBody();
+ball.setMass(1.2);
+
+ball.onCollisionBeginByTag("pressure-pad", () =&gt; {
+  pad.setColor(PALETTE.GREEN);
+  door.moveUp(3, Animate).over(0.8, Seconds).play();
+  scene.print("Door opened by collision");
+});</code></pre>
+          <ul class="remix-list">
+            <li>Require two pads before the door opens.</li>
+            <li>Add <code>setLifeTime</code> to falling objects.</li>
+            <li>Make a pinball bumper using <code>applyImpulse</code>.</li>
+            <li>Use <code>exploding().enablePhysics(true)</code> to create physical debris.</li>
+          </ul>
         </div>
       </article>
 
-      <article class="lesson" id="lesson-9" data-lesson="9" data-keywords="camera lighting sky fog orbit ambient sun atmosphere">
+      <article class="lesson" id="lesson-9" data-lesson="9" data-keywords="camera lighting sky fog orbit ambient sun atmosphere mood preset photo mode">
         <header class="lesson-head">
           <div><h2>Lesson 9: Camera, Lighting, and Atmosphere</h2><p>Configure the scene with fluent configurators.</p></div>
           <label class="check"><input type="checkbox" data-complete="lesson-9"> Complete</label>
@@ -1715,10 +1933,55 @@ spotlight.setIntensity(2);
 spotlight.setAngle(45);
 spotlight.moveTo({ x: 3, y: 4, z: -2 });
 spotlight.aimAt(0, 1, 0);</code></pre>
+          <h3>Mood Preset Gallery</h3>
+          <p>Camera and atmosphere settings are design tools. A small preset system lets learners compare moods without rewriting the scene.</p>
+          <pre><code class="language-ts">const moods = {
+  study: {
+    sky: PALETTE.WHITE,
+    fog: PALETTE.SKY,
+    sun: PALETTE.WARM_WHITE,
+    intensity: 0.9,
+  },
+  night: {
+    sky: PALETTE.MIDNIGHT,
+    fog: PALETTE.BLUE,
+    sun: PALETTE.CYAN,
+    intensity: 0.35,
+  },
+  alarm: {
+    sky: PALETTE.CHARCOAL,
+    fog: PALETTE.RED,
+    sun: PALETTE.RED,
+    intensity: 1.6,
+  },
+};
+
+function applyMood(name: keyof typeof moods) {
+  const mood = moods[name];
+
+  scene.sky.backgroundColor(mood.sky).brightness(mood.intensity).apply();
+  scene.fog.exp2().color(mood.fog).density(0.012).apply();
+  scene.lighting
+    .sun({ direction: { x: -1, y: -2, z: -1 }, color: mood.sun, intensity: mood.intensity })
+    .ambient({ color: mood.fog, intensity: 0.25 })
+    .apply();
+
+  scene.print(`Mood: ${name}`);
+}
+
+myScene.director.whenPress(Keyboard.Num1, () =&gt; applyMood("study"));
+myScene.director.whenPress(Keyboard.Num2, () =&gt; applyMood("night"));
+myScene.director.whenPress(Keyboard.Num3, () =&gt; applyMood("alarm"));</code></pre>
+          <ul class="remix-list">
+            <li>Add rain or snow to one mood.</li>
+            <li>Add a spotlight that follows the player in the night preset.</li>
+            <li>Make a photo-mode UI with buttons instead of number keys.</li>
+            <li>Store the last selected mood with <code>myCloud</code>.</li>
+          </ul>
         </div>
       </article>
 
-      <article class="lesson" id="lesson-10" data-lesson="10" data-keywords="query names tags getByTag find scene organization">
+      <article class="lesson" id="lesson-10" data-lesson="10" data-keywords="query names tags getByTag find scene organization inspector selected temporary cleanup">
         <header class="lesson-head">
           <div><h2>Lesson 10: Scene Queries and Organization</h2><p>Use names and tags to manage objects.</p></div>
           <label class="check"><input type="checkbox" data-complete="lesson-10"> Complete</label>
@@ -1744,10 +2007,47 @@ scene.getByName("main-door");
 scene.getByTag("interactive");
 scene.find((entity) =&gt; entity.hasTag("door"));
 scene.destroyByTag("temporary");</code></pre>
+          <h3>Query and Tag Inspector</h3>
+          <p>Tags are not only for cleanup. They let you build systems that affect whole families of objects: all enemies, all pickups, all lights, all temporary helpers.</p>
+          <pre><code class="language-ts">const categories = [
+  { tag: "enemy", color: PALETTE.RED, x: -3 },
+  { tag: "pickup", color: PALETTE.GOLDENROD, x: 0 },
+  { tag: "helper", color: PALETTE.CYAN, x: 3 },
+];
+
+for (const category of categories) {
+  for (let i = 0; i &lt; 3; i++) {
+    const marker = new waveSphere(0.35, 16);
+    marker.setColor(category.color);
+    marker.placeAt(category.x, 0.6, i * 1.1);
+    marker.addTag(category.tag);
+    marker.showLabel(category.tag);
+  }
+}
+
+function highlightTag(tag: string) {
+  for (const entity of scene.getByTag(tag)) {
+    entity.showBoundingBox();
+    entity.enlargeBy(1.15, Animate).over(0.2, Seconds).play();
+  }
+
+  scene.print(`${scene.getByTag(tag).length} object(s) tagged ${tag}`);
+}
+
+myScene.director.whenPress(Keyboard.Num1, () =&gt; highlightTag("enemy"));
+myScene.director.whenPress(Keyboard.Num2, () =&gt; highlightTag("pickup"));
+myScene.director.whenPress(Keyboard.Num3, () =&gt; highlightTag("helper"));
+myScene.director.whenPress(Keyboard.Delete, () =&gt; scene.destroyByTag("helper"));</code></pre>
+          <ul class="remix-list">
+            <li>Add a <code>selected</code> tag when an object is clicked.</li>
+            <li>Make a cleanup key for every object tagged <code>temporary</code>.</li>
+            <li>Use names for unique objects and tags for groups.</li>
+            <li>Build a scene debugger that prints counts by tag.</li>
+          </ul>
         </div>
       </article>
 
-      <article class="lesson" id="lesson-11" data-lesson="11" data-keywords="groups spawning spawnInGrid spawnOnPath spawnAround row grid">
+      <article class="lesson" id="lesson-11" data-lesson="11" data-keywords="groups spawning spawnInGrid spawnOnPath spawnAround row grid placeInGrid placeAround path orchard campfire">
         <header class="lesson-head">
           <div><h2>Lesson 11: Groups and Spawning</h2><p>Group related entities and place repeated objects.</p></div>
           <label class="check"><input type="checkbox" data-complete="lesson-11"> Complete</label>
@@ -1770,10 +2070,60 @@ const grid = scene.spawnInGrid(tile, {
   cols: 4,
   spacing: 1.25,
 });</code></pre>
+          <h3>Spawning Pattern Gallery</h3>
+          <p>Spawning is how small code creates large scenes. Use a different placement pattern depending on the shape of the idea.</p>
+          <table class="reference-table">
+            <thead><tr><th>Pattern</th><th>Use it for</th><th>APIs</th></tr></thead>
+            <tbody>
+              <tr><td>Row or grid</td><td>tiles, seats, pixels, crops</td><td><code>placeInGrid</code>, <code>withRows</code>, <code>withCols</code></td></tr>
+              <tr><td>Circle</td><td>chairs, enemies, crystals</td><td><code>placeAround</code>, <code>inRadius</code>, <code>faceCenter</code></td></tr>
+              <tr><td>Path</td><td>roads, patrol routes, particle trails</td><td><code>wavePath</code>, <code>placeOnPath</code>, <code>followPath</code></td></tr>
+              <tr><td>Group</td><td>move or hide many objects together</td><td><code>createGroup</code>, <code>group.add</code></td></tr>
+            </tbody>
+          </table>
+          <pre><code class="language-ts">const treeSource = new Cone(2, 1.2);
+treeSource.setColor(PALETTE.GREEN);
+
+const treeAsset = treeSource.createInstanceSource();
+const tree = new waveInstanceMesh().useModel(treeAsset.assetName);
+
+const orchard = myScene
+  .placeInGrid(tree)
+  .hideOriginal()
+  .at({ x: -5, y: 1, z: -5 })
+  .withRows(5)
+  .withCols(5)
+  .withSpacing(2)
+  .onEachCell((entity, row, col) =&gt; {
+    entity.setName(`tree-${row}-${col}`);
+    entity.moveUp(Math.random() * 0.25);
+  })
+  .place();
+
+const campfire = new Cylinder(0.4, 0.8, 0.8);
+campfire.placeAt(4, 0.2, 0);
+campfire.setColor(PALETTE.ORANGE);
+
+const chair = new Prop(models.Chair).enlargeBy(5);
+
+myScene
+  .placeAround(campfire)
+  .with(chair)
+  .inTotal(6)
+  .inRadius(3)
+  .onPerimeter()
+  .faceCenter()
+  .place();</code></pre>
+          <ul class="remix-list">
+            <li>Scatter pickups in a grid, then remove random cells.</li>
+            <li>Make every spawned object clickable.</li>
+            <li>Use <code>placeAround</code> for enemies and <code>faceCenter()</code> so they look at the player.</li>
+            <li>Convert a drawn <code>wavePath</code> into a patrol route.</li>
+          </ul>
         </div>
       </article>
 
-      <article class="lesson" id="lesson-12" data-lesson="12" data-keywords="ui overlay text button score label waveUIText">
+      <article class="lesson" id="lesson-12" data-lesson="12" data-keywords="ui overlay text button score label waveUIText HUD prompt reset slider progress crosshair">
         <header class="lesson-head">
           <div><h2>Lesson 12: UI Overlays</h2><p>Create 2D UI entities like labels, buttons, and sliders.</p></div>
           <label class="check"><input type="checkbox" data-complete="lesson-12"> Complete</label>
@@ -1795,7 +2145,7 @@ function addScore(points: number) {
   scoreLabel.setText(`Score: ${score}`);
 }</code></pre>
           <h3>UI Widget Gallery</h3>
-          <p>UI objects use the same basic workflow as 3D objects: create, configure, place, add to the scene, then attach callbacks when the widget should react.</p>
+          <p>UI objects use the same basic workflow as 3D objects: create, configure, place in the active scene, then attach callbacks when the widget should react.</p>
           <table>
             <thead><tr><th>Widget</th><th>Use it for</th><th>Main APIs</th></tr></thead>
             <tbody>
@@ -1847,10 +2197,41 @@ crosshair.setCrosshairColor(PALETTE.CYAN);
 crosshair.setDot(3, PALETTE.WHITE);
 crosshair.setSize(80, 80);
 crosshair.setNormalizedScreenPosition(0.5, 0.5);</code></pre>
+          <h3>HUD Recipe Gallery</h3>
+          <p>A useful HUD usually has three layers: always-visible status, contextual prompts, and controls that change the world.</p>
+          <pre><code class="language-ts">const status = new waveUIText()
+  .setText("Mode: build")
+  .setFontSize(20)
+  .setColor(PALETTE.WHITE)
+  .setBackgroundColor(PALETTE.modifyAlphaChannel(PALETTE.BLACK, 55))
+  .setSize(220, 40)
+  .setScreenPositionPixels(24, 24);
+
+const prompt = new waveUIText()
+  .setText("Click a cube to paint it")
+  .setFontSize(18)
+  .setColor(PALETTE.CYAN)
+  .setScreenPositionPixels(24, 72);
+
+const resetButton = new waveUIButton()
+  .setText("Reset")
+  .setSize(120, 40)
+  .setScreenPositionPixels(24, 112);
+
+resetButton.onClick(() =&gt; {
+  scene.destroyByTag("temporary");
+  status.setText("Mode: reset complete");
+});</code></pre>
+          <ul class="remix-list">
+            <li>Add a health bar and update it from collisions.</li>
+            <li>Add a slider that controls light intensity.</li>
+            <li>Add a dropdown for mood presets from Lesson 9.</li>
+            <li>Use <code>waveUICanvas</code> when text/widgets are not enough and you want custom drawing.</li>
+          </ul>
         </div>
       </article>
 
-      <article class="lesson" id="lesson-13" data-lesson="13" data-keywords="audio sound audios effects fx smoke particles">
+      <article class="lesson" id="lesson-13" data-lesson="13" data-keywords="audio sound audios effects fx smoke particles triggered portal glow cooldown">
         <header class="lesson-head">
           <div><h2>Lesson 13: Audio and Effects</h2><p>Play sounds and author simple FX from entities.</p></div>
           <label class="check"><input type="checkbox" data-complete="lesson-13"> Complete</label>
@@ -1917,10 +2298,37 @@ breakable.whenClickedOn(() =&gt; {
   if (breakable.isDestroyed) return;
   breakable.exploding().intoPieces(10).withStrength(5).apply();
 });</code></pre>
+          <h3>Triggered FX Recipes</h3>
+          <p>Effects feel best when they are tied to a clear event: click, collision, speed, state change, or completion callback.</p>
+          <pre><code class="language-ts">const portal = new Torus(1.2, 0.12);
+portal.placeAt(0, 1.5, 0);
+portal.setColor(PALETTE.CYAN);
+portal.setEmissiveColor(PALETTE.CYAN);
+portal.setEmissiveIntensity(1.2);
+portal.enableGlow(0.8, PALETTE.CYAN);
+
+portal.onTick((_self, dt) =&gt; {
+  portal.turnRight(90 * dt);
+});
+
+portal.whenClickedOn(() =&gt; {
+  portal.playSound(audios.studioSound, { volume: 0.8 });
+  portal.fx.play(waveFxPresets.impactSparks());
+  portal
+    .setColor(PALETTE.FUCHSIA, Animate)
+    .over(0.4, Seconds)
+    .play();
+});</code></pre>
+          <ul class="remix-list">
+            <li>Trigger smoke while a vehicle is moving.</li>
+            <li>Play a sound only on the first collision.</li>
+            <li>Add a cooldown so effects cannot spam.</li>
+            <li>Pair every visual effect with a small UI message.</li>
+          </ul>
         </div>
       </article>
 
-      <article class="lesson" id="lesson-14" data-lesson="14" data-keywords="data myCloud cloud record save json persistent">
+      <article class="lesson" id="lesson-14" data-lesson="14" data-keywords="data myCloud cloud record save json persistent settings high score world progress">
         <header class="lesson-head">
           <div><h2>Lesson 14: Persistent Scene Data</h2><p>Use <code>myCloud</code> to open, edit, and save JSON records.</p></div>
           <label class="check"><input type="checkbox" data-complete="lesson-14"> Complete</label>
@@ -1947,10 +2355,53 @@ breakable.whenClickedOn(() =&gt; {
           <pre><code class="language-ts">if (!myCloud.available) {
   scene.print(`Cloud data unavailable: ${myCloud.reason ?? "unknown reason"}`);
 }</code></pre>
+          <h3>Persistence Pattern Gallery</h3>
+          <p>Persistence is most useful when records have a simple shape. Keep one record per system, then store small values and arrays inside it.</p>
+          <table class="reference-table">
+            <thead><tr><th>Pattern</th><th>Record</th><th>Keys</th></tr></thead>
+            <tbody>
+              <tr><td>High score</td><td><code>"scores"</code></td><td><code>highScore</code>, <code>events</code></td></tr>
+              <tr><td>Settings</td><td><code>"settings"</code></td><td><code>musicVolume</code>, <code>lastMood</code>, <code>difficulty</code></td></tr>
+              <tr><td>World state</td><td><code>"world"</code></td><td><code>unlockedDoors</code>, <code>collectedPickups</code></td></tr>
+              <tr><td>Study/tutorial progress</td><td><code>"tutorial"</code></td><td><code>completedLessons</code>, <code>lastOpenedAt</code></td></tr>
+            </tbody>
+          </table>
+          <pre><code class="language-ts">async function saveSettings(settings: {
+  musicVolume: number;
+  lastMood: string;
+  difficulty: "easy" | "normal" | "hard";
+}) {
+  if (!myCloud.available) {
+    scene.print("Settings are local-only in this environment.");
+    return;
+  }
+
+  const record = await myCloud.openRecord("settings");
+
+  myCloud.json.set(record, "musicVolume", settings.musicVolume);
+  myCloud.json.set(record, "lastMood", settings.lastMood);
+  myCloud.json.set(record, "difficulty", settings.difficulty);
+  myCloud.json.set(record, "savedAt", Date.now());
+
+  const result = await myCloud.saveRecord("settings", record);
+  scene.print(result.ok ? "Settings saved" : "Settings save failed");
+}
+
+saveSettings({
+  musicVolume: 0.7,
+  lastMood: "night",
+  difficulty: "normal",
+});</code></pre>
+          <ul class="remix-list">
+            <li>Save the number of exploded fragments from Boss Project 1.</li>
+            <li>Save the last selected material preset from Lesson 4.</li>
+            <li>Save player position and restore it on load.</li>
+            <li>Add a clear-progress button in UI that resets a record.</li>
+          </ul>
         </div>
       </article>
 
-      <article class="lesson" id="lesson-15" data-lesson="15" data-keywords="mini project pickups score complete game player">
+      <article class="lesson" id="lesson-15" data-lesson="15" data-keywords="mini project pickups score complete game player upgrade map timer enemy high score collision">
         <header class="lesson-head">
           <div><h2>Lesson 15: A Complete Mini Project</h2><p>A clickable collection scene with a camera, lighting, floor, pickups, and score UI.</p></div>
           <label class="check"><input type="checkbox" data-complete="lesson-15"> Complete</label>
@@ -2030,6 +2481,48 @@ for (let i = 0; i &lt; totalPickups; i++) {
     pickup.destroy();
   });
 }</code></pre>
+          <h3>Mini Project Upgrade Map</h3>
+          <p>The mini project is intentionally small. Use it as a base and upgrade one system at a time.</p>
+          <table class="reference-table">
+            <thead><tr><th>Upgrade</th><th>What changes</th><th>Lessons to reuse</th></tr></thead>
+            <tbody>
+              <tr><td>Better world</td><td>Replace the floor with terrain, props, and lights</td><td>Lessons 4, 5, 9</td></tr>
+              <tr><td>Better controls</td><td>Use <code>whenHolding</code>, debug overlays, camera follow</td><td>Lessons 7, 9</td></tr>
+              <tr><td>Better pickups</td><td>Spawn in grid/circle/path and add effects</td><td>Lessons 11, 13</td></tr>
+              <tr><td>Better rules</td><td>Add timers, win state, reset button</td><td>Lessons 6, 12</td></tr>
+              <tr><td>Better memory</td><td>Save high score and chosen mood</td><td>Lesson 14</td></tr>
+            </tbody>
+          </table>
+          <pre><code class="language-ts">const pickupGroup = scene.createGroup&lt;waveSphere&gt;("pickup-group");
+const pickupPrototype = new waveSphere(0.45, 24);
+pickupPrototype.setColor(PALETTE.GOLDENROD);
+
+myScene
+  .placeInGrid(pickupPrototype)
+  .hideOriginal()
+  .at({ x: -4, y: 0.75, z: -4 })
+  .withRows(2)
+  .withCols(5)
+  .withSpacing(2)
+  .onEachCell((pickup) =&gt; {
+    pickup.addTag("pickup");
+    pickupGroup.add(pickup);
+    pickup.onTick((_self, dt) =&gt; pickup.turnRight(180 * dt));
+    pickup.whenClickedOn(() =&gt; {
+      if (pickup.isDestroyed) return;
+      pickup.fx.play(waveFxPresets.impactSparks());
+      updateScore(1);
+      pickup.destroy();
+    });
+  })
+  .place();</code></pre>
+          <ul class="remix-list">
+            <li>Add a timer and fail state.</li>
+            <li>Add a moving enemy that uses <code>whenHolding</code> or <code>onTick</code>.</li>
+            <li>Save the best completion time with <code>myCloud</code>.</li>
+            <li>Replace click collection with collision collection.</li>
+            <li>Add a final recursive explosion when every pickup is collected.</li>
+          </ul>
         </div>
       </article>
 
