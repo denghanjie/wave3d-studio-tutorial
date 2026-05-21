@@ -18,16 +18,35 @@ then follow the lessons and boss projects that feed that style.
 
 | Track | You learn to build | Start with | Boss projects to steal from |
 | --- | --- | --- | --- |
-| Artist Track | Shapes, materials, lights, decals, and mesh painting. | Lessons 2, 2A, 4, 9 | Geometry Surgery, Particle Weather Machine |
-| Animator Track | Fluent chains, timelines, paths, and completion callbacks. | Lessons 3, 6, 11 | Draw-to-World Magic Ink, Robot Arm Puzzle |
-| Game Track | Keyboard control, click handlers, HUDs, cameras, and scoring. | Lessons 7, 10, 12, 15 | Keyboard Driving Lab, Recursive Click Explosions |
-| Physics Track | Collisions, rigid bodies, joints, force fields, and destruction. | Lessons 8, 13, 16 | Tiny Solar System, Physics Piano |
-| Worldbuilding Track | Terrain, roads, cities, atmosphere, and performance views. | Lessons 9, 10, 11 | Terraforming Spellbook |
-| Human Interface Track | Voice commands, webcam hands, microphone events, and permissions. | Lessons 7, 12, 13 | Voice/Gesture Character Controller |
+| Artist Track | Shapes, materials, lights, decals, and mesh painting. | Lessons 2, 3, 5, 10 | Geometry Surgery, Particle Weather Machine |
+| Animator Track | Fluent chains, timelines, paths, and completion callbacks. | Lessons 4, 7, 12 | Draw-to-World Magic Ink, Robot Arm Puzzle |
+| Game Track | Keyboard control, click handlers, HUDs, cameras, and scoring. | Lessons 8, 11, 13, 16 | Keyboard Driving Lab, Recursive Click Explosions |
+| Physics Track | Collisions, rigid bodies, joints, force fields, and destruction. | Lessons 9, 14, 17 | Tiny Solar System, Physics Piano |
+| Worldbuilding Track | Terrain, roads, cities, atmosphere, and performance views. | Lessons 10, 11, 12, 19 | Terraforming Spellbook |
+| Human Interface Track | Voice commands, webcam hands, microphone events, and permissions. | Lessons 8, 13, 14 | Voice/Gesture Character Controller |
 
 You can jump between tracks at any time. The same object might be a painted
 sculpture in the Artist Track, a clickable game target in the Game Track, and a
 dynamic rigid body in the Physics Track.
+
+## Learning Path
+
+The tutorial is organized as a 20-lesson path. Each lesson should either teach a
+new primitive idea, combine earlier ideas into a pattern, or point you toward a
+larger project.
+
+| Part | Lessons | Purpose |
+| --- | --- | --- |
+| Foundations | 1-4 | Active scene, built-in shapes, shape choices, transforms. |
+| Visual language | 5-6 | Materials, textures, model assets, props, and staged objects. |
+| Behavior | 7-9 | Animation chains, input, click handlers, physics, and collisions. |
+| Scene systems | 10-15 | Camera, lighting, tags, spawning, UI, audio, FX, and saved data. |
+| Projects and reference | 16-20 | Mini game, recursive boss project, advanced boss gallery, demo atlas, API catalog. |
+
+When a new example is added, place it in the earliest lesson where the learner
+already knows the prerequisites. If it needs too many earlier ideas, it belongs
+in a boss project, the demo atlas, or the API catalog instead of the first
+lesson that mentions that API.
 
 ## What You Are Writing
 
@@ -234,7 +253,7 @@ Useful primitive classes from the declarations include:
 - `waveCavity(width, height, depth, options)`
 - `waveCavityTopology(options)`
 
-## Lesson 2A: Built-In 3D Shapes Gallery
+## Lesson 3: Built-In 3D Shapes Gallery
 
 The WaveStudio UI may describe shapes as `Cube`, `Capsule`, `Sphere`, and so
 on. In TypeScript, those built-ins use class names such as `waveCube`,
@@ -360,10 +379,10 @@ for (let i = 0; i < shapes.length; i++) {
 }
 ```
 
-Notice the pattern: every built-in shape can be created, styled, placed, added
-to the scene, animated, and clicked with the same basic workflow.
+Notice the pattern: every built-in shape can be created, styled, placed,
+animated, and clicked with the same basic workflow in the active scene.
 
-## Lesson 3: Position, Rotation, and Scale
+## Lesson 4: Position, Rotation, and Scale
 
 Most 3D objects inherit transform helpers from `wave3DAbstract`.
 
@@ -456,7 +475,7 @@ Remix challenges:
 - Use `placeAbove(table)` from the still-life example instead of numeric Y.
 - Make a transform obstacle course controlled with keyboard input.
 
-## Lesson 4: Materials, Colors, and Textures
+## Lesson 5: Materials, Colors, and Textures
 
 Simple colors are the fastest way to style primitives. You can use CSS-style
 hex strings:
@@ -738,13 +757,13 @@ Remix challenges:
 - Make a neon sign by combining `setEmissiveColor`, `setEmissiveIntensity`, and
   `enableGlow`.
 - Stamp decals onto a wall, then animate decal opacity or UV rotation.
-- Use `sampleTexture` from the Demo Atlas to turn a material into a 3D pixel
+- Use `sampleTexture` from Lesson 19's Demo Atlas to turn a material into a 3D pixel
   sculpture.
 
 Source demo references: `material-surface-setter-probe-grid/main.ts`,
 `vertex-color-pbr-painting/main.ts`, and `colored-light-projection/main.ts`.
 
-## Lesson 5: Using Model Assets
+## Lesson 6: Using Model Assets
 
 Use `wave3DObject` when you want to place an imported model asset.
 
@@ -823,7 +842,7 @@ Remix challenges:
 - Make a "scale fixer" lesson where every model starts too large or too small.
 - Combine this with `placeAround` to stage chairs, trees, enemies, or crystals.
 
-## Lesson 6: Animation Over Time
+## Lesson 7: Animation Over Time
 
 Use `onTick` when you want behavior to run every update. The callback receives
 the entity and `deltaTime`.
@@ -1003,7 +1022,7 @@ Remix challenges:
 - Use `after(3, Seconds).do(dance)` for an automatic loop.
 - Trigger a particle effect only when the final animation completes.
 
-## Lesson 7: Input
+## Lesson 8: Input
 
 Many 3D entities expose keyboard helpers such as `whenPress`, `whenRelease`,
 and `whenHolding`.
@@ -1124,7 +1143,7 @@ Remix challenges:
 - Add keyboard shortcuts for camera changes.
 - Turn the car example into a small driving course with debug toggles.
 
-## Lesson 8: Physics
+## Lesson 9: Physics
 
 Use static bodies for floors and walls, dynamic bodies for objects that should
 move under forces, and kinematic bodies for objects you control directly.
@@ -1275,7 +1294,7 @@ Remix challenges:
 - Make a pinball bumper using `applyImpulse`.
 - Use `exploding().enablePhysics(true)` to create physical debris.
 
-## Lesson 9: Camera, Lighting, and Atmosphere
+## Lesson 10: Camera, Lighting, and Atmosphere
 
 The scene has configurators for camera, sky, fog, lighting, weather, terrain,
 and post-processing. Configurators usually end with `.apply()`.
@@ -1431,7 +1450,7 @@ Remix challenges:
 - Make a photo-mode UI with buttons instead of number keys.
 - Store the last selected mood with `myCloud`.
 
-## Lesson 10: Scene Queries and Organization
+## Lesson 11: Scene Queries and Organization
 
 Names and tags make scenes easier to manage.
 
@@ -1508,7 +1527,7 @@ Remix challenges:
 - Use names for unique objects and tags for groups.
 - Build a scene debugger that prints counts by tag.
 
-## Lesson 11: Groups and Spawning
+## Lesson 12: Groups and Spawning
 
 Use groups when objects belong together.
 
@@ -1597,7 +1616,7 @@ Remix challenges:
 - Use `placeAround` for enemies and `faceCenter()` so they look at the player.
 - Convert a drawn `wavePath` into a patrol route.
 
-## Lesson 12: UI Overlays
+## Lesson 13: UI Overlays
 
 WaveStudio has 2D UI entities such as `waveUIText`, `waveUIButton`,
 `waveUIImage`, `waveUISlider`, and more.
@@ -1727,11 +1746,11 @@ Remix challenges:
 
 - Add a health bar and update it from collisions.
 - Add a slider that controls light intensity.
-- Add a dropdown for mood presets from Lesson 9.
+- Add a dropdown for mood presets from Lesson 10.
 - Use `waveUICanvas` when text/widgets are not enough and you want custom
   drawing.
 
-## Lesson 13: Audio and Effects
+## Lesson 14: Audio and Effects
 
 Objects can play sounds by asset name or path:
 
@@ -1846,7 +1865,7 @@ Remix challenges:
 - Add a cooldown so effects cannot spam.
 - Pair every visual effect with a small UI message.
 
-## Lesson 14: Persistent Scene Data
+## Lesson 15: Persistent Scene Data
 
 `myCloud` is a `WaveSceneDataStore`. It can open, edit, and save JSON records.
 
@@ -1923,11 +1942,11 @@ saveSettings({
 Remix challenges:
 
 - Save the number of exploded fragments from Boss Project 1.
-- Save the last selected material preset from Lesson 4.
+- Save the last selected material preset from Lesson 5.
 - Save player position and restore it on load.
 - Add a "clear progress" button in UI that resets a record.
 
-## Lesson 15: A Complete Mini Project
+## Lesson 16: A Complete Mini Project
 
 This creates a tiny clickable collection scene with a camera, lighting, a floor,
 five rotating pickups, and a score label.
@@ -2024,11 +2043,11 @@ system at a time.
 
 | Upgrade | What changes | Lessons to reuse |
 | --- | --- | --- |
-| Better world | Replace the floor with terrain, props, and lights | Lessons 4, 5, 9 |
-| Better controls | Use `whenHolding`, debug overlays, camera follow | Lessons 7, 9 |
-| Better pickups | Spawn in grid/circle/path and add effects | Lessons 11, 13 |
-| Better rules | Add timers, win state, reset button | Lessons 6, 12 |
-| Better memory | Save high score and chosen mood | Lesson 14 |
+| Better world | Replace the floor with terrain, props, and lights | Lessons 5, 6, 10 |
+| Better controls | Use `whenHolding`, debug overlays, camera follow | Lessons 8, 10 |
+| Better pickups | Spawn in grid/circle/path and add effects | Lessons 12, 14 |
+| Better rules | Add timers, win state, reset button | Lessons 7, 13 |
+| Better memory | Save high score and chosen mood | Lesson 15 |
 
 ```ts
 const pickupGroup = scene.createGroup<waveSphere>("pickup-group");
@@ -2064,7 +2083,7 @@ Boss-mode remix:
 - Replace click collection with collision collection.
 - Add a final recursive explosion when every pickup is collected.
 
-## Boss Project 1: Recursive Click Explosions
+## Lesson 17: Boss Project 1: Recursive Click Explosions
 
 WaveStudio can do the concise recursive explosion pattern your friend showed:
 click a shape, fracture it into pieces, then give each new piece the same click
@@ -2271,7 +2290,7 @@ In the manual version, the recursive idea is the call chain:
   scene reaches `maxPieces`.
 - Replace the starting cube with `waveSphere`, `waveCapsule`, or a loaded model.
 
-## Advanced Gallery: Boss Projects
+## Lesson 18: Advanced Gallery: Boss Projects
 
 The demos in `wave-engine/demo/do-not-edit` show WaveStudio acting less like a
 shape toy and more like a small creative engine. Use these as remixable recipes:
@@ -2612,7 +2631,7 @@ sculpting brush, or a CSG puzzle where players carve keys from blocks.
 **Source demo reference:** `mesh-sculpting/main.ts` and
 `vertex-color-pbr-painting/main.ts`.
 
-## Demo Atlas: 30 Project Seeds from `wave-engine`
+## Lesson 19: Demo Atlas: 30 Project Seeds from `wave-engine`
 
 The boss projects above teach a few patterns in depth. The atlas below is the
 next layer: every extracted demo becomes a project prompt. Treat each row as a
@@ -3057,7 +3076,7 @@ APIs to steal: `Prop`, `models.*`, `placeAbove`, `moveLeft`, `moveRight`,
 Remix it into room staging, a restaurant table generator, classroom seating,
 museum displays, inventory layouts, or a cozy scene-building exercise.
 
-## Complete Scene-Facing API Catalog
+## Lesson 20: Complete Object Catalog
 
 `waveStudio-globals.d.ts` declares hundreds of classes. Not every declared class
 is meant to be the first thing a learner writes; many are option objects,
@@ -3231,7 +3250,7 @@ Network-ready variants declared in the same file include:
 
 | API | Use |
 | --- | --- |
-| `scene` / `myScene` | Active `WaveScene`; add entities, groups, ranges, fields, spawners, camera, lighting, weather, terrain, data, and screen helpers. |
+| `scene` / `myScene` | Active `WaveScene`; manage entities, groups, ranges, fields, spawners, camera, lighting, weather, terrain, data, and screen helpers. |
 | `engine` / `ctx` | Runtime engine and scene context. |
 | `assetManager` | Resolve, register, inspect, and load assets. |
 | `models`, `textures`, `materials`, `animations`, `audios`, `videos`, `hdr`, `fonts`, `particles` | Typed asset warehouses exposed to Monaco autocomplete. |
@@ -3261,7 +3280,7 @@ The declaration file is large, but the authoring pattern is consistent:
 
 ## Common Patterns
 
-Create and add:
+Create and configure:
 
 ```ts
 const object = new waveCube(1, 1, 1);
@@ -3379,3 +3398,22 @@ Common fixes:
 - Use asset aliases instead of raw strings when possible.
 - Remember that globals such as `scene` and `models` exist in WaveStudio, but
   not in a plain TypeScript project unless you include the declaration file.
+
+## Tutorial Maintenance Check
+
+Run this check every time the tutorial is added to, removed from, or modified:
+
+1. Curriculum order: the lesson still flows from foundations, to visuals, to
+   behavior, to scene systems, to projects and reference.
+2. Numbering: lesson headings, side navigation labels, `data-lesson` values,
+   progress text, and creator-track references all agree.
+3. Placement: each example lives in the earliest lesson where its prerequisites
+   are already taught; larger mixtures go in Lesson 18 or Lesson 19.
+4. Search: new terms appear in both visible copy and `data-keywords`.
+5. Interaction: copy buttons attach to every code block, progress checkboxes
+   still save/reset, and search still finds the new material.
+6. Studio style: snippets avoid unnecessary manual scene insertion calls, prefer typed constants
+   such as `PALETTE`, `Direction`, `Seconds`, and `Keyboard`, and split chains
+   when a method does not return a chainable object.
+7. Repository hygiene: tutorial edits stay docs-only unless the request clearly
+   asks for runtime files; no `*.ts` files are staged by accident.
