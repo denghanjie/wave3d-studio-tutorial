@@ -783,6 +783,80 @@ ship.useModel(models.XWingStarfighter);
 The global asset aliases are typed, so `models.` and `textures.` should
 autocomplete inside the WaveStudio editor.
 
+### Model Motion Lab
+
+Imported models are not only things to look at. Treat a model like any other 3D
+entity: it can move every frame, bank, play sounds, leave trails, shoot
+projectiles, collide, and trigger UI.
+
+| Actor behavior | Use it for | APIs |
+| --- | --- | --- |
+| Fly loop | Spaceships, birds, drones, fish | `onTick`, `moveForward`, `turnRight`, `rollLeft` |
+| Debug direction | Fix model orientation before gameplay | `showDirection`, `turnRight`, `resetOrigin` |
+| Motion trail | Speed lines, thrusters, magic afterimages | `model.enableTrail` |
+| Shooting | Lasers, cannonballs, spell bolts | `whenPress`, `getWorldPosition`, `alignDirectionWith`, `after` |
+
+```ts
+const fighter = new wave3DObject(models.XWingStarfighter);
+fighter.setUniformScale(0.45);
+fighter.placeAt(0, 2, -8);
+fighter.showDirection();
+
+fighter.model.enableTrail({
+  trailColor: PALETTE.CYAN,
+  intensity: 1.2,
+  samples: 16,
+});
+
+let flightSeconds = 0;
+
+fighter.onTick((_self, deltaTime) => {
+  flightSeconds += deltaTime;
+  fighter.moveForward(4 * deltaTime);
+  fighter.turnRight(18 * deltaTime);
+  fighter.rollLeft(Math.sin(flightSeconds * 3) * 0.35);
+});
+```
+
+Now add a simple Space-key laser. The projectile copies the fighter's current
+position and direction, moves forward every frame, then destroys itself after a
+short lifetime.
+
+```ts
+const projectileSpeed = 16;
+const projectileLifetime = 1.4;
+const fireCooldown = 0.18;
+let canFire = true;
+
+function fireLaser() {
+  if (!canFire) return;
+  canFire = false;
+
+  const shot = new waveSphere(0.12, 12);
+  shot.setColor(PALETTE.CYAN);
+  shot.setEmissiveColor(PALETTE.CYAN);
+  shot.setEmissiveIntensity(2);
+  shot.moveTo(fighter.getWorldPosition());
+  shot.alignDirectionWith(fighter);
+  shot.moveForward(1.2);
+  shot.addTag("player-shot");
+
+  shot.onTick((_self, deltaTime) => {
+    shot.moveForward(projectileSpeed * deltaTime);
+  });
+
+  shot.after(projectileLifetime, Seconds).do(() => shot.destroy());
+  fighter.after(fireCooldown, Seconds).do(() => canFire = true);
+  fighter.playSound(audios.canon_shoot, { volume: 0.6 });
+}
+
+myScene.director.whenPress(Keyboard.Space, fireLaser);
+```
+
+If a model appears to fly sideways, first make the direction visible with
+`showDirection()`, then fix the asset orientation with `turnRight(...)`,
+`resetOrigin()`, or the transform axis-swap helpers before adding gameplay.
+
 ### Asset Staging Gallery
 
 Model assets become much easier to teach when you stage them like props: one
@@ -839,6 +913,7 @@ Remix challenges:
 
 - Build a museum shelf with one model per pedestal.
 - Add click handlers that swap each model between two variants.
+- Turn one displayed model into a moving actor with the Model Motion Lab.
 - Make a "scale fixer" lesson where every model starts too large or too small.
 - Combine this with `placeAround` to stage chairs, trees, enemies, or crystals.
 
@@ -918,6 +993,7 @@ shows the difference by placing one object per pattern.
 | Pattern | Use it for | Main APIs |
 | --- | --- | --- |
 | Tick spin | Continuous simulation | `onTick`, `deltaTime` |
+| Model actor | Flying, driving, or shooting models | `wave3DObject`, `moveForward`, `whenPress` |
 | Timed transform | One movement over a duration | `moveAlong(..., Animate).over(...)` |
 | Delayed action | Something that happens later | `after(...).do(...)` |
 | Color animation | Smooth material change | `setColor(..., Animate)` |

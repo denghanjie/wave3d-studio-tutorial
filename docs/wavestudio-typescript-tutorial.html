@@ -1447,7 +1447,7 @@ textureCube
         </div>
       </article>
 
-      <article class="lesson" id="lesson-6" data-lesson="6" data-keywords="model asset models wave3DObject spaceship xwing prop staging placeAbove getPart scale">
+      <article class="lesson" id="lesson-6" data-lesson="6" data-keywords="model asset models wave3DObject spaceship xwing prop staging placeAbove getPart scale motion fly shoot projectile trail actor game">
         <header class="lesson-head">
           <div><h2>Lesson 6: Using Model Assets</h2><p>Use <code>wave3DObject</code> for imported models.</p></div>
           <label class="check"><input type="checkbox" data-complete="lesson-6"> Complete</label>
@@ -1459,6 +1459,66 @@ ship.setUniformScale(0.4);
 ship.turnRight(30);</code></pre>
           <p>Swap a model later with <code>useModel</code>.</p>
           <pre><code class="language-ts">ship.useModel(models.XWingStarfighter);</code></pre>
+          <h3>Model Motion Lab</h3>
+          <p>Imported models are not only things to look at. Treat a model like any other 3D entity: it can move every frame, bank, play sounds, leave trails, shoot projectiles, collide, and trigger UI.</p>
+          <table class="reference-table">
+            <thead><tr><th>Actor behavior</th><th>Use it for</th><th>APIs</th></tr></thead>
+            <tbody>
+              <tr><td>Fly loop</td><td>Spaceships, birds, drones, fish</td><td><code>onTick</code>, <code>moveForward</code>, <code>turnRight</code>, <code>rollLeft</code></td></tr>
+              <tr><td>Debug direction</td><td>Fix model orientation before gameplay</td><td><code>showDirection</code>, <code>turnRight</code>, <code>resetOrigin</code></td></tr>
+              <tr><td>Motion trail</td><td>Speed lines, thrusters, magic afterimages</td><td><code>model.enableTrail</code></td></tr>
+              <tr><td>Shooting</td><td>Lasers, cannonballs, spell bolts</td><td><code>whenPress</code>, <code>getWorldPosition</code>, <code>alignDirectionWith</code>, <code>after</code></td></tr>
+            </tbody>
+          </table>
+          <pre><code class="language-ts">const fighter = new wave3DObject(models.XWingStarfighter);
+fighter.setUniformScale(0.45);
+fighter.placeAt(0, 2, -8);
+fighter.showDirection();
+
+fighter.model.enableTrail({
+  trailColor: PALETTE.CYAN,
+  intensity: 1.2,
+  samples: 16,
+});
+
+let flightSeconds = 0;
+
+fighter.onTick((_self, deltaTime) =&gt; {
+  flightSeconds += deltaTime;
+  fighter.moveForward(4 * deltaTime);
+  fighter.turnRight(18 * deltaTime);
+  fighter.rollLeft(Math.sin(flightSeconds * 3) * 0.35);
+});</code></pre>
+          <p>Now add a simple Space-key laser. The projectile copies the fighter's current position and direction, moves forward every frame, then destroys itself after a short lifetime.</p>
+          <pre><code class="language-ts">const projectileSpeed = 16;
+const projectileLifetime = 1.4;
+const fireCooldown = 0.18;
+let canFire = true;
+
+function fireLaser() {
+  if (!canFire) return;
+  canFire = false;
+
+  const shot = new waveSphere(0.12, 12);
+  shot.setColor(PALETTE.CYAN);
+  shot.setEmissiveColor(PALETTE.CYAN);
+  shot.setEmissiveIntensity(2);
+  shot.moveTo(fighter.getWorldPosition());
+  shot.alignDirectionWith(fighter);
+  shot.moveForward(1.2);
+  shot.addTag("player-shot");
+
+  shot.onTick((_self, deltaTime) =&gt; {
+    shot.moveForward(projectileSpeed * deltaTime);
+  });
+
+  shot.after(projectileLifetime, Seconds).do(() =&gt; shot.destroy());
+  fighter.after(fireCooldown, Seconds).do(() =&gt; canFire = true);
+  fighter.playSound(audios.canon_shoot, { volume: 0.6 });
+}
+
+myScene.director.whenPress(Keyboard.Space, fireLaser);</code></pre>
+          <p>If a model appears to fly sideways, first make the direction visible with <code>showDirection()</code>, then fix the asset orientation with <code>turnRight(...)</code>, <code>resetOrigin()</code>, or the transform axis-swap helpers before adding gameplay.</p>
           <h3>Asset Staging Gallery</h3>
           <p>Model assets become much easier to teach when you stage them like props: one asset per pedestal, with labels, scale helpers, and optional part access.</p>
           <table class="reference-table">
@@ -1504,13 +1564,14 @@ gripper?.showBoundingBox();</code></pre>
           <ul class="remix-list">
             <li>Build a museum shelf with one model per pedestal.</li>
             <li>Add click handlers that swap each model between two variants.</li>
+            <li>Turn one displayed model into a moving actor with the Model Motion Lab.</li>
             <li>Make a scale-fixer lesson where every model starts too large or too small.</li>
             <li>Combine this with <code>placeAround</code> to stage chairs, trees, enemies, or crystals.</li>
           </ul>
         </div>
       </article>
 
-      <article class="lesson" id="lesson-7" data-lesson="7" data-keywords="animation tick deltaTime every seconds after timeline completion callbacks motion ladder">
+      <article class="lesson" id="lesson-7" data-lesson="7" data-keywords="animation tick deltaTime every seconds after timeline completion callbacks motion ladder model actor fly shoot">
         <header class="lesson-head">
           <div><h2>Lesson 7: Animation Over Time</h2><p>Use <code>onTick</code> for frame-by-frame behavior.</p></div>
           <label class="check"><input type="checkbox" data-complete="lesson-7"> Complete</label>
@@ -1558,6 +1619,7 @@ myCube
             <thead><tr><th>Pattern</th><th>Use it for</th><th>Main APIs</th></tr></thead>
             <tbody>
               <tr><td>Tick spin</td><td>Continuous simulation</td><td><code>onTick</code>, <code>deltaTime</code></td></tr>
+              <tr><td>Model actor</td><td>Flying, driving, or shooting models</td><td><code>wave3DObject</code>, <code>moveForward</code>, <code>whenPress</code></td></tr>
               <tr><td>Timed transform</td><td>One movement over a duration</td><td><code>moveAlong(..., Animate).over(...)</code></td></tr>
               <tr><td>Delayed action</td><td>Something that happens later</td><td><code>after(...).do(...)</code></td></tr>
               <tr><td>Color animation</td><td>Smooth material change</td><td><code>setColor(..., Animate)</code></td></tr>
