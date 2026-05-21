@@ -930,12 +930,13 @@
 tutorialScene.withMain(({ scene }) =&gt; {
   const cube = new waveCube(2, 2, 2);
   cube.setColor(PALETTE.CYAN);
-  cube.moveTo({ x: 0, y: 1, z: 0 });
+  cube.placeAt(0, 1, 0);
 });</code></pre>
           <p>Inside the WaveStudio editor, the shorter version is usually enough.</p>
           <pre><code class="language-ts">const cube = new waveCube(2, 2, 2);
 cube.setColor(PALETTE.CYAN);
-cube.moveTo({ x: 0, y: 1, z: 0 });</code></pre>
+cube.placeAt(0, 1, 0);</code></pre>
+          <p>Teaching rule: prefer natural placement phrases. Use <code>placeAt</code> for first placement, <code>placeAbove</code>, <code>placeInfrontOf</code>, and <code>placeAround</code> for relationships between objects, and direction verbs such as <code>moveForward</code> or <code>moveUp</code> for motion after placement.</p>
           <h3>Fluent Dot Chaining</h3>
           <p>The repeated dots in examples such as <code>new Cube().placeAt(...).setColor(...)</code> are called method chaining, or a fluent API. Each method returns an object, so the next <code>.method(...)</code> can keep working on that returned value.</p>
           <pre><code class="language-ts">const target = new Cube()
@@ -1002,19 +1003,19 @@ hero.whenClickedOn(() =&gt; {
           <p>WaveStudio includes common shape classes. Constructors usually take dimensions.</p>
           <pre><code class="language-ts">const ground = new waveGround(20, 20, 4);
 ground.setColor(PALETTE.CHARCOAL);
-ground.moveTo({ x: 0, y: 0, z: 0 });
+ground.placeAt(0, 0, 0);
 
 const cube = new waveCube(2, 2, 2);
 cube.setColor(PALETTE.TURQUOISE);
-cube.moveTo({ x: -3, y: 1, z: 0 });
+cube.placeAt(-3, 1, 0);
 
 const sphere = new waveSphere(1, 32);
 sphere.setColor(PALETTE.GOLDENROD);
-sphere.moveTo({ x: 0, y: 1, z: 0 });
+sphere.placeAt(0, 1, 0);
 
 const cylinder = new waveCylinder(2, 1.5, 1.5);
 cylinder.setColor(PALETTE.FUCHSIA);
-cylinder.moveTo({ x: 3, y: 1, z: 0 });</code></pre>
+cylinder.placeAt(3, 1, 0);</code></pre>
           <ul>
             <li><code>waveCube(width, height, depth)</code></li>
             <li><code>waveBox(width, height, depth)</code></li>
@@ -1135,7 +1136,7 @@ for (let i = 0; i &lt; shapes.length; i++) {
   const row = Math.floor(i / columns);
 
   shape.setColor(palette[i % palette.length]);
-  shape.moveTo({ x: (col - 2) * spacing, y: 1.2, z: row * spacing });
+  shape.placeAt((col - 2) * spacing, 1.2, row * spacing);
   shape.addTag("built-in-shape");
 
   shape.onTick((_self, deltaTime) =&gt; {
@@ -1157,7 +1158,7 @@ for (let i = 0; i &lt; shapes.length; i++) {
         <div class="lesson-body">
           <pre><code class="language-ts">const block = new waveCube(1, 1, 1);
 
-block.moveTo({ x: 0, y: 1, z: 0 });
+block.placeAt(0, 1, 0);
 block.moveRight(2);
 block.moveUp(1);
 block.moveForward(3);
@@ -1169,9 +1170,12 @@ block.rollLeft(15);
 block.setScale(2, 1, 1);
 block.setUniformScale(1.5);
 block.scaleBy(1.1);</code></pre>
-          <p>For 3D objects, <code>moveTo</code> expects one target point/reference. Use an object for coordinates. If you want the three-number form, use <code>setWorldPosition</code>.</p>
-          <pre><code class="language-ts">block.moveTo({ x: 0, y: 1, z: 0 });
-block.setWorldPosition(0, 1, 0);</code></pre>
+          <p>For first placement, prefer <code>placeAt</code>. It reads like the intention and supports both a simple <code>x, y, z</code> location and a target/reference. After that, use direction verbs such as <code>moveForward</code>, <code>moveUp</code>, <code>placeAbove</code>, and <code>placeInfrontOf</code> so the code stays spatial and readable.</p>
+          <pre><code class="language-ts">const floor = new waveGround(10, 10, 2);
+const crate = new waveCube(1, 1, 1);
+
+crate.placeAbove(floor);
+crate.moveForward(2);</code></pre>
           <p>You can also use the lower-level transform component.</p>
           <pre><code class="language-ts">block.transform.setPosition(0, 2, 0);
 block.transform.setScale(1, 2, 1);
@@ -1181,8 +1185,8 @@ block.transform.moveAlong(Direction.Up, 1);</code></pre>
           <table class="reference-table">
             <thead><tr><th>Pattern</th><th>Use it for</th><th>APIs</th></tr></thead>
             <tbody>
-              <tr><td>Absolute placement</td><td>Put an object exactly somewhere</td><td><code>placeAt</code>, <code>moveTo</code>, <code>setWorldPosition</code></td></tr>
-              <tr><td>Relative movement</td><td>Nudge from the current position</td><td><code>moveLeft</code>, <code>moveUp</code>, <code>moveForward</code></td></tr>
+              <tr><td>Scene placement</td><td>Put an object in a readable place</td><td><code>placeAt</code>, <code>placeAbove</code>, <code>placeInfrontOf</code></td></tr>
+              <tr><td>Direction movement</td><td>Nudge from the current position</td><td><code>moveLeft</code>, <code>moveUp</code>, <code>moveForward</code></td></tr>
               <tr><td>Orientation</td><td>Make direction visible</td><td><code>turnRight</code>, <code>pitchUp</code>, <code>showDirection</code></td></tr>
               <tr><td>Scale</td><td>Resize without changing the mesh class</td><td><code>setScale</code>, <code>setUniformScale</code>, <code>enlargeBy</code></td></tr>
               <tr><td>Targeting</td><td>Face or align with another object</td><td><code>turnTo</code>, <code>fitBetween</code>, <code>placeAbove</code></td></tr>
@@ -1230,11 +1234,11 @@ bridge.fitBetween(mover, scaler).along(Direction.Up).apply();</code></pre>
 floor.setColor(PALETTE.CHARCOAL);</code></pre>
           <pre><code class="language-ts">const cube = new waveCube(2, 2, 2);
 cube.setColor(PALETTE.CYAN);
-cube.moveTo({ x: 0, y: 1, z: 0 });
+cube.placeAt(0, 1, 0);
 
 const accent = new waveSphere(0.6, 32);
 accent.setColor(PALETTE.lighten(PALETTE.COBALT, 20));
-accent.moveTo({ x: 2, y: 1, z: 0 });</code></pre>
+accent.placeAt(2, 1, 0);</code></pre>
           <p>Common choices include <code>PALETTE.WHITE</code>, <code>PALETTE.BLACK</code>, <code>PALETTE.RED</code>, <code>PALETTE.ORANGE</code>, <code>PALETTE.YELLOW</code>, <code>PALETTE.GREEN</code>, <code>PALETTE.BLUE</code>, <code>PALETTE.CYAN</code>, <code>PALETTE.PURPLE</code>, <code>PALETTE.PINK</code>, <code>PALETTE.TEAL</code>, <code>PALETTE.GOLD</code>, <code>PALETTE.SILVER</code>, <code>PALETTE.WARM_WHITE</code>, and <code>PALETTE.CHARCOAL</code>.</p>
           <pre><code class="language-ts">const panel = new waveCube(4, 0.2, 2);
 panel.setBaseTexture(textures.milkyway);
@@ -1242,7 +1246,7 @@ panel.setRoughness(0.6);
 panel.setMetallic(0.1);</code></pre>
           <pre><code class="language-ts">const platform = new waveCube(6, 0.4, 6);
 platform.useMaterial(materials.PavingStones);
-platform.moveTo({ x: 0, y: 0.2, z: 0 });</code></pre>
+platform.placeAt(0, 0.2, 0);</code></pre>
           <h3>Material and Palette Gallery</h3>
           <p>Use this gallery when you want to compare visual styles without changing the shape. Color, roughness, metallic response, opacity, and emissive glow are separate controls.</p>
           <table>
@@ -1312,7 +1316,7 @@ for (let i = 0; i &lt; materialStyles.length; i++) {
   const sample = new waveCube(1.3, 1.3, 1.3);
 
   sample.setColor(style.color);
-  sample.moveTo({ x: (i - 2) * styleSpacing, y: 1, z: 0 });
+  sample.placeAt((i - 2) * styleSpacing, 1, 0);
   style.apply(sample);
 
   sample.whenClickedOn(() =&gt; scene.print(style.label));
@@ -1454,7 +1458,7 @@ textureCube
         </header>
         <div class="lesson-body">
           <pre><code class="language-ts">const ship = new wave3DObject(models.Spaceship);
-ship.moveTo({ x: 0, y: 2, z: 0 });
+ship.placeAt(0, 2, 0);
 ship.setUniformScale(0.4);
 ship.turnRight(30);</code></pre>
           <p>Swap a model later with <code>useModel</code>.</p>
@@ -1503,7 +1507,7 @@ function fireLaser() {
   shot.setColor(PALETTE.CYAN);
   shot.setEmissiveColor(PALETTE.CYAN);
   shot.setEmissiveIntensity(2);
-  shot.moveTo(fighter.getWorldPosition());
+  shot.placeAt(fighter);
   shot.alignDirectionWith(fighter);
   shot.moveForward(1.2);
   shot.addTag("player-shot");
@@ -1579,7 +1583,7 @@ gripper?.showBoundingBox();</code></pre>
         <div class="lesson-body">
           <pre><code class="language-ts">const spinner = new waveCube(2, 2, 2);
 spinner.setColor(PALETTE.SAGE);
-spinner.moveTo({ x: 0, y: 2, z: 0 });
+spinner.placeAt(0, 2, 0);
 
 spinner.onTick((_self, deltaTime) =&gt; {
   spinner.turnRight(90 * deltaTime);
@@ -1689,7 +1693,7 @@ for (let i = 0; i &lt; motionPatterns.length; i++) {
   const object = pattern.create();
 
   object.setColor(motionColors[i]);
-  object.moveTo({ x: (i - 1.5) * motionSpacing, y: 1, z: 0 });
+  object.placeAt((i - 1.5) * motionSpacing, 1, 0);
   object.addTag("motion-demo");
 
   pattern.animate(object);
@@ -1727,7 +1731,7 @@ dancer.whenClickedOn(dance);</code></pre>
         <div class="lesson-body">
           <pre><code class="language-ts">const player = new waveCube(1, 1, 1);
 player.setColor(PALETTE.TURQUOISE);
-player.moveTo({ x: 0, y: 1, z: 0 });
+player.placeAt(0, 1, 0);
 
 player.whenPress(Keyboard.W, () =&gt; player.moveForward(0.5));
 player.whenPress(Keyboard.S, () =&gt; player.moveBackward(0.5));
@@ -1771,7 +1775,7 @@ car.whenPress(Keyboard.Space, () =&gt; {
 });</code></pre>
           <pre><code class="language-ts">const button = new waveSphere(0.8, 24);
 button.setColor(PALETTE.GOLDENROD);
-button.moveTo({ x: 0, y: 1, z: -3 });
+button.placeAt(0, 1, -3);
 
 button.whenClickedOn(() =&gt; {
   button.setColor(PALETTE.ORANGE);
@@ -1838,7 +1842,7 @@ floor.addTag("floor");
 
 const ball = new waveSphere(1, 32);
 ball.setColor(PALETTE.GOLDENROD);
-ball.moveTo({ x: 0, y: 8, z: 0 });
+ball.placeAt(0, 8, 0);
 ball.useDynamicBody();
 ball.setMass(2);
 ball.setRestitution(0.8);
@@ -1909,7 +1913,7 @@ for (let i = 0; i &lt; physicsExamples.length; i++) {
   const example = physicsExamples[i];
   const object = example.create();
 
-  object.moveTo({ x: (i - 1) * physicsSpacing, y: 1, z: 0 });
+  object.placeAt((i - 1) * physicsSpacing, 1, 0);
   object.addTag("physics-demo");
   example.setup(object);
 
@@ -2009,7 +2013,7 @@ scene.fog
   .apply();
 
 const cinematicCamera = new waveCamera();
-cinematicCamera.moveTo({ x: 0, y: 4, z: -8 });
+cinematicCamera.placeAt(0, 4, -8);
 cinematicCamera.turnCameraTo(0, 1, 0);
 cinematicCamera.setFov(50);
 cinematicCamera.assignToNum1();
@@ -2019,14 +2023,14 @@ pointLight.asPointLight();
 pointLight.setLightColor(PALETTE.GOLDENROD);
 pointLight.setIntensity(1.4);
 pointLight.setRange(8);
-pointLight.moveTo({ x: -3, y: 3, z: 0 });
+pointLight.placeAt(-3, 3, 0);
 
 const spotlight = new waveLight();
 spotlight.asSpotlight();
 spotlight.setLightColor(PALETTE.CYAN);
 spotlight.setIntensity(2);
 spotlight.setAngle(45);
-spotlight.moveTo({ x: 3, y: 4, z: -2 });
+spotlight.placeAt(3, 4, -2);
 spotlight.aimAt(0, 1, 0);</code></pre>
           <h3>Mood Preset Gallery</h3>
           <p>Camera and atmosphere settings are design tools. A small preset system lets learners compare moods without rewriting the scene.</p>
@@ -2153,7 +2157,7 @@ myScene.director.whenPress(Keyboard.Delete, () =&gt; scene.destroyByTag("helper"
 for (let i = 0; i &lt; 5; i++) {
   const cube = new waveCube(1, 1, 1);
   cube.setColor(PALETTE.CYAN);
-  cube.moveTo({ x: i * 1.4 - 2.8, y: 0.5, z: 0 });
+  cube.placeAt(i * 1.4 - 2.8, 0.5, 0);
   row.add(cube);
 }</code></pre>
           <pre><code class="language-ts">const tile = new waveCube(1, 0.2, 1);
@@ -2333,7 +2337,7 @@ resetButton.onClick(() =&gt; {
         </header>
         <div class="lesson-body">
           <pre><code class="language-ts">const speaker = new waveCube(1, 1, 1);
-speaker.moveTo({ x: 0, y: 1, z: 0 });
+speaker.placeAt(0, 1, 0);
 
 speaker.playSound(audios.studioSound, {
   loop: false,
@@ -2341,7 +2345,7 @@ speaker.playSound(audios.studioSound, {
 });</code></pre>
           <pre><code class="language-ts">const emitter = new waveSphere(0.4, 16);
 emitter.setColor(PALETTE.WHITE);
-emitter.moveTo({ x: 0, y: 1, z: 0 });
+emitter.placeAt(0, 1, 0);
 
 emitter.fx
   .createSmoke("soft-smoke")
@@ -2362,7 +2366,7 @@ emitter.fx
           </table>
           <pre><code class="language-ts">const smokeOrb = new waveSphere(0.35, 16);
 smokeOrb.setColor(PALETTE.LIGHT_GRAY);
-smokeOrb.moveTo({ x: -3, y: 1, z: 0 });
+smokeOrb.placeAt(-3, 1, 0);
 
 smokeOrb.fx
   .createSmoke("gallery-smoke")
@@ -2373,7 +2377,7 @@ smokeOrb.fx
 
 const sparkPad = new waveCube(1, 0.25, 1);
 sparkPad.setColor(PALETTE.GOLDENROD);
-sparkPad.moveTo({ x: 0, y: 0.5, z: 0 });
+sparkPad.placeAt(0, 0.5, 0);
 
 sparkPad.whenClickedOn(() =&gt; {
   sparkPad.playSound(audios.studioSound, { volume: 0.7 });
@@ -2381,13 +2385,13 @@ sparkPad.whenClickedOn(() =&gt; {
 });
 
 const rainAnchor = new waveCube(0.2, 0.2, 0.2);
-rainAnchor.moveTo({ x: 0, y: 4, z: 0 });
+rainAnchor.placeAt(0, 4, 0);
 rainAnchor.hide();
 rainAnchor.fx.play(waveFxPresets.rain());
 
 const breakable = new waveCube(1, 1, 1);
 breakable.setColor(PALETTE.CORAL);
-breakable.moveTo({ x: 3, y: 1, z: 0 });
+breakable.placeAt(3, 1, 0);
 
 breakable.whenClickedOn(() =&gt; {
   if (breakable.isDestroyed) return;
@@ -2541,7 +2545,7 @@ floor.addTag("floor");
 
 const player = new waveCube(1, 1, 1);
 player.setColor(PALETTE.TURQUOISE);
-player.moveTo({ x: 0, y: 0.5, z: 0 });
+player.placeAt(0, 0.5, 0);
 player.useKinematicBody();
 
 player.whenPress(Keyboard.W, () =&gt; player.moveForward(playerStepDistance));
@@ -2561,7 +2565,7 @@ function updateScore(points: number) {
 for (let i = 0; i &lt; totalPickups; i++) {
   const pickup = new waveSphere(0.45, 24);
   pickup.setColor(PALETTE.GOLDENROD);
-  pickup.moveTo({ x: i * 2 - 4, y: 0.75, z: -3 });
+  pickup.placeAt(i * 2 - 4, 0.75, -3);
   pickup.addTag("pickup");
 
   pickup.onTick((_self, deltaTime) =&gt; {
@@ -2719,7 +2723,7 @@ function spawnPiece(
 
   const piece = new waveCube(size, size, size);
   piece.setColor(palette[depth % palette.length] ?? PALETTE.WHITE);
-  piece.moveTo({ x, y, z });
+  piece.placeAt(x, y, z);
   piece.addTag("recursive-piece");
 
   piece.onTick((_self, deltaTime) =&gt; {
@@ -2941,13 +2945,16 @@ pianoAssembly
             <pre><code class="language-ts">const gripper = roboticArm.getPart(GRIPPER_PART_NAME);
 
 if (gripper) {
+  const distanceToTarget = gripper.distanceTo(targetCube);
+
+  gripper.turnTo(targetCube);
   gripper
-    .moveTo(targetCube.getWorldPosition(), Animate)
+    .moveForward(distanceToTarget, Animate)
     .over(TARGET_IK_MOVE_SECONDS, Seconds)
     .play()
     .onComplete(() =&gt; tryPickUpTarget(targetCube));
 }</code></pre>
-            <p><span class="mini-label">APIs to steal</span> model parts, part metadata, the source demo's end-effector helper, <code>getPart</code>, <code>moveTo</code>, <code>onComplete</code>, click target registries.</p>
+            <p><span class="mini-label">APIs to steal</span> model parts, part metadata, the source demo's end-effector helper, <code>getPart</code>, <code>turnTo</code>, <code>distanceTo</code>, <code>moveForward</code>, <code>onComplete</code>, click target registries.</p>
             <p><span class="mini-label">Natural-language constants</span> <code>GRIPPER_PART_NAME</code>, <code>TARGET_IK_MOVE_SECONDS</code>, <code>Animate</code>, <code>Seconds</code>.</p>
             <ul class="remix-list"><li>Sort colored cubes.</li><li>Stack blocks.</li><li>Build a claw machine.</li><li>Solve a memory puzzle.</li></ul>
             <p class="source-note">Source demo reference: <code>articulated-robotic-arm/main.ts</code>.</p>
@@ -3512,7 +3519,7 @@ myScene
           </div>
           <div class="track-card">
             <strong>Studio Style</strong>
-            <p>Snippets avoid unnecessary manual scene insertion calls, prefer typed constants, and split chains when a method is not chainable.</p>
+            <p>Snippets avoid unnecessary manual scene insertion calls, prefer typed constants, prefer natural placement verbs such as <code>placeAt</code>, <code>placeAbove</code>, and <code>placeAround</code>, and split chains when a method is not chainable.</p>
           </div>
           <div class="track-card">
             <strong>Repository Hygiene</strong>
@@ -3595,7 +3602,7 @@ myScene
           <li><code>scene.getByTag(tag)</code></li>
           <li><code>myScene.placeInGrid(input)</code></li>
           <li><code>myScene.placeAround(target)</code></li>
-          <li><code>object.moveTo({ x: x, y: y, z: z })</code></li>
+          <li><code>object.placeAt(x, y, z)</code></li>
           <li><code>object.placeAbove(target)</code></li>
           <li><code>object.onTick(fn)</code></li>
           <li><code>object.whenHolding(Keyboard.W, fn)</code></li>
@@ -3811,7 +3818,7 @@ myScene
         const ctor = constructors[primitive.value];
 const code = `const ${name} = ${ctor};
 ${name}.setColor(${color.value});
-${name}.moveTo({ x: ${Number(posX.value)}, y: ${Number(posY.value)}, z: ${Number(posZ.value)} });`;
+${name}.placeAt(${Number(posX.value)}, ${Number(posY.value)}, ${Number(posZ.value)});`;
         generatedCode.textContent = code;
       }
 

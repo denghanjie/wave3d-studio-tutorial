@@ -80,8 +80,14 @@ manual add step.
 ```ts
 const cube = new waveCube(2, 2, 2);
 cube.setColor(PALETTE.CYAN);
-cube.moveTo({ x: 0, y: 1, z: 0 });
+cube.placeAt(0, 1, 0);
 ```
+
+Teaching rule: prefer natural placement phrases. Use `placeAt` for first
+placement, `placeAbove`, `placeInfrontOf`, and `placeAround` for relationships
+between objects, and direction verbs such as `moveForward` or `moveUp` for
+motion after placement. Save raw coordinate thinking for the rare moments when
+you truly need exact numeric control.
 
 ### Fluent Dot Chaining
 
@@ -144,7 +150,7 @@ const tutorialScene = new WaveScene("Tutorial");
 tutorialScene.withMain(({ scene }) => {
   const cube = new waveCube(2, 2, 2);
   cube.setColor(PALETTE.CYAN);
-  cube.moveTo({ x: 0, y: 1, z: 0 });
+  cube.placeAt(0, 1, 0);
 });
 ```
 
@@ -154,7 +160,7 @@ Inside the WaveStudio editor, the shorter version is often enough because
 ```ts
 const cube = new waveCube(2, 2, 2);
 cube.setColor(PALETTE.CYAN);
-cube.moveTo({ x: 0, y: 1, z: 0 });
+cube.placeAt(0, 1, 0);
 ```
 
 Key idea: create an object and configure it. In Studio snippets, that is enough
@@ -208,19 +214,19 @@ usually take dimensions.
 ```ts
 const ground = new waveGround(20, 20, 4);
 ground.setColor(PALETTE.CHARCOAL);
-ground.moveTo({ x: 0, y: 0, z: 0 });
+ground.placeAt(0, 0, 0);
 
 const cube = new waveCube(2, 2, 2);
 cube.setColor(PALETTE.TURQUOISE);
-cube.moveTo({ x: -3, y: 1, z: 0 });
+cube.placeAt(-3, 1, 0);
 
 const sphere = new waveSphere(1, 32);
 sphere.setColor(PALETTE.GOLDENROD);
-sphere.moveTo({ x: 0, y: 1, z: 0 });
+sphere.placeAt(0, 1, 0);
 
 const cylinder = new waveCylinder(2, 1.5, 1.5);
 cylinder.setColor(PALETTE.FUCHSIA);
-cylinder.moveTo({ x: 3, y: 1, z: 0 });
+cylinder.placeAt(3, 1, 0);
 ```
 
 Useful primitive classes from the declarations include:
@@ -366,7 +372,7 @@ for (let i = 0; i < shapes.length; i++) {
   const row = Math.floor(i / columns);
 
   shape.setColor(palette[i % palette.length]);
-  shape.moveTo({ x: (col - 2) * spacing, y: 1.2, z: row * spacing });
+  shape.placeAt((col - 2) * spacing, 1.2, row * spacing);
   shape.addTag("built-in-shape");
 
   shape.onTick((_self, deltaTime) => {
@@ -389,7 +395,7 @@ Most 3D objects inherit transform helpers from `wave3DAbstract`.
 ```ts
 const block = new waveCube(1, 1, 1);
 
-block.moveTo({ x: 0, y: 1, z: 0 });          // world position
+block.placeAt(0, 1, 0);          // place it in the scene
 block.moveRight(2);             // semantic direction helper
 block.moveUp(1);
 block.moveForward(3);
@@ -403,12 +409,17 @@ block.setUniformScale(1.5);
 block.scaleBy(1.1);
 ```
 
-For 3D objects, `moveTo` expects one target point/reference. Use an object for
-coordinates. If you want the three-number form, use `setWorldPosition`.
+For first placement, prefer `placeAt`. It reads like the intention and supports
+both a simple `x, y, z` location and a target/reference. After that, use
+direction verbs such as `moveForward`, `moveUp`, `placeAbove`, and
+`placeInfrontOf` so the code stays spatial and readable.
 
 ```ts
-block.moveTo({ x: 0, y: 1, z: 0 });
-block.setWorldPosition(0, 1, 0);
+const floor = new waveGround(10, 10, 2);
+const crate = new waveCube(1, 1, 1);
+
+crate.placeAbove(floor);
+crate.moveForward(2);
 ```
 
 You can also use the lower-level transform component:
@@ -425,7 +436,7 @@ separate lines instead of building one very long chain.
 
 ```ts
 const cube = new waveCube(2, 2, 2);
-cube.moveTo({ x: 0, y: 1, z: 0 });
+cube.placeAt(0, 1, 0);
 cube.setColor(PALETTE.WHITE);
 cube.useDynamicBody();
 ```
@@ -437,8 +448,8 @@ Build a tiny playground where the labels explain the operation.
 
 | Pattern | Use it for | APIs |
 | --- | --- | --- |
-| Absolute placement | Put an object exactly somewhere | `placeAt`, `moveTo`, `setWorldPosition` |
-| Relative movement | Nudge from the current position | `moveLeft`, `moveUp`, `moveForward` |
+| Scene placement | Put an object in a readable place | `placeAt`, `placeAbove`, `placeInfrontOf` |
+| Direction movement | Nudge from the current position | `moveLeft`, `moveUp`, `moveForward` |
 | Orientation | Make direction visible | `turnRight`, `pitchUp`, `showDirection` |
 | Scale | Resize without changing the mesh class | `setScale`, `setUniformScale`, `enlargeBy` |
 | Targeting | Face or align with another object | `turnTo`, `fitBetween`, `placeAbove` |
@@ -491,11 +502,11 @@ seen as "Palette" in examples:
 ```ts
 const cube = new waveCube(2, 2, 2);
 cube.setColor(PALETTE.CYAN);
-cube.moveTo({ x: 0, y: 1, z: 0 });
+cube.placeAt(0, 1, 0);
 
 const accent = new waveSphere(0.6, 32);
 accent.setColor(PALETTE.lighten(PALETTE.COBALT, 20));
-accent.moveTo({ x: 2, y: 1, z: 0 });
+accent.placeAt(2, 1, 0);
 ```
 
 Useful palette names include `PALETTE.WHITE`, `PALETTE.BLACK`, `PALETTE.RED`,
@@ -518,7 +529,7 @@ If you have named materials in the asset warehouse, use them by name:
 ```ts
 const platform = new waveCube(6, 0.4, 6);
 platform.useMaterial(materials.PavingStones);
-platform.moveTo({ x: 0, y: 0.2, z: 0 });
+platform.placeAt(0, 0.2, 0);
 ```
 
 ### Material and Palette Gallery
@@ -593,7 +604,7 @@ for (let i = 0; i < materialStyles.length; i++) {
   const sample = new waveCube(1.3, 1.3, 1.3);
 
   sample.setColor(style.color);
-  sample.moveTo({ x: (i - 2) * styleSpacing, y: 1, z: 0 });
+  sample.placeAt((i - 2) * styleSpacing, 1, 0);
   style.apply(sample);
 
   sample.whenClickedOn(() => scene.print(style.label));
@@ -769,7 +780,7 @@ Use `wave3DObject` when you want to place an imported model asset.
 
 ```ts
 const ship = new wave3DObject(models.Spaceship);
-ship.moveTo({ x: 0, y: 2, z: 0 });
+ship.placeAt(0, 2, 0);
 ship.setUniformScale(0.4);
 ship.turnRight(30);
 ```
@@ -836,7 +847,7 @@ function fireLaser() {
   shot.setColor(PALETTE.CYAN);
   shot.setEmissiveColor(PALETTE.CYAN);
   shot.setEmissiveIntensity(2);
-  shot.moveTo(fighter.getWorldPosition());
+  shot.placeAt(fighter);
   shot.alignDirectionWith(fighter);
   shot.moveForward(1.2);
   shot.addTag("player-shot");
@@ -925,7 +936,7 @@ the entity and `deltaTime`.
 ```ts
 const spinner = new waveCube(2, 2, 2);
 spinner.setColor(PALETTE.SAGE);
-spinner.moveTo({ x: 0, y: 2, z: 0 });
+spinner.placeAt(0, 2, 0);
 
 spinner.onTick((_self, deltaTime) => {
   spinner.turnRight(90 * deltaTime);
@@ -1063,7 +1074,7 @@ for (let i = 0; i < motionPatterns.length; i++) {
   const object = pattern.create();
 
   object.setColor(motionColors[i]);
-  object.moveTo({ x: (i - 1.5) * motionSpacing, y: 1, z: 0 });
+  object.placeAt((i - 1.5) * motionSpacing, 1, 0);
   object.addTag("motion-demo");
 
   pattern.animate(object);
@@ -1106,7 +1117,7 @@ and `whenHolding`.
 ```ts
 const player = new waveCube(1, 1, 1);
 player.setColor(PALETTE.TURQUOISE);
-player.moveTo({ x: 0, y: 1, z: 0 });
+player.placeAt(0, 1, 0);
 
 player.whenPress(Keyboard.W, () => player.moveForward(0.5));
 player.whenPress(Keyboard.S, () => player.moveBackward(0.5));
@@ -1160,7 +1171,7 @@ Objects can also react to pointer interaction:
 ```ts
 const button = new waveSphere(0.8, 24);
 button.setColor(PALETTE.GOLDENROD);
-button.moveTo({ x: 0, y: 1, z: -3 });
+button.placeAt(0, 1, -3);
 
 button.whenClickedOn(() => {
   button.setColor(PALETTE.ORANGE);
@@ -1232,7 +1243,7 @@ floor.addTag("floor");
 
 const ball = new waveSphere(1, 32);
 ball.setColor(PALETTE.GOLDENROD);
-ball.moveTo({ x: 0, y: 8, z: 0 });
+ball.placeAt(0, 8, 0);
 ball.useDynamicBody();
 ball.setMass(2);
 ball.setRestitution(0.8);
@@ -1255,7 +1266,7 @@ For controlled movement with collision handling:
 ```ts
 const actor = new waveCube(1, 2, 1);
 actor.useKinematicBody();
-actor.moveTo({ x: 0, y: 1, z: 0 });
+actor.placeAt(0, 1, 0);
 
 actor.whenPress(Keyboard.ArrowUp, () => {
   actor.moveWithCollisions(Direction.Forward, 0.5);
@@ -1325,7 +1336,7 @@ for (let i = 0; i < physicsExamples.length; i++) {
   const example = physicsExamples[i];
   const object = example.create();
 
-  object.moveTo({ x: (i - 1) * physicsSpacing, y: 1, z: 0 });
+  object.placeAt((i - 1) * physicsSpacing, 1, 0);
   object.addTag("physics-demo");
   example.setup(object);
 
@@ -1413,7 +1424,7 @@ possess or activate a view:
 
 ```ts
 const cameraRig = new waveCube(0.2, 0.2, 0.2);
-cameraRig.moveTo({ x: 0, y: 5, z: -8 });
+cameraRig.placeAt(0, 5, -8);
 cameraRig.camera.setCameraLookAt(0, 1, 0);
 cameraRig.camera.activate();
 ```
@@ -1453,7 +1464,7 @@ scene.fog
   .apply();
 
 const cinematicCamera = new waveCamera();
-cinematicCamera.moveTo({ x: 0, y: 4, z: -8 });
+cinematicCamera.placeAt(0, 4, -8);
 cinematicCamera.turnCameraTo(0, 1, 0);
 cinematicCamera.setFov(50);
 cinematicCamera.assignToNum1();
@@ -1463,14 +1474,14 @@ pointLight.asPointLight();
 pointLight.setLightColor(PALETTE.GOLDENROD);
 pointLight.setIntensity(1.4);
 pointLight.setRange(8);
-pointLight.moveTo({ x: -3, y: 3, z: 0 });
+pointLight.placeAt(-3, 3, 0);
 
 const spotlight = new waveLight();
 spotlight.asSpotlight();
 spotlight.setLightColor(PALETTE.CYAN);
 spotlight.setIntensity(2);
 spotlight.setAngle(45);
-spotlight.moveTo({ x: 3, y: 4, z: -2 });
+spotlight.placeAt(3, 4, -2);
 spotlight.aimAt(0, 1, 0);
 ```
 
@@ -1613,7 +1624,7 @@ const row = scene.createGroup<waveCube>("row");
 for (let i = 0; i < 5; i++) {
   const cube = new waveCube(1, 1, 1);
   cube.setColor(PALETTE.CYAN);
-  cube.moveTo({ x: i * 1.4 - 2.8, y: 0.5, z: 0 });
+  cube.placeAt(i * 1.4 - 2.8, 0.5, 0);
   row.add(cube);
 }
 ```
@@ -1721,7 +1732,7 @@ function addScore(points: number) {
 
 const gem = new waveSphere(0.5, 24);
 gem.setColor(PALETTE.GOLDENROD);
-gem.moveTo({ x: 0, y: 1, z: -4 });
+gem.placeAt(0, 1, -4);
 
 gem.whenClickedOn(() => {
   addScore(1);
@@ -1832,7 +1843,7 @@ Objects can play sounds by asset name or path:
 
 ```ts
 const speaker = new waveCube(1, 1, 1);
-speaker.moveTo({ x: 0, y: 1, z: 0 });
+speaker.placeAt(0, 1, 0);
 
 speaker.playSound(audios.studioSound, {
   loop: false,
@@ -1845,7 +1856,7 @@ Many 3D objects expose an `fx` facade:
 ```ts
 const emitter = new waveSphere(0.4, 16);
 emitter.setColor(PALETTE.WHITE);
-emitter.moveTo({ x: 0, y: 1, z: 0 });
+emitter.placeAt(0, 1, 0);
 
 emitter.fx
   .createSmoke("soft-smoke")
@@ -1874,7 +1885,7 @@ visible geometry.
 ```ts
 const smokeOrb = new waveSphere(0.35, 16);
 smokeOrb.setColor(PALETTE.LIGHT_GRAY);
-smokeOrb.moveTo({ x: -3, y: 1, z: 0 });
+smokeOrb.placeAt(-3, 1, 0);
 
 smokeOrb.fx
   .createSmoke("gallery-smoke")
@@ -1885,7 +1896,7 @@ smokeOrb.fx
 
 const sparkPad = new waveCube(1, 0.25, 1);
 sparkPad.setColor(PALETTE.GOLDENROD);
-sparkPad.moveTo({ x: 0, y: 0.5, z: 0 });
+sparkPad.placeAt(0, 0.5, 0);
 
 sparkPad.whenClickedOn(() => {
   sparkPad.playSound(audios.studioSound, { volume: 0.7 });
@@ -1893,13 +1904,13 @@ sparkPad.whenClickedOn(() => {
 });
 
 const rainAnchor = new waveCube(0.2, 0.2, 0.2);
-rainAnchor.moveTo({ x: 0, y: 4, z: 0 });
+rainAnchor.placeAt(0, 4, 0);
 rainAnchor.hide();
 rainAnchor.fx.play(waveFxPresets.rain());
 
 const breakable = new waveCube(1, 1, 1);
 breakable.setColor(PALETTE.CORAL);
-breakable.moveTo({ x: 3, y: 1, z: 0 });
+breakable.placeAt(3, 1, 0);
 
 breakable.whenClickedOn(() => {
   if (breakable.isDestroyed) return;
@@ -2067,7 +2078,7 @@ floor.addTag("floor");
 
 const player = new waveCube(1, 1, 1);
 player.setColor(PALETTE.TURQUOISE);
-player.moveTo({ x: 0, y: 0.5, z: 0 });
+player.placeAt(0, 0.5, 0);
 player.useKinematicBody();
 
 player.whenPress(Keyboard.W, () => player.moveForward(playerStepDistance));
@@ -2087,7 +2098,7 @@ function updateScore(points: number) {
 for (let i = 0; i < totalPickups; i++) {
   const pickup = new waveSphere(0.45, 24);
   pickup.setColor(PALETTE.GOLDENROD);
-  pickup.moveTo({ x: i * 2 - 4, y: 0.75, z: -3 });
+  pickup.placeAt(i * 2 - 4, 0.75, -3);
   pickup.addTag("pickup");
 
   pickup.onTick((_self, deltaTime) => {
@@ -2285,7 +2296,7 @@ function spawnPiece(
 
   const piece = new waveCube(size, size, size);
   piece.setColor(palette[depth % palette.length] ?? PALETTE.WHITE);
-  piece.moveTo({ x, y, z });
+  piece.placeAt(x, y, z);
   piece.addTag("recursive-piece");
 
   piece.onTick((_self, deltaTime) => {
@@ -2578,8 +2589,11 @@ gripper toward them using an end-effector animation chain.
 const gripper = roboticArm.getPart(GRIPPER_PART_NAME);
 
 if (gripper) {
+  const distanceToTarget = gripper.distanceTo(targetCube);
+
+  gripper.turnTo(targetCube);
   gripper
-    .moveTo(targetCube.getWorldPosition(), Animate)
+    .moveForward(distanceToTarget, Animate)
     .over(TARGET_IK_MOVE_SECONDS, Seconds)
     .play()
     .onComplete(() => tryPickUpTarget(targetCube));
@@ -2587,7 +2601,8 @@ if (gripper) {
 ```
 
 **APIs to steal:** model parts, part metadata, the source demo's end-effector
-helper, `getPart`, `moveTo`, `onComplete`, click target registries.
+helper, `getPart`, `turnTo`, `distanceTo`, `moveForward`, `onComplete`, click
+target registries.
 
 **Natural-language constants:** `GRIPPER_PART_NAME`,
 `TARGET_IK_MOVE_SECONDS`, `Animate`, `Seconds`.
@@ -3204,7 +3219,7 @@ has `setBaseRadius`, `setBaseTubeRadius`, and `setBaseArc`.
 ```ts
 const ring = new waveTorus(2, 0.18, 96);
 ring.setColor(PALETTE.CYAN);
-ring.moveTo({ x: 0, y: 2, z: 0 });
+ring.placeAt(0, 2, 0);
 
 ring.moveAlong(Direction.Up, 1, Animate).over(2, Seconds).play();
 ```
@@ -3360,7 +3375,7 @@ Create and configure:
 
 ```ts
 const object = new waveCube(1, 1, 1);
-object.moveTo({ x: 0, y: 1, z: 0 });
+object.placeAt(0, 1, 0);
 ```
 
 Find by tag:
@@ -3437,7 +3452,7 @@ Core scene methods:
 
 Core entity methods:
 
-- `moveTo`, `moveBy`, `moveForward`, `moveUp`, `placeAbove`
+- `placeAt`, `placeAbove`, `placeInfrontOf`, `moveBy`, `moveForward`, `moveUp`
 - `turnRight`, `turnLeft`, `pitchUp`, `rollLeft`
 - `setScale`, `setUniformScale`, `scaleBy`
 - `setColor`, `useMaterial`, `setBaseTexture`
@@ -3488,8 +3503,10 @@ Run this check every time the tutorial is added to, removed from, or modified:
 4. Search: new terms appear in both visible copy and `data-keywords`.
 5. Interaction: copy buttons attach to every code block, progress checkboxes
    still save/reset, and search still finds the new material.
-6. Studio style: snippets avoid unnecessary manual scene insertion calls, prefer typed constants
-   such as `PALETTE`, `Direction`, `Seconds`, and `Keyboard`, and split chains
-   when a method does not return a chainable object.
+6. Studio style: snippets avoid unnecessary manual scene insertion calls,
+   prefer typed constants such as `PALETTE`, `Direction`, `Seconds`, and
+   `Keyboard`, prefer natural placement verbs such as `placeAt`, `placeAbove`,
+   and `placeAround`, and split chains when a method does not return a
+   chainable object.
 7. Repository hygiene: tutorial edits stay docs-only unless the request clearly
    asks for runtime files; no `*.ts` files are staged by accident.
