@@ -1278,6 +1278,11 @@ player.whenPress(Keyboard.D, () => player.moveRight(0.5));
 player.whenPress(Keyboard.Space, () => player.moveUp(1));
 ```
 
+Object-level input is compact and great for learning. For whole-scene games,
+prefer director-level input such as `myScene.director.whenPress(...)` and
+`myScene.director.isKeyPressed(...)` so movement and firing are controlled by
+the active scene instead of feeling tied to one object callback.
+
 ### Debug Helpers and Keyboard Driving
 
 For game-like controls, `whenHolding` feels smoother than `whenPress` because
@@ -1342,7 +1347,7 @@ mode key for changing what clicks mean.
 | `whenPress` | One-shot commands | Jump, toggle debug, reset |
 | `whenHolding` | Continuous movement | Driving, flying, walking |
 | `whenClickedOn` | Object-specific actions | Select, explode, inspect |
-| Director sensing | Global shortcuts | `myScene.director.whenPress` |
+| Director controls | Whole-scene controls | `myScene.director.whenPress`, `myScene.director.isKeyPressed` |
 
 ```ts
 let editMode: "paint" | "inspect" = "paint";
@@ -3003,7 +3008,7 @@ const arenaMaxY = 5.6;
 const asteroidSpawnZ = 9;
 const asteroidExitZ = -10;
 const shipZ = -7;
-const shipStep = 0.28;
+const shipMoveSpeed = 5;
 const laserSpeed = 18;
 const laserLifetime = 1.2;
 const fireCooldown = 0.18;
@@ -3041,11 +3046,11 @@ const scoreText = new waveUIText();
 scoreText.setFontSize(24);
 scoreText.setColor(PALETTE.WHITE);
 scoreText.setBackgroundColor(hudBackground);
-scoreText.setSize(310, 46);
+scoreText.setSize(330, 46);
 scoreText.setScreenPositionPixels(24, 24);
 
 const helpText = new waveUIText();
-helpText.setText("WASD move | Space fire");
+helpText.setText("Click preview, then WASD move | Space fire");
 helpText.setFontSize(18);
 helpText.setColor(PALETTE.CYAN);
 helpText.setScreenPositionPixels(24, 76);
@@ -3064,9 +3069,37 @@ function updateHud() {
   scoreText.setText(`Score: ${score}   Lives: ${lives}`);
 }
 
+function clamp(value: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function placeShipInArena(x: number, y: number) {
+  const nextX = clamp(x, -arenaHalfWidth, arenaHalfWidth);
+  const nextY = clamp(y, arenaMinY, arenaMaxY);
+  ship.placeAt(nextX, nextY, shipZ);
+}
+
+function updateShipControls(deltaTime: number) {
+  let inputX = 0;
+  let inputY = 0;
+
+  if (myScene.director.isKeyPressed(Keyboard.A)) inputX -= 1;
+  if (myScene.director.isKeyPressed(Keyboard.D)) inputX += 1;
+  if (myScene.director.isKeyPressed(Keyboard.W)) inputY += 1;
+  if (myScene.director.isKeyPressed(Keyboard.S)) inputY -= 1;
+
+  if (inputX === 0 && inputY === 0) return;
+
+  const diagonalScale = inputX !== 0 && inputY !== 0 ? 0.707 : 1;
+  const step = shipMoveSpeed * deltaTime * diagonalScale;
+  const position = ship.position;
+  placeShipInArena(position.x + inputX * step, position.y + inputY * step);
+}
+
 function clampShipToArena() {
-  const x = Math.max(-arenaHalfWidth, Math.min(arenaHalfWidth, ship.x));
-  const y = Math.max(arenaMinY, Math.min(arenaMaxY, ship.y));
+  const position = ship.position;
+  const x = clamp(position.x, -arenaHalfWidth, arenaHalfWidth);
+  const y = clamp(position.y, arenaMinY, arenaMaxY);
   ship.placeAt(x, y, shipZ);
 }
 
@@ -3099,7 +3132,7 @@ function spawnAsteroid() {
   });
 }
 
-function spawnShard(center: Vector3, angleDegrees: number) {
+function spawnShard(center: { x: number; y: number; z: number }, angleDegrees: number) {
   const shardRadius = randomRange(0.16, 0.28);
   const radians = angleDegrees * Math.PI / 180;
   const shard = new waveSphere(shardRadius, 8);
@@ -3140,7 +3173,11 @@ function removeAsteroid(index: number) {
 
 function pulverizeAsteroid(index: number) {
   const asteroid = asteroids[index];
-  const center = asteroid.body.position;
+  const center = {
+    x: asteroid.body.position.x,
+    y: asteroid.body.position.y,
+    z: asteroid.body.position.z,
+  };
   asteroid.body.fx.play(waveFxPresets.impactSparks());
   removeAsteroid(index);
 
@@ -3163,7 +3200,8 @@ function fireLaser() {
   canFire = false;
 
   const laser = new waveSphere(0.12, 12);
-  laser.placeAt(ship.x, ship.y, ship.z + 0.8);
+  const shipPosition = ship.position;
+  laser.placeAt(shipPosition.x, shipPosition.y, shipPosition.z + 0.8);
   laser.setColor(PALETTE.CYAN);
   laser.setEmissiveColor(PALETTE.CYAN);
   laser.setEmissiveIntensity(2.5);
@@ -3196,7 +3234,7 @@ function updateProjectiles(deltaTime: number) {
     projectile.age += deltaTime;
     projectile.body.moveBy({ x: 0, y: 0, z: laserSpeed * deltaTime });
 
-    if (projectile.age > projectile.lifetime || projectile.body.z > asteroidSpawnZ + 2) {
+    if (projectile.age > projectile.lifetime || projectile.body.position.z > asteroidSpawnZ + 2) {
       removeProjectile(i);
     }
   }
@@ -3218,7 +3256,7 @@ function updateAsteroids(deltaTime: number) {
       asteroid.body.setOpacity(fade);
     }
 
-    if (asteroid.age > asteroid.lifetime || asteroid.body.z < asteroidExitZ) {
+    if (asteroid.age > asteroid.lifetime || asteroid.body.position.z < asteroidExitZ) {
       removeAsteroid(i);
     }
   }
@@ -3253,30 +3291,13 @@ function checkShipHits() {
   }
 }
 
-ship.whenHolding(Keyboard.A, () => {
-  ship.moveLeft(shipStep);
-  clampShipToArena();
-});
-
-ship.whenHolding(Keyboard.D, () => {
-  ship.moveRight(shipStep);
-  clampShipToArena();
-});
-
-ship.whenHolding(Keyboard.W, () => {
-  ship.moveUp(shipStep);
-  clampShipToArena();
-});
-
-ship.whenHolding(Keyboard.S, () => {
-  ship.moveDown(shipStep);
-  clampShipToArena();
-});
-
-ship.whenPress(Keyboard.Space, fireLaser);
+myScene.director.whenPress(Keyboard.Space, fireLaser);
 
 ship.onTick((_self, deltaTime) => {
   if (gameOver) return;
+
+  updateShipControls(deltaTime);
+  clampShipToArena();
 
   spawnTimer -= deltaTime;
   if (spawnTimer <= 0) {
@@ -3297,8 +3318,13 @@ for (let i = 0; i < 5; i++) {
 updateHud();
 ```
 
-**APIs to steal:** `wave3DObject`, `models.Spaceship`, `whenHolding`,
-`whenPress`, `onTick`, `waveUIText`, `distanceTo`, `moveBy`, `setOpacity`,
+This version polls `myScene.director.isKeyPressed(...)` inside the frame loop,
+which is usually more dependable for a copied game snippet than attaching
+movement to object-scoped `whenHolding` callbacks.
+
+**APIs to steal:** `wave3DObject`, `models.Spaceship`,
+`myScene.director.isKeyPressed`, `myScene.director.whenPress`, `onTick`,
+`waveUIText`, `distanceTo`, `moveBy`, `setOpacity`,
 `waveFxPresets.impactSparks`, `after`, `Seconds`, and array-backed game state.
 
 **Natural-language constants:** `Keyboard.W`, `Keyboard.Space`,
@@ -4161,10 +4187,14 @@ Run this check every time the tutorial is added to, removed from, or modified:
 6. Copyability: every `ts` or `typescript` block compiles as an isolated
    WaveStudio paste; partial fragments, command examples, and globals lists use
    non-TypeScript fences.
-7. Studio style: snippets avoid unnecessary manual scene insertion calls,
+7. Runtime behavior: interactive snippets are pasted into WaveStudio, Run is
+   pressed, the preview is focused, and the primary behavior is checked with
+   real input such as click, WASD, Space, or pointer drawing. Typecheck alone is
+   not enough for game examples.
+8. Studio style: snippets avoid unnecessary manual scene insertion calls,
    prefer typed constants such as `PALETTE`, `Direction`, `Seconds`, and
    `Keyboard`, prefer natural placement verbs such as `placeAt`, `placeAbove`,
    and `placeAround`, and split chains when a method does not return a
    chainable object.
-8. Repository hygiene: tutorial edits stay docs-only unless the request clearly
+9. Repository hygiene: tutorial edits stay docs-only unless the request clearly
    asks for runtime files; no `*.ts` files are staged by accident.
