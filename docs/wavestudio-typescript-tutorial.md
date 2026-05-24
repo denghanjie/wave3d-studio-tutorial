@@ -53,7 +53,7 @@ lesson that mentions that API.
 WaveStudio code runs inside a scene context. In the editor, several globals are
 already declared for you:
 
-```ts
+```text
 ctx;          // SceneContext
 engine;       // engineLocal, shorthand for ctx.engine
 scene;        // WaveScene, shorthand for ctx.scene
@@ -76,6 +76,12 @@ Most beginner code uses `scene`, creates entities such as `waveCube` or
 `wave3DObject`, and configures them with fluent methods. In the WaveStudio
 editor, newly created scene objects are available in the active scene without a
 manual add step.
+
+Copy-paste rule: every fenced `ts` or `typescript` block in this tutorial is
+intended to be a complete Studio paste unit. If a sample is only a note, a shell
+command, a globals list, or an intentionally partial pattern, it should use a
+different fence such as `text` or `bash` so learners do not mistake it for a
+runnable scene snippet.
 
 ```ts
 const cube = new waveCube(2, 2, 2);
@@ -1714,6 +1720,16 @@ if (mainDoor instanceof waveCube) {
 Scene-level helpers include:
 
 ```ts
+const helperDoor = new waveCube(2, 3, 0.3);
+helperDoor.setName("main-door");
+helperDoor.addTag("door");
+helperDoor.addTag("interactive");
+
+const temporaryMarker = new waveSphere(0.25, 16);
+temporaryMarker.setColor(PALETTE.YELLOW);
+temporaryMarker.placeAbove(helperDoor);
+temporaryMarker.addTag("temporary");
+
 scene.getAll();
 scene.getByName("main-door");
 scene.getByTag("interactive");
@@ -4142,10 +4158,13 @@ Run this check every time the tutorial is added to, removed from, or modified:
 4. Search: new terms appear in both visible copy and `data-keywords`.
 5. Interaction: copy buttons attach to every code block, progress checkboxes
    still save/reset, and search still finds the new material.
-6. Studio style: snippets avoid unnecessary manual scene insertion calls,
+6. Copyability: every `ts` or `typescript` block compiles as an isolated
+   WaveStudio paste; partial fragments, command examples, and globals lists use
+   non-TypeScript fences.
+7. Studio style: snippets avoid unnecessary manual scene insertion calls,
    prefer typed constants such as `PALETTE`, `Direction`, `Seconds`, and
    `Keyboard`, prefer natural placement verbs such as `placeAt`, `placeAbove`,
    and `placeAround`, and split chains when a method does not return a
    chainable object.
-7. Repository hygiene: tutorial edits stay docs-only unless the request clearly
+8. Repository hygiene: tutorial edits stay docs-only unless the request clearly
    asks for runtime files; no `*.ts` files are staged by accident.

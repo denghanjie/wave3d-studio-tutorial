@@ -825,6 +825,7 @@
           <h2>Learn WaveStudio by writing TypeScript.</h2>
           <p>This standalone page turns the tutorial into a searchable, copyable, trackable guide. Every code block has a copy button, and lesson progress is saved locally in your browser.</p>
           <p>The examples are based on <code>waveStudio-globals.d.ts</code>, the generated declaration file that powers WaveStudio's Monaco IntelliSense.</p>
+          <p>Every TypeScript block is written as a complete WaveStudio paste unit. Notes, terminal commands, and intentionally partial patterns use non-TypeScript blocks so they are not confused with runnable scene snippets.</p>
           <div class="badges">
             <span class="badge">20 lessons</span>
             <span class="badge">6 creator tracks</span>
@@ -2242,7 +2243,17 @@ for (const entity of doors) {
 if (mainDoor instanceof waveCube) {
   mainDoor.hideBoundingBox();
 }</code></pre>
-          <pre><code class="language-ts">scene.getAll();
+          <pre><code class="language-ts">const helperDoor = new waveCube(2, 3, 0.3);
+helperDoor.setName("main-door");
+helperDoor.addTag("door");
+helperDoor.addTag("interactive");
+
+const temporaryMarker = new waveSphere(0.25, 16);
+temporaryMarker.setColor(PALETTE.YELLOW);
+temporaryMarker.placeAbove(helperDoor);
+temporaryMarker.addTag("temporary");
+
+scene.getAll();
 scene.getByName("main-door");
 scene.getByTag("interactive");
 scene.find((entity) =&gt; entity.hasTag("door"));
@@ -4110,6 +4121,10 @@ myScene
           <div class="track-card">
             <strong>Search and Interaction</strong>
             <p>New terms appear in copy and keywords; copy buttons, search, completion, and reset still work.</p>
+          </div>
+          <div class="track-card">
+            <strong>Copyability</strong>
+            <p>Every TypeScript block compiles as an isolated WaveStudio paste; partial fragments, command examples, and globals lists use non-TypeScript blocks.</p>
           </div>
           <div class="track-card">
             <strong>Studio Style</strong>
