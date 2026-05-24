@@ -146,18 +146,24 @@ editor, add a reference so your editor sees the same declarations:
 
 ## Lesson 1: The Smallest Scene
 
-A scene is a world full of entities. A scene script usually has a `main`
-function. In WaveStudio, you may already be editing inside that runtime context.
-If you are defining a reusable scene object, the shape is:
+A scene is a world full of entities. In WaveStudio, you are already editing
+inside the active scene context, so the most reliable beginner shape is a setup
+function that creates visible objects and then runs immediately:
 
 ```ts
-const tutorialScene = new WaveScene("Tutorial");
-
-tutorialScene.withMain(({ scene }) => {
+function buildTutorialScene() {
   const cube = new waveCube(2, 2, 2);
   cube.setColor(PALETTE.CYAN);
   cube.placeAt(0, 1, 0);
-});
+
+  const label = new waveUIText();
+  label.setText("Tutorial scene ready");
+  label.setFontSize(24);
+  label.setColor(PALETTE.WHITE);
+  label.setScreenPositionPixels(24, 24);
+}
+
+buildTutorialScene();
 ```
 
 Inside the WaveStudio editor, the shorter version is often enough because
@@ -1263,31 +1269,34 @@ Remix challenges:
 
 ## Lesson 8: Input
 
-Many 3D entities expose keyboard helpers such as `whenPress`, `whenRelease`,
-and `whenHolding`.
+The active scene director is the clearest beginner place for keyboard input.
+Use `whenPress` for one-shot actions, then poll `isKeyPressed` inside `onTick`
+when a game object should keep moving while a key is held.
 
 ```ts
 const player = new waveCube(1, 1, 1);
 player.setColor(PALETTE.TURQUOISE);
 player.placeAt(0, 1, 0);
 
-player.whenPress(Keyboard.W, () => player.moveForward(0.5));
-player.whenPress(Keyboard.S, () => player.moveBackward(0.5));
-player.whenPress(Keyboard.A, () => player.moveLeft(0.5));
-player.whenPress(Keyboard.D, () => player.moveRight(0.5));
-player.whenPress(Keyboard.Space, () => player.moveUp(1));
+const nudgeDistance = 0.5;
+
+myScene.director.whenPress(Keyboard.W, () => player.moveForward(nudgeDistance));
+myScene.director.whenPress(Keyboard.S, () => player.moveBackward(nudgeDistance));
+myScene.director.whenPress(Keyboard.A, () => player.moveLeft(nudgeDistance));
+myScene.director.whenPress(Keyboard.D, () => player.moveRight(nudgeDistance));
+myScene.director.whenPress(Keyboard.Space, () => player.moveUp(1));
 ```
 
-Object-level input is compact and great for learning. For whole-scene games,
-prefer director-level input such as `myScene.director.whenPress(...)` and
-`myScene.director.isKeyPressed(...)` so movement and firing are controlled by
-the active scene instead of feeling tied to one object callback.
+Director-level input such as `myScene.director.whenPress(...)` and
+`myScene.director.isKeyPressed(...)` is the most dependable starting point for
+copied game snippets because movement and firing are controlled by the active
+scene.
 
 ### Debug Helpers and Keyboard Driving
 
-For game-like controls, `whenHolding` feels smoother than `whenPress` because
-the callback keeps firing while the key is down. Debug helpers make the
-object's state visible while you tune movement.
+For game-like controls, poll `myScene.director.isKeyPressed(...)` inside
+`onTick`. Debug helpers make the object's state visible while you tune
+movement.
 
 | Helper | What to use it for |
 | --- | --- |
@@ -1308,16 +1317,26 @@ car.showPosition();
 car.showCoordinate();
 car.showBoundingBox();
 
-const driveDistancePerTick = 0.18;
-const reverseDistancePerTick = 0.1;
-const turnDegreesPerTick = 4;
+const driveUnitsPerSecond = 5;
+const reverseUnitsPerSecond = 3;
+const turnDegreesPerSecond = 120;
 
-car.whenHolding(Keyboard.W, () => car.moveForward(driveDistancePerTick));
-car.whenHolding(Keyboard.S, () => car.moveBackward(reverseDistancePerTick));
-car.whenHolding(Keyboard.A, () => car.turnLeft(turnDegreesPerTick));
-car.whenHolding(Keyboard.D, () => car.turnRight(turnDegreesPerTick));
+car.onTick((_self, deltaTime) => {
+  if (myScene.director.isKeyPressed(Keyboard.W)) {
+    car.moveForward(driveUnitsPerSecond * deltaTime);
+  }
+  if (myScene.director.isKeyPressed(Keyboard.S)) {
+    car.moveBackward(reverseUnitsPerSecond * deltaTime);
+  }
+  if (myScene.director.isKeyPressed(Keyboard.A)) {
+    car.turnLeft(turnDegreesPerSecond * deltaTime);
+  }
+  if (myScene.director.isKeyPressed(Keyboard.D)) {
+    car.turnRight(turnDegreesPerSecond * deltaTime);
+  }
+});
 
-car.whenPress(Keyboard.Space, () => {
+myScene.director.whenPress(Keyboard.Space, () => {
   car.showSpeed();
   scene.print("Debug overlays are on");
 });
@@ -1361,9 +1380,11 @@ myScene.director.whenPress(Keyboard.Tab, () => {
   scene.print(`Mode: ${editMode}`);
 });
 
-target.whenHolding(Keyboard.W, () => target.moveForward(0.12));
-target.whenHolding(Keyboard.A, () => target.turnLeft(2));
-target.whenHolding(Keyboard.D, () => target.turnRight(2));
+target.onTick((_self, deltaTime) => {
+  if (myScene.director.isKeyPressed(Keyboard.W)) target.moveForward(3 * deltaTime);
+  if (myScene.director.isKeyPressed(Keyboard.A)) target.turnLeft(120 * deltaTime);
+  if (myScene.director.isKeyPressed(Keyboard.D)) target.turnRight(120 * deltaTime);
+});
 
 target.whenClickedOn(() => {
   if (editMode === "paint") {
@@ -1429,7 +1450,7 @@ const actor = new waveCube(1, 2, 1);
 actor.useKinematicBody();
 actor.placeAt(0, 1, 0);
 
-actor.whenPress(Keyboard.ArrowUp, () => {
+myScene.director.whenPress(Keyboard.ArrowUp, () => {
   actor.moveWithCollisions(Direction.Forward, 0.5);
 });
 ```
@@ -1484,7 +1505,7 @@ const physicsExamples: PhysicsExample[] = [
     setup: (object) => {
       object.useKinematicBody();
       object.setColor(PALETTE.TURQUOISE);
-      object.whenPress(Keyboard.ArrowUp, () => {
+      myScene.director.whenPress(Keyboard.ArrowUp, () => {
         object.moveWithCollisions(Direction.Forward, 0.4);
       });
     },
@@ -2138,6 +2159,11 @@ Remix challenges:
 
 ```ts
 async function incrementHighScore(points: number) {
+  if (!myCloud.available) {
+    scene.print("Cloud data is not available here.");
+    return;
+  }
+
   const record = await myCloud.openRecord("scores");
 
   const nextScore = myCloud.json.inc(record, "highScore", points);
@@ -2155,6 +2181,8 @@ async function incrementHighScore(points: number) {
     scene.print("Could not save score");
   }
 }
+
+incrementHighScore(10);
 ```
 
 Check availability before depending on persistence:
@@ -2162,6 +2190,8 @@ Check availability before depending on persistence:
 ```ts
 if (!myCloud.available) {
   scene.print(`Cloud data unavailable: ${myCloud.reason ?? "unknown reason"}`);
+} else {
+  scene.print("Cloud data is available.");
 }
 ```
 
@@ -2261,10 +2291,10 @@ player.setColor(PALETTE.TURQUOISE);
 player.placeAt(0, 0.5, 0);
 player.useKinematicBody();
 
-player.whenPress(Keyboard.W, () => player.moveForward(playerStepDistance));
-player.whenPress(Keyboard.S, () => player.moveBackward(playerStepDistance));
-player.whenPress(Keyboard.A, () => player.moveLeft(playerStepDistance));
-player.whenPress(Keyboard.D, () => player.moveRight(playerStepDistance));
+myScene.director.whenPress(Keyboard.W, () => player.moveForward(playerStepDistance));
+myScene.director.whenPress(Keyboard.S, () => player.moveBackward(playerStepDistance));
+myScene.director.whenPress(Keyboard.A, () => player.moveLeft(playerStepDistance));
+myScene.director.whenPress(Keyboard.D, () => player.moveRight(playerStepDistance));
 
 function updateScore(points: number) {
   score += points;
@@ -2311,7 +2341,7 @@ system at a time.
 | Upgrade | What changes | Lessons to reuse |
 | --- | --- | --- |
 | Better world | Replace the floor with terrain, props, and lights | Lessons 5, 6, 10 |
-| Better controls | Use `whenHolding`, debug overlays, camera follow | Lessons 8, 10 |
+| Better controls | Use `isKeyPressed`, debug overlays, camera follow | Lessons 8, 10 |
 | Better pickups | Spawn in grid/circle/path and add effects | Lessons 12, 14 |
 | Better rules | Add timers, win state, reset button | Lessons 7, 13 |
 | Better memory | Save high score and chosen mood | Lesson 15 |
@@ -2639,14 +2669,16 @@ car.showDirection();
 car.showPosition();
 car.showBoundingBox();
 
-car.whenHolding(Keyboard.W, () => car.moveForward(0.18));
-car.whenHolding(Keyboard.S, () => car.moveBackward(0.1));
-car.whenHolding(Keyboard.A, () => car.turnLeft(4));
-car.whenHolding(Keyboard.D, () => car.turnRight(4));
+car.onTick((_self, deltaTime) => {
+  if (myScene.director.isKeyPressed(Keyboard.W)) car.moveForward(5 * deltaTime);
+  if (myScene.director.isKeyPressed(Keyboard.S)) car.moveBackward(3 * deltaTime);
+  if (myScene.director.isKeyPressed(Keyboard.A)) car.turnLeft(120 * deltaTime);
+  if (myScene.director.isKeyPressed(Keyboard.D)) car.turnRight(120 * deltaTime);
+});
 ```
 
-**APIs to steal:** `whenPress`, `whenHolding`, `showDirection`, `showPosition`,
-`showCoordinate`, `showBoundingBox`, camera follow patterns.
+**APIs to steal:** `myScene.director.isKeyPressed`, `showDirection`,
+`showPosition`, `showCoordinate`, `showBoundingBox`, camera follow patterns.
 
 **Natural-language constants:** `Keyboard.W`, `Keyboard.Space`,
 `PALETTE.BLUE`.
@@ -3337,6 +3369,439 @@ boss asteroid with a health bar.
 
 **Source demo reference:** combines ideas from `runway-runner/main.ts`,
 `shooting-range/main.ts`, and Boss Project 1's recursive-fragment mindset.
+
+### Elementary Arcade Pack: Paste-and-Run Games
+
+These games are intentionally colorful, short, and built from primitives so
+young learners can paste them, play immediately, and remix the rules without
+waiting for model assets to load.
+
+#### Game A: Rainbow Rocket Catcher
+
+**What you build:** move a rocket with WASD, collect golden stars, avoid pink
+clouds, and press Space to repaint the rocket.
+
+```ts
+type FallingThing = {
+  body: waveSphere;
+  kind: "star" | "cloud";
+  radius: number;
+  speed: number;
+  driftX: number;
+};
+
+const rocketZ = -6;
+const spawnZ = 8;
+const exitZ = -8;
+const arenaHalfWidth = 7;
+const arenaMinY = 0.8;
+const arenaMaxY = 5.4;
+const rocketSpeed = 5.5;
+const rocketHitRadius = 0.65;
+
+let score = 0;
+let lives = 3;
+let spawnTimer = 0;
+let gameOver = false;
+
+const fallingThings: FallingThing[] = [];
+
+scene.camera.orbit({
+  target: { x: 0, y: 2.8, z: 0 },
+  distance: 16,
+  fov: 58,
+}).apply();
+
+scene.lighting
+  .ambient({ color: PALETTE.SKY, intensity: 0.45 })
+  .sun({ direction: { x: -1, y: -2, z: -1 }, intensity: 1.3 })
+  .apply();
+
+const hud = new waveUIText();
+hud.setFontSize(24);
+hud.setColor(PALETTE.WHITE);
+hud.setBackgroundColor(PALETTE.modifyAlphaChannel(PALETTE.BLACK, 55));
+hud.setSize(360, 48);
+hud.setScreenPositionPixels(24, 24);
+
+const help = new waveUIText();
+help.setText("Click preview, WASD move, Space repaint");
+help.setFontSize(18);
+help.setColor(PALETTE.CYAN);
+help.setScreenPositionPixels(24, 76);
+
+const runway = new waveGround(18, 22, 4);
+runway.setColor(PALETTE.CHARCOAL);
+runway.setOpacity(0.35);
+
+const rocket = new waveCube(0.75, 0.45, 1.25);
+rocket.setColor(PALETTE.CYAN);
+rocket.setEmissiveColor(PALETTE.CYAN);
+rocket.setEmissiveIntensity(0.7);
+rocket.placeAt(0, 2.7, rocketZ);
+rocket.showDirection({ length: 1.4 });
+
+function clamp(value: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function updateHud() {
+  hud.setText(`Stars: ${score}   Lives: ${lives}`);
+}
+
+function randomRange(min: number, max: number) {
+  return min + Math.random() * (max - min);
+}
+
+function updateRocket(deltaTime: number) {
+  let inputX = 0;
+  let inputY = 0;
+
+  if (myScene.director.isKeyPressed(Keyboard.A)) inputX -= 1;
+  if (myScene.director.isKeyPressed(Keyboard.D)) inputX += 1;
+  if (myScene.director.isKeyPressed(Keyboard.W)) inputY += 1;
+  if (myScene.director.isKeyPressed(Keyboard.S)) inputY -= 1;
+
+  if (inputX === 0 && inputY === 0) return;
+
+  const diagonalScale = inputX !== 0 && inputY !== 0 ? 0.707 : 1;
+  const step = rocketSpeed * deltaTime * diagonalScale;
+  const position = rocket.position;
+
+  rocket.placeAt(
+    clamp(position.x + inputX * step, -arenaHalfWidth, arenaHalfWidth),
+    clamp(position.y + inputY * step, arenaMinY, arenaMaxY),
+    rocketZ
+  );
+}
+
+function spawnFallingThing() {
+  const isStar = Math.random() > 0.35;
+  const radius = isStar ? 0.35 : 0.55;
+  const thing = new waveSphere(radius, 18);
+
+  thing.placeAt(
+    randomRange(-arenaHalfWidth, arenaHalfWidth),
+    randomRange(arenaMinY, arenaMaxY),
+    spawnZ
+  );
+  thing.setColor(isStar ? PALETTE.GOLDENROD : PALETTE.PINK);
+  thing.setEmissiveColor(isStar ? PALETTE.YELLOW : PALETTE.FUCHSIA);
+  thing.setEmissiveIntensity(isStar ? 1.2 : 0.6);
+
+  fallingThings.push({
+    body: thing,
+    kind: isStar ? "star" : "cloud",
+    radius,
+    speed: randomRange(2.5, 4.5),
+    driftX: randomRange(-0.7, 0.7),
+  });
+}
+
+function removeThing(index: number) {
+  const thing = fallingThings[index];
+  if (!thing.body.isDestroyed) thing.body.destroy();
+  fallingThings.splice(index, 1);
+}
+
+function handleCatch(index: number) {
+  const thing = fallingThings[index];
+  thing.body.fx.play(waveFxPresets.impactSparks());
+
+  if (thing.kind === "star") {
+    score += 1;
+  } else {
+    lives -= 1;
+    rocket.setColor(PALETTE.CORAL);
+    rocket.after(0.2, Seconds).do(() => rocket.setColor(PALETTE.CYAN));
+  }
+
+  removeThing(index);
+  updateHud();
+
+  if (lives <= 0) {
+    gameOver = true;
+    scene.print("Game over. Press Run to play again!", 30, PALETTE.WHITE);
+  }
+}
+
+myScene.director.whenPress(Keyboard.Space, () => {
+  rocket.setColor(PALETTE.randomFrom([
+    PALETTE.CYAN,
+    PALETTE.GREEN,
+    PALETTE.PURPLE,
+    PALETTE.ORANGE,
+  ]));
+});
+
+rocket.onTick((_self, deltaTime) => {
+  if (gameOver) return;
+
+  updateRocket(deltaTime);
+
+  spawnTimer -= deltaTime;
+  if (spawnTimer <= 0) {
+    spawnFallingThing();
+    spawnTimer = randomRange(0.35, 0.75);
+  }
+
+  for (let i = fallingThings.length - 1; i >= 0; i--) {
+    const thing = fallingThings[i];
+    thing.body.moveBy({
+      x: thing.driftX * deltaTime,
+      y: 0,
+      z: -thing.speed * deltaTime,
+    });
+    thing.body.turnRight(120 * deltaTime);
+
+    if (thing.body.distanceTo(rocket) <= thing.radius + rocketHitRadius) {
+      handleCatch(i);
+    } else if (thing.body.position.z < exitZ) {
+      removeThing(i);
+    }
+  }
+});
+
+for (let i = 0; i < 6; i++) spawnFallingThing();
+updateHud();
+```
+
+#### Game B: Bubble Spell Blaster
+
+**What you build:** move a magic wand with A/D, fire with Space, pop big bubbles
+into smaller bubbles, and keep them away from the player.
+
+```ts
+type SpellShot = {
+  body: waveSphere;
+  age: number;
+};
+
+type BubbleTarget = {
+  body: waveSphere;
+  radius: number;
+  speed: number;
+  driftX: number;
+  big: boolean;
+  age: number;
+  lifetime: number;
+};
+
+const wandZ = -6;
+const bubbleSpawnZ = 8;
+const bubbleExitZ = -7.5;
+const wandSpeed = 6;
+const shotSpeed = 18;
+const shotRadius = 0.16;
+const wandHitRadius = 0.6;
+const playWidth = 7;
+
+let bubbleScore = 0;
+let bubbleLives = 3;
+let bubbleTimer = 0;
+let canCast = true;
+let bubbleGameOver = false;
+
+const shots: SpellShot[] = [];
+const bubbles: BubbleTarget[] = [];
+
+scene.camera.orbit({
+  target: { x: 0, y: 1.6, z: 0 },
+  distance: 15,
+  fov: 60,
+}).apply();
+
+scene.lighting
+  .ambient({ color: PALETTE.SKY, intensity: 0.5 })
+  .sun({ direction: { x: -1, y: -2, z: -1 }, intensity: 1.2 })
+  .apply();
+
+const bubbleHud = new waveUIText();
+bubbleHud.setFontSize(24);
+bubbleHud.setColor(PALETTE.WHITE);
+bubbleHud.setBackgroundColor(PALETTE.modifyAlphaChannel(PALETTE.BLACK, 55));
+bubbleHud.setSize(380, 48);
+bubbleHud.setScreenPositionPixels(24, 24);
+
+const bubbleHelp = new waveUIText();
+bubbleHelp.setText("Click preview, A/D move, Space spell");
+bubbleHelp.setFontSize(18);
+bubbleHelp.setColor(PALETTE.CYAN);
+bubbleHelp.setScreenPositionPixels(24, 76);
+
+const stage = new waveGround(16, 20, 4);
+stage.setColor(PALETTE.CHARCOAL);
+stage.setOpacity(0.35);
+
+const wand = new waveCube(0.55, 0.55, 1.4);
+wand.setColor(PALETTE.PURPLE);
+wand.setEmissiveColor(PALETTE.FUCHSIA);
+wand.setEmissiveIntensity(0.8);
+wand.placeAt(0, 1, wandZ);
+wand.showDirection({ length: 1.2 });
+
+function clamp(value: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function randomRange(min: number, max: number) {
+  return min + Math.random() * (max - min);
+}
+
+function updateBubbleHud() {
+  bubbleHud.setText(`Bubbles: ${bubbleScore}   Lives: ${bubbleLives}`);
+}
+
+function moveWand(deltaTime: number) {
+  let inputX = 0;
+  if (myScene.director.isKeyPressed(Keyboard.A)) inputX -= 1;
+  if (myScene.director.isKeyPressed(Keyboard.D)) inputX += 1;
+  if (inputX === 0) return;
+
+  const x = clamp(wand.position.x + inputX * wandSpeed * deltaTime, -playWidth, playWidth);
+  wand.placeAt(x, 1, wandZ);
+}
+
+function spawnBubble(
+  big: boolean = true,
+  center: { x: number; y: number; z: number } | null = null,
+  driftX: number = randomRange(-0.6, 0.6)
+) {
+  const radius = big ? randomRange(0.55, 0.9) : randomRange(0.22, 0.35);
+  const bubble = new waveSphere(radius, 18);
+
+  bubble.placeAt(
+    center ? center.x : randomRange(-playWidth, playWidth),
+    center ? center.y : randomRange(1, 4.8),
+    center ? center.z : bubbleSpawnZ
+  );
+  bubble.setColor(big ? PALETTE.SKY : PALETTE.CYAN);
+  bubble.setOpacity(big ? 0.7 : 0.55);
+  bubble.setEmissiveColor(big ? PALETTE.CYAN : PALETTE.WHITE);
+  bubble.setEmissiveIntensity(big ? 0.5 : 0.8);
+
+  bubbles.push({
+    body: bubble,
+    radius,
+    speed: big ? randomRange(1.8, 3.2) : randomRange(1.2, 2.2),
+    driftX,
+    big,
+    age: 0,
+    lifetime: big ? 7 : 2.4,
+  });
+}
+
+function castSpell() {
+  if (!canCast || bubbleGameOver) return;
+  canCast = false;
+
+  const spell = new waveSphere(shotRadius, 12);
+  spell.placeAt(wand.position.x, wand.position.y, wand.position.z + 0.8);
+  spell.setColor(PALETTE.YELLOW);
+  spell.setEmissiveColor(PALETTE.YELLOW);
+  spell.setEmissiveIntensity(2);
+
+  shots.push({ body: spell, age: 0 });
+  wand.after(0.18, Seconds).do(() => canCast = true);
+}
+
+function removeShot(index: number) {
+  const shot = shots[index];
+  if (!shot.body.isDestroyed) shot.body.destroy();
+  shots.splice(index, 1);
+}
+
+function removeBubble(index: number) {
+  const bubble = bubbles[index];
+  if (!bubble.body.isDestroyed) bubble.body.destroy();
+  bubbles.splice(index, 1);
+}
+
+function popBubble(index: number) {
+  const bubble = bubbles[index];
+  const center = {
+    x: bubble.body.position.x,
+    y: bubble.body.position.y,
+    z: bubble.body.position.z,
+  };
+
+  bubble.body.fx.play(waveFxPresets.impactSparks());
+  removeBubble(index);
+
+  if (bubble.big) {
+    spawnBubble(false, center, -1.4);
+    spawnBubble(false, center, 1.4);
+    bubbleScore += 3;
+  } else {
+    bubbleScore += 1;
+  }
+
+  updateBubbleHud();
+}
+
+myScene.director.whenPress(Keyboard.Space, castSpell);
+
+wand.onTick((_self, deltaTime) => {
+  if (bubbleGameOver) return;
+
+  moveWand(deltaTime);
+
+  bubbleTimer -= deltaTime;
+  if (bubbleTimer <= 0) {
+    spawnBubble(true);
+    bubbleTimer = randomRange(0.55, 1);
+  }
+
+  for (let i = shots.length - 1; i >= 0; i--) {
+    const shot = shots[i];
+    shot.age += deltaTime;
+    shot.body.moveBy({ x: 0, y: 0, z: shotSpeed * deltaTime });
+    if (shot.age > 1 || shot.body.position.z > bubbleSpawnZ + 2) removeShot(i);
+  }
+
+  for (let i = bubbles.length - 1; i >= 0; i--) {
+    const bubble = bubbles[i];
+    bubble.age += deltaTime;
+    bubble.body.moveBy({
+      x: bubble.driftX * deltaTime,
+      y: 0,
+      z: -bubble.speed * deltaTime,
+    });
+    bubble.body.turnRight(90 * deltaTime);
+
+    if (bubble.body.distanceTo(wand) <= bubble.radius + wandHitRadius) {
+      bubbleLives -= 1;
+      removeBubble(i);
+      updateBubbleHud();
+      if (bubbleLives <= 0) {
+        bubbleGameOver = true;
+        scene.print("The bubbles won. Press Run to try again!", 30, PALETTE.WHITE);
+      }
+      continue;
+    }
+
+    if (bubble.age > bubble.lifetime || bubble.body.position.z < bubbleExitZ) {
+      removeBubble(i);
+    }
+  }
+
+  for (let s = shots.length - 1; s >= 0; s--) {
+    const shot = shots[s];
+
+    for (let b = bubbles.length - 1; b >= 0; b--) {
+      const bubble = bubbles[b];
+      if (shot.body.distanceTo(bubble.body) <= shotRadius + bubble.radius) {
+        removeShot(s);
+        popBubble(b);
+        break;
+      }
+    }
+  }
+});
+
+for (let i = 0; i < 4; i++) spawnBubble(true);
+updateBubbleHud();
+```
 
 ## Lesson 19: Demo Atlas: 30 Project Seeds from `wave-engine`
 
@@ -4045,6 +4510,11 @@ object.placeAt(0, 1, 0);
 Find by tag:
 
 ```ts
+const pickupMarker = new waveSphere(0.45, 24);
+pickupMarker.setColor(PALETTE.GOLDENROD);
+pickupMarker.placeAt(0, 1, 0);
+pickupMarker.addTag("pickup");
+
 for (const pickup of scene.getByTag("pickup")) {
   if (pickup instanceof waveSphere) {
     pickup.showBoundingBox();
@@ -4099,9 +4569,15 @@ Save JSON:
 
 ```ts
 async function saveLastPlayedAt() {
+  if (!myCloud.available) {
+    scene.print("Cloud data is not available here.");
+    return;
+  }
+
   const record = await myCloud.openRecord("game");
   myCloud.json.set(record, "lastPlayedAt", Date.now());
-  await myCloud.saveRecord("game", record);
+  const result = await myCloud.saveRecord("game", record);
+  scene.print(result.ok ? "Saved last played time" : "Save failed");
 }
 
 saveLastPlayedAt();

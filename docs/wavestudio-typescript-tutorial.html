@@ -919,20 +919,26 @@
 
       <div id="noResults" class="no-results">No lessons match that search.</div>
 
-      <article class="lesson" id="lesson-1" data-lesson="1" data-keywords="scene withMain globals ctx engine scene starter hero ground label print">
+      <article class="lesson" id="lesson-1" data-lesson="1" data-keywords="scene globals setup paste run engine scene starter hero ground label print">
         <header class="lesson-head">
           <div><h2>Lesson 1: The Smallest Scene</h2><p>Create an object and configure it in the active scene.</p></div>
           <label class="check"><input type="checkbox" data-complete="lesson-1"> Complete</label>
         </header>
         <div class="lesson-body">
-          <p>A scene is a world full of entities. In WaveStudio, newly created scene objects are available in the active scene without a manual add step. If you are defining a reusable scene object, use <code>withMain</code>.</p>
-          <pre><code class="language-ts">const tutorialScene = new WaveScene("Tutorial");
-
-tutorialScene.withMain(({ scene }) =&gt; {
+          <p>A scene is a world full of entities. In the WaveStudio editor, newly created scene objects are available in the active scene without a manual add step. Put setup code in a function when you want a named starting point.</p>
+          <pre><code class="language-ts">function buildTutorialScene() {
   const cube = new waveCube(2, 2, 2);
   cube.setColor(PALETTE.CYAN);
   cube.placeAt(0, 1, 0);
-});</code></pre>
+
+  const label = new waveUIText();
+  label.setText("Tutorial scene ready");
+  label.setFontSize(24);
+  label.setColor(PALETTE.WHITE);
+  label.setScreenPositionPixels(24, 24);
+}
+
+buildTutorialScene();</code></pre>
           <p>Inside the WaveStudio editor, the shorter version is usually enough.</p>
           <pre><code class="language-ts">const cube = new waveCube(2, 2, 2);
 cube.setColor(PALETTE.CYAN);
@@ -1869,14 +1875,16 @@ dancer.whenClickedOn(dance);</code></pre>
 player.setColor(PALETTE.TURQUOISE);
 player.placeAt(0, 1, 0);
 
-player.whenPress(Keyboard.W, () =&gt; player.moveForward(0.5));
-player.whenPress(Keyboard.S, () =&gt; player.moveBackward(0.5));
-player.whenPress(Keyboard.A, () =&gt; player.moveLeft(0.5));
-player.whenPress(Keyboard.D, () =&gt; player.moveRight(0.5));
-player.whenPress(Keyboard.Space, () =&gt; player.moveUp(1));</code></pre>
-          <p>Object-level input is compact and great for learning. For whole-scene games, prefer director-level input such as <code>myScene.director.whenPress(...)</code> and <code>myScene.director.isKeyPressed(...)</code> so movement and firing are controlled by the active scene instead of feeling tied to one object callback.</p>
+const nudgeDistance = 0.5;
+
+myScene.director.whenPress(Keyboard.W, () =&gt; player.moveForward(nudgeDistance));
+myScene.director.whenPress(Keyboard.S, () =&gt; player.moveBackward(nudgeDistance));
+myScene.director.whenPress(Keyboard.A, () =&gt; player.moveLeft(nudgeDistance));
+myScene.director.whenPress(Keyboard.D, () =&gt; player.moveRight(nudgeDistance));
+myScene.director.whenPress(Keyboard.Space, () =&gt; player.moveUp(1));</code></pre>
+          <p>Director-level input such as <code>myScene.director.whenPress(...)</code> and <code>myScene.director.isKeyPressed(...)</code> is the most dependable starting point for copied game snippets because movement and firing are controlled by the active scene.</p>
           <h3>Debug Helpers and Keyboard Driving</h3>
-          <p>For game-like controls, <code>whenHolding</code> feels smoother than <code>whenPress</code> because the callback keeps firing while the key is down. Debug helpers make the object's state visible while you tune movement.</p>
+          <p>For game-like controls, poll <code>myScene.director.isKeyPressed(...)</code> inside <code>onTick</code>. Debug helpers make the object's state visible while you tune movement.</p>
           <table>
             <thead><tr><th>Helper</th><th>What to use it for</th></tr></thead>
             <tbody>
@@ -1897,16 +1905,18 @@ car.showPosition();
 car.showCoordinate();
 car.showBoundingBox();
 
-const driveDistancePerTick = 0.18;
-const reverseDistancePerTick = 0.1;
-const turnDegreesPerTick = 4;
+const driveSpeed = 6;
+const reverseSpeed = 3;
+const turnSpeed = 120;
 
-car.whenHolding(Keyboard.W, () =&gt; car.moveForward(driveDistancePerTick));
-car.whenHolding(Keyboard.S, () =&gt; car.moveBackward(reverseDistancePerTick));
-car.whenHolding(Keyboard.A, () =&gt; car.turnLeft(turnDegreesPerTick));
-car.whenHolding(Keyboard.D, () =&gt; car.turnRight(turnDegreesPerTick));
+car.onTick((_self, deltaTime) =&gt; {
+  if (myScene.director.isKeyPressed(Keyboard.W)) car.moveForward(driveSpeed * deltaTime);
+  if (myScene.director.isKeyPressed(Keyboard.S)) car.moveBackward(reverseSpeed * deltaTime);
+  if (myScene.director.isKeyPressed(Keyboard.A)) car.turnLeft(turnSpeed * deltaTime);
+  if (myScene.director.isKeyPressed(Keyboard.D)) car.turnRight(turnSpeed * deltaTime);
+});
 
-car.whenPress(Keyboard.Space, () =&gt; {
+myScene.director.whenPress(Keyboard.Space, () =&gt; {
   car.showSpeed();
   scene.print("Debug overlays are on");
 });</code></pre>
@@ -1924,7 +1934,7 @@ button.whenClickedOn(() =&gt; {
             <thead><tr><th>Input style</th><th>Best for</th><th>APIs</th></tr></thead>
             <tbody>
               <tr><td><code>whenPress</code></td><td>One-shot commands</td><td>Jump, toggle debug, reset</td></tr>
-              <tr><td><code>whenHolding</code></td><td>Continuous movement</td><td>Driving, flying, walking</td></tr>
+              <tr><td><code>isKeyPressed</code></td><td>Continuous movement</td><td>Driving, flying, walking</td></tr>
               <tr><td><code>whenClickedOn</code></td><td>Object-specific actions</td><td>Select, explode, inspect</td></tr>
               <tr><td>Director controls</td><td>Whole-scene controls</td><td><code>myScene.director.whenPress</code>, <code>myScene.director.isKeyPressed</code></td></tr>
             </tbody>
@@ -1940,9 +1950,11 @@ myScene.director.whenPress(Keyboard.Tab, () =&gt; {
   scene.print(`Mode: ${editMode}`);
 });
 
-target.whenHolding(Keyboard.W, () =&gt; target.moveForward(0.12));
-target.whenHolding(Keyboard.A, () =&gt; target.turnLeft(2));
-target.whenHolding(Keyboard.D, () =&gt; target.turnRight(2));
+target.onTick((_self, deltaTime) =&gt; {
+  if (myScene.director.isKeyPressed(Keyboard.W)) target.moveForward(3 * deltaTime);
+  if (myScene.director.isKeyPressed(Keyboard.A)) target.turnLeft(120 * deltaTime);
+  if (myScene.director.isKeyPressed(Keyboard.D)) target.turnRight(120 * deltaTime);
+});
 
 target.whenClickedOn(() =&gt; {
   if (editMode === "paint") {
@@ -2041,7 +2053,7 @@ const physicsExamples: PhysicsExample[] = [
     setup: (object) =&gt; {
       object.useKinematicBody();
       object.setColor(PALETTE.TURQUOISE);
-      object.whenPress(Keyboard.ArrowUp, () =&gt; {
+      myScene.director.whenPress(Keyboard.ArrowUp, () =&gt; {
         object.moveWithCollisions(Direction.Forward, 0.4);
       });
     },
@@ -2594,6 +2606,11 @@ portal.whenClickedOn(() =&gt; {
         </header>
         <div class="lesson-body">
           <pre><code class="language-ts">async function incrementHighScore(points: number) {
+  if (!myCloud.available) {
+    scene.print(`Cloud data unavailable: ${myCloud.reason ?? "unknown reason"}`);
+    return;
+  }
+
   const record = await myCloud.openRecord("scores");
 
   const nextScore = myCloud.json.inc(record, "highScore", points);
@@ -2610,9 +2627,13 @@ portal.whenClickedOn(() =&gt; {
   } else {
     scene.print("Could not save score");
   }
-}</code></pre>
+}
+
+incrementHighScore(10);</code></pre>
           <pre><code class="language-ts">if (!myCloud.available) {
   scene.print(`Cloud data unavailable: ${myCloud.reason ?? "unknown reason"}`);
+} else {
+  scene.print("Cloud data is available.");
 }</code></pre>
           <h3>Persistence Pattern Gallery</h3>
           <p>Persistence is most useful when records have a simple shape. Keep one record per system, then store small values and arrays inside it.</p>
@@ -2708,10 +2729,10 @@ player.setColor(PALETTE.TURQUOISE);
 player.placeAt(0, 0.5, 0);
 player.useKinematicBody();
 
-player.whenPress(Keyboard.W, () =&gt; player.moveForward(playerStepDistance));
-player.whenPress(Keyboard.S, () =&gt; player.moveBackward(playerStepDistance));
-player.whenPress(Keyboard.A, () =&gt; player.moveLeft(playerStepDistance));
-player.whenPress(Keyboard.D, () =&gt; player.moveRight(playerStepDistance));
+myScene.director.whenPress(Keyboard.W, () =&gt; player.moveForward(playerStepDistance));
+myScene.director.whenPress(Keyboard.S, () =&gt; player.moveBackward(playerStepDistance));
+myScene.director.whenPress(Keyboard.A, () =&gt; player.moveLeft(playerStepDistance));
+myScene.director.whenPress(Keyboard.D, () =&gt; player.moveRight(playerStepDistance));
 
 function updateScore(points: number) {
   score += points;
@@ -2968,7 +2989,7 @@ spawnPiece(0, 2, 0, 3, maxDepth);</code></pre>
         </div>
       </article>
 
-      <article class="lesson" id="lesson-18" data-lesson="18" data-keywords="advanced gallery boss projects draw to world magic ink keyboard driving lab solar system terrain physics piano robot arm particles voice gesture geometry surgery asteroid evader spaceship laser projectile fragments">
+      <article class="lesson" id="lesson-18" data-lesson="18" data-keywords="advanced gallery boss projects draw to world magic ink keyboard driving lab solar system terrain physics piano robot arm particles voice gesture geometry surgery asteroid evader spaceship laser projectile fragments elementary arcade rainbow rocket bubble blaster kids games stars clouds wand">
         <header class="lesson-head">
           <div><h2>Lesson 18: Advanced Gallery: Boss Projects</h2><p>Remix the wild demos into teachable patterns and small starter snippets.</p></div>
           <label class="check"><input type="checkbox" data-complete="lesson-18"> Complete</label>
@@ -3024,11 +3045,13 @@ car.showDirection();
 car.showPosition();
 car.showBoundingBox();
 
-car.whenHolding(Keyboard.W, () =&gt; car.moveForward(0.18));
-car.whenHolding(Keyboard.S, () =&gt; car.moveBackward(0.1));
-car.whenHolding(Keyboard.A, () =&gt; car.turnLeft(4));
-car.whenHolding(Keyboard.D, () =&gt; car.turnRight(4));</code></pre>
-            <p><span class="mini-label">APIs to steal</span> <code>whenPress</code>, <code>whenHolding</code>, <code>showDirection</code>, <code>showPosition</code>, <code>showCoordinate</code>, camera follow patterns.</p>
+car.onTick((_self, deltaTime) =&gt; {
+  if (myScene.director.isKeyPressed(Keyboard.W)) car.moveForward(6 * deltaTime);
+  if (myScene.director.isKeyPressed(Keyboard.S)) car.moveBackward(3 * deltaTime);
+  if (myScene.director.isKeyPressed(Keyboard.A)) car.turnLeft(120 * deltaTime);
+  if (myScene.director.isKeyPressed(Keyboard.D)) car.turnRight(120 * deltaTime);
+});</code></pre>
+            <p><span class="mini-label">APIs to steal</span> <code>myScene.director.isKeyPressed</code>, <code>onTick</code>, <code>showDirection</code>, <code>showPosition</code>, <code>showCoordinate</code>, camera follow patterns.</p>
             <p><span class="mini-label">Natural-language constants</span> <code>Keyboard.W</code>, <code>Keyboard.Space</code>, <code>PALETTE.BLUE</code>.</p>
             <ul class="remix-list"><li>Add obstacles.</li><li>Add a finish line.</li><li>Build a minimap camera.</li><li>Add health and lap counters.</li></ul>
             <p class="source-note">Source demo reference: <code>runway-runner/main.ts</code> and Lesson 8.</p>
@@ -3605,6 +3628,427 @@ updateHud();</code></pre>
             <p><span class="mini-label">Natural-language constants</span> <code>Keyboard.W</code>, <code>Keyboard.Space</code>, <code>PALETTE.CYAN</code>, <code>PALETTE.CORAL</code>, <code>Seconds</code>, and named tuning values such as <code>laserSpeed</code>, <code>fireCooldown</code>, and <code>shipHitRadius</code>.</p>
             <ul class="remix-list"><li>Add a start screen.</li><li>Save high score with <code>myCloud</code>.</li><li>Make asteroids split twice.</li><li>Add shield pickups.</li><li>Add a boss asteroid.</li></ul>
             <p class="source-note">Source demo reference: combines ideas from <code>runway-runner/main.ts</code>, <code>shooting-range/main.ts</code>, and Boss Project 1's recursive-fragment mindset.</p>
+          </div>
+
+          <div class="boss-card">
+            <h3>Elementary Arcade Pack: Paste-and-Run Games</h3>
+            <p>These games are intentionally colorful, short, and built from primitives so young learners can paste them, play immediately, and remix the rules without waiting for model assets to load.</p>
+            <h4>Game A: Rainbow Rocket Catcher</h4>
+            <p><span class="mini-label">What you build</span> Move a rocket with WASD, collect golden stars, avoid pink clouds, and press Space to repaint the rocket.</p>
+            <pre><code class="language-ts">type FallingThing = {
+  body: waveSphere;
+  kind: "star" | "cloud";
+  radius: number;
+  speed: number;
+  driftX: number;
+};
+
+const rocketZ = -6;
+const spawnZ = 8;
+const exitZ = -8;
+const arenaHalfWidth = 7;
+const arenaMinY = 0.8;
+const arenaMaxY = 5.4;
+const rocketSpeed = 5.5;
+const rocketHitRadius = 0.65;
+
+let score = 0;
+let lives = 3;
+let spawnTimer = 0;
+let gameOver = false;
+
+const fallingThings: FallingThing[] = [];
+
+scene.camera.orbit({
+  target: { x: 0, y: 2.8, z: 0 },
+  distance: 16,
+  fov: 58,
+}).apply();
+
+scene.lighting
+  .ambient({ color: PALETTE.SKY, intensity: 0.45 })
+  .sun({ direction: { x: -1, y: -2, z: -1 }, intensity: 1.3 })
+  .apply();
+
+const hud = new waveUIText();
+hud.setFontSize(24);
+hud.setColor(PALETTE.WHITE);
+hud.setBackgroundColor(PALETTE.modifyAlphaChannel(PALETTE.BLACK, 55));
+hud.setSize(360, 48);
+hud.setScreenPositionPixels(24, 24);
+
+const help = new waveUIText();
+help.setText("Click preview, WASD move, Space repaint");
+help.setFontSize(18);
+help.setColor(PALETTE.CYAN);
+help.setScreenPositionPixels(24, 76);
+
+const runway = new waveGround(18, 22, 4);
+runway.setColor(PALETTE.CHARCOAL);
+runway.setOpacity(0.35);
+
+const rocket = new waveCube(0.75, 0.45, 1.25);
+rocket.setColor(PALETTE.CYAN);
+rocket.setEmissiveColor(PALETTE.CYAN);
+rocket.setEmissiveIntensity(0.7);
+rocket.placeAt(0, 2.7, rocketZ);
+rocket.showDirection({ length: 1.4 });
+
+function clamp(value: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function updateHud() {
+  hud.setText(`Stars: ${score}   Lives: ${lives}`);
+}
+
+function randomRange(min: number, max: number) {
+  return min + Math.random() * (max - min);
+}
+
+function updateRocket(deltaTime: number) {
+  let inputX = 0;
+  let inputY = 0;
+
+  if (myScene.director.isKeyPressed(Keyboard.A)) inputX -= 1;
+  if (myScene.director.isKeyPressed(Keyboard.D)) inputX += 1;
+  if (myScene.director.isKeyPressed(Keyboard.W)) inputY += 1;
+  if (myScene.director.isKeyPressed(Keyboard.S)) inputY -= 1;
+
+  if (inputX === 0 &amp;&amp; inputY === 0) return;
+
+  const diagonalScale = inputX !== 0 &amp;&amp; inputY !== 0 ? 0.707 : 1;
+  const step = rocketSpeed * deltaTime * diagonalScale;
+  const position = rocket.position;
+
+  rocket.placeAt(
+    clamp(position.x + inputX * step, -arenaHalfWidth, arenaHalfWidth),
+    clamp(position.y + inputY * step, arenaMinY, arenaMaxY),
+    rocketZ
+  );
+}
+
+function spawnFallingThing() {
+  const isStar = Math.random() &gt; 0.35;
+  const radius = isStar ? 0.35 : 0.55;
+  const thing = new waveSphere(radius, 18);
+
+  thing.placeAt(
+    randomRange(-arenaHalfWidth, arenaHalfWidth),
+    randomRange(arenaMinY, arenaMaxY),
+    spawnZ
+  );
+  thing.setColor(isStar ? PALETTE.GOLDENROD : PALETTE.PINK);
+  thing.setEmissiveColor(isStar ? PALETTE.YELLOW : PALETTE.FUCHSIA);
+  thing.setEmissiveIntensity(isStar ? 1.2 : 0.6);
+
+  fallingThings.push({
+    body: thing,
+    kind: isStar ? "star" : "cloud",
+    radius,
+    speed: randomRange(2.5, 4.5),
+    driftX: randomRange(-0.7, 0.7),
+  });
+}
+
+function removeThing(index: number) {
+  const thing = fallingThings[index];
+  if (!thing.body.isDestroyed) thing.body.destroy();
+  fallingThings.splice(index, 1);
+}
+
+function handleCatch(index: number) {
+  const thing = fallingThings[index];
+  thing.body.fx.play(waveFxPresets.impactSparks());
+
+  if (thing.kind === "star") {
+    score += 1;
+  } else {
+    lives -= 1;
+    rocket.setColor(PALETTE.CORAL);
+    rocket.after(0.2, Seconds).do(() =&gt; rocket.setColor(PALETTE.CYAN));
+  }
+
+  removeThing(index);
+  updateHud();
+
+  if (lives &lt;= 0) {
+    gameOver = true;
+    scene.print("Game over. Press Run to play again!", 30, PALETTE.WHITE);
+  }
+}
+
+myScene.director.whenPress(Keyboard.Space, () =&gt; {
+  rocket.setColor(PALETTE.randomFrom([
+    PALETTE.CYAN,
+    PALETTE.GREEN,
+    PALETTE.PURPLE,
+    PALETTE.ORANGE,
+  ]));
+});
+
+rocket.onTick((_self, deltaTime) =&gt; {
+  if (gameOver) return;
+
+  updateRocket(deltaTime);
+
+  spawnTimer -= deltaTime;
+  if (spawnTimer &lt;= 0) {
+    spawnFallingThing();
+    spawnTimer = randomRange(0.35, 0.75);
+  }
+
+  for (let i = fallingThings.length - 1; i &gt;= 0; i--) {
+    const thing = fallingThings[i];
+    thing.body.moveBy({
+      x: thing.driftX * deltaTime,
+      y: 0,
+      z: -thing.speed * deltaTime,
+    });
+    thing.body.turnRight(120 * deltaTime);
+
+    if (thing.body.distanceTo(rocket) &lt;= thing.radius + rocketHitRadius) {
+      handleCatch(i);
+    } else if (thing.body.position.z &lt; exitZ) {
+      removeThing(i);
+    }
+  }
+});
+
+for (let i = 0; i &lt; 6; i++) spawnFallingThing();
+updateHud();</code></pre>
+            <h4>Game B: Bubble Spell Blaster</h4>
+            <p><span class="mini-label">What you build</span> Move a magic wand with A/D, fire with Space, pop big bubbles into smaller bubbles, and keep them away from the player.</p>
+            <pre><code class="language-ts">type SpellShot = {
+  body: waveSphere;
+  age: number;
+};
+
+type BubbleTarget = {
+  body: waveSphere;
+  radius: number;
+  speed: number;
+  driftX: number;
+  big: boolean;
+  age: number;
+  lifetime: number;
+};
+
+const wandZ = -6;
+const bubbleSpawnZ = 8;
+const bubbleExitZ = -7.5;
+const wandSpeed = 6;
+const shotSpeed = 18;
+const shotRadius = 0.16;
+const wandHitRadius = 0.6;
+const playWidth = 7;
+
+let bubbleScore = 0;
+let bubbleLives = 3;
+let bubbleTimer = 0;
+let canCast = true;
+let bubbleGameOver = false;
+
+const shots: SpellShot[] = [];
+const bubbles: BubbleTarget[] = [];
+
+scene.camera.orbit({
+  target: { x: 0, y: 1.6, z: 0 },
+  distance: 15,
+  fov: 60,
+}).apply();
+
+scene.lighting
+  .ambient({ color: PALETTE.SKY, intensity: 0.5 })
+  .sun({ direction: { x: -1, y: -2, z: -1 }, intensity: 1.2 })
+  .apply();
+
+const bubbleHud = new waveUIText();
+bubbleHud.setFontSize(24);
+bubbleHud.setColor(PALETTE.WHITE);
+bubbleHud.setBackgroundColor(PALETTE.modifyAlphaChannel(PALETTE.BLACK, 55));
+bubbleHud.setSize(380, 48);
+bubbleHud.setScreenPositionPixels(24, 24);
+
+const bubbleHelp = new waveUIText();
+bubbleHelp.setText("Click preview, A/D move, Space spell");
+bubbleHelp.setFontSize(18);
+bubbleHelp.setColor(PALETTE.CYAN);
+bubbleHelp.setScreenPositionPixels(24, 76);
+
+const stage = new waveGround(16, 20, 4);
+stage.setColor(PALETTE.CHARCOAL);
+stage.setOpacity(0.35);
+
+const wand = new waveCube(0.55, 0.55, 1.4);
+wand.setColor(PALETTE.PURPLE);
+wand.setEmissiveColor(PALETTE.FUCHSIA);
+wand.setEmissiveIntensity(0.8);
+wand.placeAt(0, 1, wandZ);
+wand.showDirection({ length: 1.2 });
+
+function clamp(value: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function randomRange(min: number, max: number) {
+  return min + Math.random() * (max - min);
+}
+
+function updateBubbleHud() {
+  bubbleHud.setText(`Bubbles: ${bubbleScore}   Lives: ${bubbleLives}`);
+}
+
+function moveWand(deltaTime: number) {
+  let inputX = 0;
+  if (myScene.director.isKeyPressed(Keyboard.A)) inputX -= 1;
+  if (myScene.director.isKeyPressed(Keyboard.D)) inputX += 1;
+  if (inputX === 0) return;
+
+  const x = clamp(wand.position.x + inputX * wandSpeed * deltaTime, -playWidth, playWidth);
+  wand.placeAt(x, 1, wandZ);
+}
+
+function spawnBubble(
+  big: boolean = true,
+  center: { x: number; y: number; z: number } | null = null,
+  driftX: number = randomRange(-0.6, 0.6)
+) {
+  const radius = big ? randomRange(0.55, 0.9) : randomRange(0.22, 0.35);
+  const bubble = new waveSphere(radius, 18);
+
+  bubble.placeAt(
+    center ? center.x : randomRange(-playWidth, playWidth),
+    center ? center.y : randomRange(1, 4.8),
+    center ? center.z : bubbleSpawnZ
+  );
+  bubble.setColor(big ? PALETTE.SKY : PALETTE.CYAN);
+  bubble.setOpacity(big ? 0.7 : 0.55);
+  bubble.setEmissiveColor(big ? PALETTE.CYAN : PALETTE.WHITE);
+  bubble.setEmissiveIntensity(big ? 0.5 : 0.8);
+
+  bubbles.push({
+    body: bubble,
+    radius,
+    speed: big ? randomRange(1.8, 3.2) : randomRange(1.2, 2.2),
+    driftX,
+    big,
+    age: 0,
+    lifetime: big ? 7 : 2.4,
+  });
+}
+
+function castSpell() {
+  if (!canCast || bubbleGameOver) return;
+  canCast = false;
+
+  const spell = new waveSphere(shotRadius, 12);
+  spell.placeAt(wand.position.x, wand.position.y, wand.position.z + 0.8);
+  spell.setColor(PALETTE.YELLOW);
+  spell.setEmissiveColor(PALETTE.YELLOW);
+  spell.setEmissiveIntensity(2);
+
+  shots.push({ body: spell, age: 0 });
+  wand.after(0.18, Seconds).do(() =&gt; canCast = true);
+}
+
+function removeShot(index: number) {
+  const shot = shots[index];
+  if (!shot.body.isDestroyed) shot.body.destroy();
+  shots.splice(index, 1);
+}
+
+function removeBubble(index: number) {
+  const bubble = bubbles[index];
+  if (!bubble.body.isDestroyed) bubble.body.destroy();
+  bubbles.splice(index, 1);
+}
+
+function popBubble(index: number) {
+  const bubble = bubbles[index];
+  const center = {
+    x: bubble.body.position.x,
+    y: bubble.body.position.y,
+    z: bubble.body.position.z,
+  };
+
+  bubble.body.fx.play(waveFxPresets.impactSparks());
+  removeBubble(index);
+
+  if (bubble.big) {
+    spawnBubble(false, center, -1.4);
+    spawnBubble(false, center, 1.4);
+    bubbleScore += 3;
+  } else {
+    bubbleScore += 1;
+  }
+
+  updateBubbleHud();
+}
+
+myScene.director.whenPress(Keyboard.Space, castSpell);
+
+wand.onTick((_self, deltaTime) =&gt; {
+  if (bubbleGameOver) return;
+
+  moveWand(deltaTime);
+
+  bubbleTimer -= deltaTime;
+  if (bubbleTimer &lt;= 0) {
+    spawnBubble(true);
+    bubbleTimer = randomRange(0.55, 1);
+  }
+
+  for (let i = shots.length - 1; i &gt;= 0; i--) {
+    const shot = shots[i];
+    shot.age += deltaTime;
+    shot.body.moveBy({ x: 0, y: 0, z: shotSpeed * deltaTime });
+    if (shot.age &gt; 1 || shot.body.position.z &gt; bubbleSpawnZ + 2) removeShot(i);
+  }
+
+  for (let i = bubbles.length - 1; i &gt;= 0; i--) {
+    const bubble = bubbles[i];
+    bubble.age += deltaTime;
+    bubble.body.moveBy({
+      x: bubble.driftX * deltaTime,
+      y: 0,
+      z: -bubble.speed * deltaTime,
+    });
+    bubble.body.turnRight(90 * deltaTime);
+
+    if (bubble.body.distanceTo(wand) &lt;= bubble.radius + wandHitRadius) {
+      bubbleLives -= 1;
+      removeBubble(i);
+      updateBubbleHud();
+      if (bubbleLives &lt;= 0) {
+        bubbleGameOver = true;
+        scene.print("The bubbles won. Press Run to try again!", 30, PALETTE.WHITE);
+      }
+      continue;
+    }
+
+    if (bubble.age &gt; bubble.lifetime || bubble.body.position.z &lt; bubbleExitZ) {
+      removeBubble(i);
+    }
+  }
+
+  for (let s = shots.length - 1; s &gt;= 0; s--) {
+    const shot = shots[s];
+
+    for (let b = bubbles.length - 1; b &gt;= 0; b--) {
+      const bubble = bubbles[b];
+      if (shot.body.distanceTo(bubble.body) &lt;= shotRadius + bubble.radius) {
+        removeShot(s);
+        popBubble(b);
+        break;
+      }
+    }
+  }
+});
+
+for (let i = 0; i &lt; 4; i++) spawnBubble(true);
+updateBubbleHud();</code></pre>
+            <p class="source-note">Kid-friendly remix ideas: change colors, add silly score messages, make bonus stars, add a shield, or replace the cube rocket and wand with model props later.</p>
           </div>
         </div>
       </article>
@@ -4236,7 +4680,7 @@ myScene
           <li><code>object.placeAt(x, y, z)</code></li>
           <li><code>object.placeAbove(target)</code></li>
           <li><code>object.onTick(fn)</code></li>
-          <li><code>object.whenHolding(Keyboard.W, fn)</code></li>
+          <li><code>myScene.director.isKeyPressed(Keyboard.W)</code></li>
           <li><code>object.whenClickedOn(fn)</code></li>
           <li><code>object.showDirection()</code></li>
           <li><code>object.showPosition()</code></li>
