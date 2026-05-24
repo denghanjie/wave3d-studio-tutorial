@@ -982,7 +982,11 @@ hero.setName("First Hero Cube");
 hero.showLabel("click me");
 
 hero.whenClickedOn(() =&gt; {
-  hero.turnRight(45, Animate).over(0.35, Seconds).play();
+  hero
+    .rotateAroundBy(Direction.Up, 45, Animate)
+    .over(0.35, Seconds)
+    .play();
+
   scene.print("The cube is already in the active scene.");
 });</code></pre>
           <ul class="remix-list">
@@ -1177,7 +1181,9 @@ const crate = new waveCube(1, 1, 1);
 crate.placeAbove(floor);
 crate.moveForward(2);</code></pre>
           <p>You can also use the lower-level transform component.</p>
-          <pre><code class="language-ts">block.transform.setPosition(0, 2, 0);
+          <pre><code class="language-ts">const block = new waveCube(1, 1, 1);
+
+block.transform.setPosition(0, 2, 0);
 block.transform.setScale(1, 2, 1);
 block.transform.moveAlong(Direction.Up, 1);</code></pre>
           <h3>Transform Playground Gallery</h3>
@@ -1192,13 +1198,18 @@ block.transform.moveAlong(Direction.Up, 1);</code></pre>
               <tr><td>Targeting</td><td>Face or align with another object</td><td><code>turnTo</code>, <code>fitBetween</code>, <code>placeAbove</code></td></tr>
             </tbody>
           </table>
-          <pre><code class="language-ts">const origin = new wavePoint().placeAt(0, 0.1, 0);
-origin.showLabel("origin");
+          <pre><code class="language-ts">const originMarker = new wavePoint().placeAt(0, 0.1, 0);
+originMarker.showLabel("origin");
 
 const mover = new Cube().placeAt(-4, 0.5, 0).setColor(PALETTE.CYAN);
 mover.showLabel("moveForward");
 mover.showDirection();
-mover.whenClickedOn(() =&gt; mover.moveForward(1, Animate).over(0.4, Seconds).play());
+mover.whenClickedOn(() =&gt; {
+  mover
+    .moveAlong(Direction.Forward, 1, Animate)
+    .over(0.4, Seconds)
+    .play();
+});
 
 const spinner = new Capsule().placeAt(-1.5, 1, 0).setColor(PALETTE.ORANGE);
 spinner.showLabel("turnRight");
@@ -1208,12 +1219,16 @@ spinner.onTick((_self, dt) =&gt; spinner.turnRight(70 * dt));
 const scaler = new Sphere(0.6).placeAt(1.5, 0.8, 0).setColor(PALETTE.PINK);
 scaler.showLabel("scale");
 scaler.whenClickedOn(() =&gt; {
-  scaler.enlargeBy(1.2, Animate).over(0.25, Seconds).play();
+  scaler.scaleBy(1.2, Animate).over(0.25, Seconds).play();
 });
 
 const bridge = new waveCylinder(1, 0.12, 0.12).setColor(PALETTE.GOLD);
 bridge.showLabel("fitBetween");
-bridge.fitBetween(mover, scaler).along(Direction.Up).apply();</code></pre>
+bridge
+  .fitBetween()
+  .between(mover, scaler)
+  .along(Direction.Up)
+  .apply();</code></pre>
           <ul class="remix-list">
             <li>Make the bridge update on tick as the endpoints move.</li>
             <li>Add <code>showCoordinate()</code> to compare local and world axes.</li>
@@ -1223,7 +1238,7 @@ bridge.fitBetween(mover, scaler).along(Direction.Up).apply();</code></pre>
         </div>
       </article>
 
-      <article class="lesson" id="lesson-5" data-lesson="5" data-keywords="material color palette PALETTE COLOR texture roughness metallic assets surface preset SurfacePreset WaveSurface faceMaterial decal emissive opacity UV glow PBR">
+      <article class="lesson" id="lesson-5" data-lesson="5" data-keywords="material color palette PALETTE COLOR texture roughness metallic assets surface preset SurfacePreset WaveSurface faceMaterial decal emissive opacity UV glow PBR bottle glass primitive composition">
         <header class="lesson-head">
           <div><h2>Lesson 5: Materials, Colors, and Textures</h2><p>Start with colors, then add texture and material assets.</p></div>
           <label class="check"><input type="checkbox" data-complete="lesson-5"> Complete</label>
@@ -1403,11 +1418,11 @@ textureCube.setBaseTexture(textures.milkyway);
 textureCube.setRoughness(0.35);
 textureCube.setMetallic(0.15);
 
-textureCube
-  .faceMaterial(WaveSurface.Forward)
-  .setUVRotation(360, Animate)
-  .over(4, Seconds)
-  .play();
+let uvSpinDegrees = 0;
+textureCube.onTick((_self, deltaTime) =&gt; {
+  uvSpinDegrees += 90 * deltaTime;
+  textureCube.faceMaterial(WaveSurface.Forward).setUVRotation(uvSpinDegrees);
+});
 
 const decalWall = new waveCube(3.2, 2.2, 0.25);
 decalWall.placeAt(4, 1.3, 1.5);
@@ -1415,24 +1430,135 @@ decalWall.setColor(PALETTE.SLATE);
 decalWall.setSurfacePreset(SurfacePreset.Matte);
 decalWall.showLabel("decal stamp");
 
-const poster = decalWall
-  .addDecal(textures.FarmGirlHappy)
-  .at(new Vector3(4, 1.4, 1.65))
-  .surface(WaveSurface.Forward)
-  .sized(1.6, 1.6)
-  .paint();
+const poster = decalWall.addDecal({
+  texture: textures.FarmGirlHappy,
+  at: { x: 4, y: 1.4, z: 1.65 },
+  facing: "front",
+  size: { width: 1.6, height: 1.6 },
+  opacity: 0.85,
+  blend: "multiply",
+  tint: PALETTE.PINK,
+});
 
-poster.material()
-  .setOpacity(0.85)
-  .setBlendMode("multiply")
-  .setColor(PALETTE.PINK);</code></pre>
+poster.setGlow(0.2);</code></pre>
+
+          <h3>Composition Project: 3D Glass Bottle</h3>
+          <p>The bottle is a useful bridge between the Shape Gallery and materials: it is not a new mesh type. It is a stack of cylinders, a flattened sphere, torus rings, a label cube, and small bubbles with glass and liquid materials.</p>
+          <pre><code class="language-ts">myScene.sky.backgroundColor(PALETTE.WHITE);
+
+const glassBody = new waveCylinder(3.1, 1.45, 1.65, 64);
+glassBody.placeAt(0, 1.65, 0);
+glassBody.setColor(PALETTE.SKY);
+glassBody.setSurfacePreset(SurfacePreset.Glass);
+glassBody.setOpacity(0.35);
+glassBody.setRoughness(0.05);
+
+const puntRing = new waveTorus(0.72, 0.045, 64);
+puntRing.placeAt(0, 0.18, 0);
+puntRing.setColor(PALETTE.WHITE);
+puntRing.setSurfacePreset(SurfacePreset.Glass);
+puntRing.setOpacity(0.5);
+
+const shoulder = new waveSphere(1, 48);
+shoulder.placeAt(0, 3.25, 0);
+shoulder.setScale(0.86, 0.28, 0.86);
+shoulder.setColor(PALETTE.SKY);
+shoulder.setSurfacePreset(SurfacePreset.Glass);
+shoulder.setOpacity(0.32);
+
+const neck = new waveCylinder(1.1, 0.46, 0.62, 48);
+neck.placeAt(0, 3.85, 0);
+neck.setColor(PALETTE.SKY);
+neck.setSurfacePreset(SurfacePreset.Glass);
+neck.setOpacity(0.38);
+
+const mouthLip = new waveTorus(0.27, 0.06, 64);
+mouthLip.placeAt(0, 4.42, 0);
+mouthLip.setColor(PALETTE.WHITE);
+mouthLip.setSurfacePreset(SurfacePreset.Glass);
+mouthLip.setOpacity(0.65);
+
+const liquid = new waveCylinder(1.85, 1.28, 1.45, 64);
+liquid.placeAt(0, 1.08, 0);
+liquid.setColor(PALETTE.CYAN);
+liquid.setOpacity(0.58);
+liquid.setRoughness(0.18);
+
+const liquidSurface = new waveCylinder(0.04, 1.26, 1.26, 64);
+liquidSurface.placeAt(0, 2.02, 0);
+liquidSurface.setColor(PALETTE.WARM_WHITE);
+liquidSurface.setOpacity(0.62);
+
+const label = new waveCube(1.35, 0.78, 0.055);
+label.placeAt(0, 1.55, -0.84);
+label.setColor(PALETTE.WARM_WHITE);
+label.setRoughness(0.75);
+label.showLabel("Wave Water");
+
+const labelStripe = new waveCube(1.15, 0.12, 0.065);
+labelStripe.placeAt(0, 1.35, -0.88);
+labelStripe.setColor(PALETTE.CYAN);
+
+const cap = new waveCylinder(0.55, 0.64, 0.64, 48);
+cap.placeAt(0, 4.72, 0);
+cap.setColor(PALETTE.COBALT);
+cap.setSurfacePreset(SurfacePreset.Gloss);
+cap.setRoughness(0.25);
+
+const capTopRing = new waveTorus(0.32, 0.035, 48);
+capTopRing.placeAt(0, 5.01, 0);
+capTopRing.setColor(PALETTE.SILVER);
+capTopRing.setMetallic(0.7);
+
+const capBottomRing = new waveTorus(0.33, 0.03, 48);
+capBottomRing.placeAt(0, 4.43, 0);
+capBottomRing.setColor(PALETTE.SILVER);
+capBottomRing.setMetallic(0.7);
+
+for (let i = 0; i &lt; 12; i++) {
+  const angle = i * 30;
+  const x = Math.cos(angle * Math.PI / 180) * 0.38;
+  const z = Math.sin(angle * Math.PI / 180) * 0.38;
+  const y = 0.65 + (i % 6) * 0.25;
+
+  const bubble = new waveSphere(0.045 + (i % 3) * 0.015, 16);
+  bubble.placeAt(x, y, z);
+  bubble.setColor(PALETTE.WHITE);
+  bubble.setSurfacePreset(SurfacePreset.Glass);
+  bubble.setOpacity(0.55);
+
+  bubble.onTick((_self, deltaTime) =&gt; {
+    bubble.moveUp(deltaTime * (0.12 + (i % 4) * 0.02));
+    bubble.turnRight(40 * deltaTime);
+  });
+}
+
+const baseShadow = new waveCylinder(0.03, 1.9, 1.9, 64);
+baseShadow.placeAt(0, 0.03, 0);
+baseShadow.setColor(PALETTE.CHARCOAL);
+baseShadow.setOpacity(0.18);
+
+const displayBase = new waveCylinder(0.08, 2.2, 2.2, 64);
+displayBase.placeAt(0, -0.03, 0);
+displayBase.setColor(PALETTE.LIGHT_GRAY);
+displayBase.setRoughness(0.55);</code></pre>
+          <p><strong>APIs to steal:</strong> <code>waveCylinder</code>, <code>waveSphere</code>, <code>waveTorus</code>, <code>waveCube</code>, <code>setSurfacePreset</code>, <code>setOpacity</code>, <code>setMetallic</code>, <code>setRoughness</code>, <code>placeAt</code>, <code>setScale</code>, and <code>onTick</code>.</p>
+          <ul class="remix-list">
+            <li>Turn it into a potion bottle.</li>
+            <li>Replace the cube label with an image decal.</li>
+            <li>Add a cork using another short cylinder.</li>
+            <li>Respawn bubbles near the bottom.</li>
+          </ul>
 
           <h4>Animated Material Chain</h4>
-          <p>Material methods can also join animation chains. Read this as: choose one face, animate its color, give the animation a duration, play it, then trigger a callback.</p>
-          <pre><code class="language-ts">const boom = () =&gt; textureCube.exploding().intoPieces(15).apply();
+          <p>Object material methods can also join animation chains. Read this as: animate the cube's color, give the animation a duration, play it, then trigger a callback.</p>
+          <pre><code class="language-ts">const textureCube = new waveCube(1.8, 1.8, 1.8);
+textureCube.placeAt(0, 1.1, 1.5);
+textureCube.setBaseTexture(textures.milkyway);
+
+const boom = () =&gt; textureCube.exploding().intoPieces(15).apply();
 
 textureCube
-  .faceMaterial(WaveSurface.Left)
   .setColor(COLOR.RED, Animate)
   .over(3, Seconds)
   .play()
@@ -1462,7 +1588,10 @@ ship.placeAt(0, 2, 0);
 ship.setUniformScale(0.4);
 ship.turnRight(30);</code></pre>
           <p>Swap a model later with <code>useModel</code>.</p>
-          <pre><code class="language-ts">ship.useModel(models.XWingStarfighter);</code></pre>
+          <pre><code class="language-ts">const ship = new wave3DObject(models.Spaceship);
+ship.placeAt(0, 2, 0);
+
+ship.useModel(models.XWingStarfighter);</code></pre>
           <h3>Model Motion Lab</h3>
           <p>Imported models are not only things to look at. Treat a model like any other 3D entity: it can move every frame, bank, play sounds, leave trails, shoot projectiles, collide, and trigger UI.</p>
           <table class="reference-table">
@@ -1494,7 +1623,12 @@ fighter.onTick((_self, deltaTime) =&gt; {
   fighter.rollLeft(Math.sin(flightSeconds * 3) * 0.35);
 });</code></pre>
           <p>Now add a simple Space-key laser. The projectile copies the fighter's current position and direction, moves forward every frame, then destroys itself after a short lifetime.</p>
-          <pre><code class="language-ts">const projectileSpeed = 16;
+          <pre><code class="language-ts">const fighter = new wave3DObject(models.XWingStarfighter);
+fighter.setUniformScale(0.45);
+fighter.placeAt(0, 2, -8);
+fighter.showDirection();
+
+const projectileSpeed = 16;
 const projectileLifetime = 1.4;
 const fireCooldown = 0.18;
 let canFire = true;
@@ -1589,7 +1723,9 @@ spinner.onTick((_self, deltaTime) =&gt; {
   spinner.turnRight(90 * deltaTime);
   spinner.moveUp(Math.sin(Date.now() * 0.004) * 0.01);
 });</code></pre>
-          <pre><code class="language-ts">spinner.onTick(() =&gt; {
+          <pre><code class="language-ts">const spinner = new waveCube(2, 2, 2);
+
+spinner.onTick(() =&gt; {
   scene.print(`FPS: ${engine.getCurrentFPS().toFixed(0)}`);
 }, every(1, Seconds));
 
@@ -1611,12 +1747,11 @@ const boom = () =&gt; {
 };
 
 myCube
-  .faceMaterial(WaveSurface.Left)
   .setColor(COLOR.RED, Animate)
   .over(3, Seconds)
   .play()
   .onComplete(boom);</code></pre>
-          <p>Read this from top to bottom: select one cube side with <code>faceMaterial(WaveSurface.Left)</code>, create a material animation with <code>setColor(COLOR.RED, Animate)</code>, set the duration with <code>over(3, Seconds)</code>, start it with <code>play()</code>, then run <code>boom</code> after completion.</p>
+          <p>Read this from top to bottom: create a material animation with <code>setColor(COLOR.RED, Animate)</code>, set the duration with <code>over(3, Seconds)</code>, start it with <code>play()</code>, then run <code>boom</code> after completion.</p>
           <h3>Motion Pattern Gallery</h3>
           <p>Animation in WaveStudio is a small set of repeatable patterns: frame updates, scheduled actions, transform builders, and material builders.</p>
           <table>
@@ -1706,7 +1841,7 @@ for (let i = 0; i &lt; motionPatterns.length; i++) {
 const dance = () =&gt; {
   dancer.moveUp(1, Animate).over(0.35, Seconds).play()
     .onComplete(() =&gt; {
-      dancer.turnRight(180, Animate).over(0.35, Seconds).play()
+      dancer.rotateAroundBy(Direction.Up, 180, Animate).over(0.35, Seconds).play()
         .onComplete(() =&gt; {
           dancer.moveDown(1, Animate).over(0.35, Seconds).play();
         });
@@ -1850,7 +1985,11 @@ ball.setRestitution(0.8);
 ball.onCollisionBeginByTag("floor", () =&gt; {
   ball.setColor(PALETTE.SKY);
 });</code></pre>
-<pre><code class="language-ts">ball.applyImpulse(Direction.Up, 8);
+<pre><code class="language-ts">const ball = new waveSphere(0.5, 24);
+ball.useDynamicBody();
+ball.placeAt(0, 2, 0);
+
+ball.applyImpulse(Direction.Up, 8);
 ball.applyForce(Direction.Forward, 20);
 ball.setLinearVelocity(Direction.Forward, 4);</code></pre>
           <h3>Physics Body Gallery</h3>
@@ -2095,10 +2234,12 @@ const doors = scene.getByTag("door");
 const mainDoor = scene.getFirstByName("main-door");
 
 for (const entity of doors) {
-  entity.showBoundingBox();
+  if (entity instanceof waveCube) {
+    entity.showBoundingBox();
+  }
 }
 
-if (mainDoor) {
+if (mainDoor instanceof waveCube) {
   mainDoor.hideBoundingBox();
 }</code></pre>
           <pre><code class="language-ts">scene.getAll();
@@ -2126,8 +2267,10 @@ for (const category of categories) {
 
 function highlightTag(tag: string) {
   for (const entity of scene.getByTag(tag)) {
-    entity.showBoundingBox();
-    entity.enlargeBy(1.15, Animate).over(0.2, Seconds).play();
+    if (entity instanceof waveSphere) {
+      entity.showBoundingBox();
+      entity.scaleBy(1.15, Animate).over(0.2, Seconds).play();
+    }
   }
 
   scene.print(`${scene.getByTag(tag).length} object(s) tagged ${tag}`);
@@ -2237,7 +2380,12 @@ scoreLabel.setColor(PALETTE.WHITE);
 scoreLabel.setBackgroundColor(hudBackground);
 scoreLabel.setSize(180, 48);
 scoreLabel.setScreenPositionPixels(24, 24);</code></pre>
-          <pre><code class="language-ts">let score = 0;
+          <pre><code class="language-ts">const scoreLabel = new waveUIText()
+  .setText("Score: 0")
+  .setFontSize(24)
+  .setScreenPositionPixels(24, 24);
+
+let score = 0;
 
 function addScore(points: number) {
   score += points;
@@ -2298,7 +2446,7 @@ crosshair.setSize(80, 80);
 crosshair.setNormalizedScreenPosition(0.5, 0.5);</code></pre>
           <h3>HUD Recipe Gallery</h3>
           <p>A useful HUD usually has three layers: always-visible status, contextual prompts, and controls that change the world.</p>
-          <pre><code class="language-ts">const status = new waveUIText()
+          <pre><code class="language-ts">const statusText = new waveUIText()
   .setText("Mode: build")
   .setFontSize(20)
   .setColor(PALETTE.WHITE)
@@ -2306,7 +2454,7 @@ crosshair.setNormalizedScreenPosition(0.5, 0.5);</code></pre>
   .setSize(220, 40)
   .setScreenPositionPixels(24, 24);
 
-const prompt = new waveUIText()
+const promptText = new waveUIText()
   .setText("Click a cube to paint it")
   .setFontSize(18)
   .setColor(PALETTE.CYAN)
@@ -2319,7 +2467,7 @@ const resetButton = new waveUIButton()
 
 resetButton.onClick(() =&gt; {
   scene.destroyByTag("temporary");
-  status.setText("Mode: reset complete");
+  statusText.setText("Mode: reset complete");
 });</code></pre>
           <ul class="remix-list">
             <li>Add a health bar and update it from collisions.</li>
@@ -2349,7 +2497,7 @@ emitter.placeAt(0, 1, 0);
 
 emitter.fx
   .createSmoke("soft-smoke")
-  .color(PALETTE.LIGHT_GRAY)
+  .color(PALETTE.toNormalizedAlpha(PALETTE.LIGHT_GRAY))
   .rate(20)
   .play();</code></pre>
           <h3>Audio and FX Gallery</h3>
@@ -2371,7 +2519,7 @@ smokeOrb.placeAt(-3, 1, 0);
 smokeOrb.fx
   .createSmoke("gallery-smoke")
   .rising()
-  .color(PALETTE.LIGHT_GRAY)
+  .color(PALETTE.toNormalizedAlpha(PALETTE.LIGHT_GRAY))
   .rate(14)
   .play();
 
@@ -2592,9 +2740,15 @@ for (let i = 0; i &lt; totalPickups; i++) {
               <tr><td>Better memory</td><td>Save high score and chosen mood</td><td>Lesson 15</td></tr>
             </tbody>
           </table>
-          <pre><code class="language-ts">const pickupGroup = scene.createGroup&lt;waveSphere&gt;("pickup-group");
+          <pre><code class="language-ts">const pickupGroup = scene.createGroup("pickup-group");
 const pickupPrototype = new waveSphere(0.45, 24);
 pickupPrototype.setColor(PALETTE.GOLDENROD);
+
+let score = 0;
+function updateScore(points: number) {
+  score += points;
+  scene.print(`Score: ${score}`);
+}
 
 myScene
   .placeInGrid(pickupPrototype)
@@ -2802,7 +2956,7 @@ spawnPiece(0, 2, 0, 3, maxDepth);</code></pre>
         </div>
       </article>
 
-      <article class="lesson" id="lesson-18" data-lesson="18" data-keywords="advanced gallery boss projects draw to world magic ink keyboard driving lab solar system terrain physics piano robot arm particles voice gesture geometry surgery">
+      <article class="lesson" id="lesson-18" data-lesson="18" data-keywords="advanced gallery boss projects draw to world magic ink keyboard driving lab solar system terrain physics piano robot arm particles voice gesture geometry surgery asteroid evader spaceship laser projectile fragments">
         <header class="lesson-head">
           <div><h2>Lesson 18: Advanced Gallery: Boss Projects</h2><p>Remix the wild demos into teachable patterns and small starter snippets.</p></div>
           <label class="check"><input type="checkbox" data-complete="lesson-18"> Complete</label>
@@ -2813,7 +2967,11 @@ spawnPiece(0, 2, 0, 3, maxDepth);</code></pre>
           <div class="boss-card">
             <h3>Boss Project 2: Draw-to-World Magic Ink</h3>
             <p><span class="mini-label">What you build</span> Draw on a <code>waveUICanvas</code>, release the pointer, and turn the stroke into a 3D <code>wavePath</code> on the floor.</p>
-            <pre><code class="language-ts">const worldPaths = new Map&lt;string, wavePath&gt;();
+            <pre><code class="language-ts">const drawingCanvas = new waveUICanvas();
+drawingCanvas.setSize(360, 240);
+drawingCanvas.setScreenPositionPixels(24, 24);
+
+const worldPaths = new Map&lt;string, wavePath&gt;();
 
 drawingCanvas
   .pointerDraw()
@@ -2867,7 +3025,19 @@ car.whenHolding(Keyboard.D, () =&gt; car.turnRight(4));</code></pre>
           <div class="boss-card">
             <h3>Boss Project 4: Tiny Solar System</h3>
             <p><span class="mini-label">What you build</span> A sun, planets, and a gravity field that can be visualized with directional markers.</p>
-            <pre><code class="language-ts">const gravityField = scene
+            <pre><code class="language-ts">const sunBody = new waveSphere(1.2, 32).placeAt(0, 5, 0);
+sunBody.setColor(PALETTE.GOLDENROD);
+sunBody.useStaticBody();
+
+const planetBody = new waveSphere(0.45, 24).placeAt(8, 5, 0);
+planetBody.setColor(PALETTE.CYAN);
+planetBody.useDynamicBody();
+
+const cometBody = new waveSphere(0.25, 16).placeAt(-12, 6, 0);
+cometBody.setColor(PALETTE.WHITE);
+cometBody.useDynamicBody();
+
+const gravityField = scene
   .createField("solar-gravity")
   .asSphere(30)
   .anchorAt(sunBody)
@@ -2893,7 +3063,13 @@ car.whenHolding(Keyboard.D, () =&gt; car.turnRight(4));</code></pre>
           <div class="boss-card">
             <h3>Boss Project 5: Terraforming Spellbook</h3>
             <p><span class="mini-label">What you build</span> Paint dirt roads, stamp brush circles, and dent terrain where projectiles hit.</p>
-            <pre><code class="language-ts">terrain
+            <pre><code class="language-ts">const terrain = myScene.terrain;
+const ROAD_LAYER = "dirt";
+const startTerrainPoint = { x: -12, y: -4 };
+const endTerrainPoint = { x: 14, y: 6 };
+const impactPoint = { x: 0, y: 0 };
+
+terrain
   .paint()
   .layer(ROAD_LAYER)
   .path()
@@ -2903,7 +3079,7 @@ car.whenHolding(Keyboard.D, () =&gt; car.turnRight(4));</code></pre>
   .falloff("smooth")
   .apply();
 
-terrain.author().lowerCircle(impactPoint, 2.5, 0.4, {
+terrain.lowerCircle(impactPoint, 2.5, 0.4, {
   strength: 0.95,
   falloff: "smooth",
   jitter: 0.14,
@@ -2918,7 +3094,11 @@ terrain.author().lowerCircle(impactPoint, 2.5, 0.4, {
           <div class="boss-card">
             <h3>Boss Project 6: Physics Piano</h3>
             <p><span class="mini-label">What you build</span> Each piano key is a dynamic rigid body connected by a hinge joint, and pressing it triggers sound.</p>
-            <pre><code class="language-ts">const pianoAssembly = scene.createJointAssembly("physics-piano", body);
+            <pre><code class="language-ts">const body = new waveCube(4, 0.08, 1.2);
+body.placeAt(0, 1, 0);
+body.rigidBody.asStatic().withBox().disableGravity();
+
+const pianoAssembly = scene.createJointAssembly("physics-piano", body);
 
 const key = new waveCube(0.25, 0.06, 1.2);
 key.rigidBody
@@ -2942,7 +3122,16 @@ pianoAssembly
           <div class="boss-card">
             <h3>Boss Project 7: Robot Arm Puzzle</h3>
             <p><span class="mini-label">What you build</span> Click target cubes and let an articulated model move its gripper toward them using an end-effector animation chain.</p>
-            <pre><code class="language-ts">const gripper = roboticArm.getPart(GRIPPER_PART_NAME);
+            <pre><code class="language-ts">const roboticArm = new wave3DObject(models.RoboticArm);
+const GRIPPER_PART_NAME = "gripper";
+const TARGET_IK_MOVE_SECONDS = 1.2;
+const targetCube = new Cube().placeAt(2, 1, 0).setColor(PALETTE.GOLDENROD);
+
+function tryPickUpTarget(target: waveCube) {
+  target.setColor(PALETTE.GREEN);
+}
+
+const gripper = roboticArm.getPart(GRIPPER_PART_NAME);
 
 if (gripper) {
   const distanceToTarget = gripper.distanceTo(targetCube);
@@ -2971,6 +3160,19 @@ if (gripper) {
     PALETTE.toNormalizedAlpha(PALETTE.VIOLET),
     PALETTE.toNormalizedAlpha(PALETTE.WHITE),
   ],
+  streams: [
+    {
+      yOffset: 0,
+      zOffset: 0,
+      span: 1,
+      phase: 0,
+      yAmp: 0.25,
+      zAmp: 0.2,
+      yWave: 2,
+      spin: 0.4,
+      width: 0.35,
+    },
+  ],
 });
 
 const heroSystem = waveFx.system("system.heroField", [heroField]);
@@ -2984,7 +3186,20 @@ waveFx.register(engine, heroSystem);</code></pre>
           <div class="boss-card">
             <h3>Boss Project 9: Voice/Gesture Character Controller</h3>
             <p><span class="mini-label">What you build</span> Speech commands, webcam hand gestures, and microphone snap detection that control a character.</p>
-            <pre><code class="language-ts">const recognition = scene.director.sensing
+            <pre><code class="language-ts">const speechCommandSpecs = [
+  { name: "jump", aliases: ["jump", "hop"] },
+  { name: "wave", aliases: ["wave", "hello"] },
+];
+
+function handleSpeechCommand(match: WaveSpeechCommandMatch) {
+  scene.print(`voice: ${match.command}`);
+}
+
+function handleGestureCommand(name: VisionGestureName | string) {
+  scene.print(`gesture: ${name}`);
+}
+
+const recognition = scene.director.sensing
   .speechCommands()
   .withCommands(speechCommandSpecs)
   .withLanguage("en-US")
@@ -2994,13 +3209,17 @@ waveFx.register(engine, heroSystem);</code></pre>
   .onCommand(handleSpeechCommand)
   .startListening();
 
-const handTracking = await scene.director.sensing
-  .webcamHands()
-  .withFacingMode("user")
-  .withGestureRecognition()
-  .withMaxHands(1)
-  .onGesture((data) =&gt; handleGestureCommand(data.name))
-  .startTracking();</code></pre>
+async function startHandTracking() {
+  await scene.director.sensing
+    .webcamHands()
+    .withFacingMode("user")
+    .withGestureRecognition()
+    .withMaxHands(1)
+    .onGesture((data) =&gt; handleGestureCommand(data.name))
+    .startTracking();
+}
+
+startHandTracking();</code></pre>
             <p><span class="mini-label">APIs to steal</span> <code>director.sensing.speechCommands</code>, <code>director.sensing.webcamHands</code>, <code>director.audio.analyzeMicrophone</code>, <code>withGestureRecognition</code>, <code>onCommand</code>, <code>onGesture</code>, <code>onSnap</code>.</p>
             <p><span class="mini-label">Natural-language constants</span> <code>"en-US"</code>, named command specs, named gesture handlers such as <code>handleGestureCommand</code>.</p>
             <ul class="remix-list"><li>Voice-control a robot.</li><li>Cast hand-pose spells.</li><li>Snap to switch lights.</li><li>Add accessibility controls.</li></ul>
@@ -3010,7 +3229,9 @@ const handTracking = await scene.director.sensing
           <div class="boss-card">
             <h3>Boss Project 10: Geometry Surgery</h3>
             <p><span class="mini-label">What you build</span> Fracture meshes, stamp decals, deform surfaces, and combine or cut geometry.</p>
-            <pre><code class="language-ts">const result = ring.model
+            <pre><code class="language-ts">const ring = new Torus().placeAt(0, 1.5, 0);
+
+const result = ring.model
   .fragmenting()
   .intoPieces(5)
   .withInteriorColor(PALETTE.GRAY)
@@ -3031,6 +3252,331 @@ if (result.success) {
             <ul class="remix-list"><li>Dent a wall when hit.</li><li>Add graffiti stamps.</li><li>Create a sculpting brush.</li><li>Carve CSG keys from blocks.</li></ul>
             <p class="source-note">Source demo reference: <code>mesh-sculpting/main.ts</code> and <code>vertex-color-pbr-painting/main.ts</code>.</p>
           </div>
+
+          <div class="boss-card">
+            <h3>Boss Project 11: Asteroid Evader</h3>
+            <p><span class="mini-label">What you build</span> A keyboard-controlled spaceship, moving asteroids, laser shots, score/lives HUD, and asteroid breakup. Large asteroids turn into small fragments; fragments fade away over time.</p>
+            <pre><code class="language-ts">type GameProjectile = {
+  body: waveSphere;
+  age: number;
+  lifetime: number;
+};
+
+type GameAsteroid = {
+  body: waveSphere;
+  radius: number;
+  speed: number;
+  driftX: number;
+  driftY: number;
+  spin: number;
+  small: boolean;
+  age: number;
+  lifetime: number;
+};
+
+const arenaHalfWidth = 8;
+const arenaMinY = 0.8;
+const arenaMaxY = 5.6;
+const asteroidSpawnZ = 9;
+const asteroidExitZ = -10;
+const shipZ = -7;
+const shipStep = 0.28;
+const laserSpeed = 18;
+const laserLifetime = 1.2;
+const fireCooldown = 0.18;
+const shipHitRadius = 0.75;
+const laserRadius = 0.18;
+
+let score = 0;
+let lives = 3;
+let spawnTimer = 0;
+let canFire = true;
+let gameOver = false;
+
+const projectiles: GameProjectile[] = [];
+const asteroids: GameAsteroid[] = [];
+
+scene.camera
+  .orbit({
+    target: { x: 0, y: 2.6, z: 0 },
+    distance: 17,
+    fov: 58,
+  })
+  .apply();
+
+scene.lighting
+  .ambient({ color: PALETTE.SKY, intensity: 0.45 })
+  .sun({
+    direction: { x: -1, y: -2, z: -1 },
+    intensity: 1.5,
+    shadowEnabled: true,
+  })
+  .apply();
+
+const hudBackground = PALETTE.modifyAlphaChannel(PALETTE.BLACK, 55);
+const scoreText = new waveUIText();
+scoreText.setFontSize(24);
+scoreText.setColor(PALETTE.WHITE);
+scoreText.setBackgroundColor(hudBackground);
+scoreText.setSize(310, 46);
+scoreText.setScreenPositionPixels(24, 24);
+
+const helpText = new waveUIText();
+helpText.setText("WASD move | Space fire");
+helpText.setFontSize(18);
+helpText.setColor(PALETTE.CYAN);
+helpText.setScreenPositionPixels(24, 76);
+
+const playfield = new waveGround(18, 22, 4);
+playfield.placeAt(0, -0.05, 0);
+playfield.setColor(PALETTE.CHARCOAL);
+playfield.setOpacity(0.35);
+
+const ship = new wave3DObject(models.Spaceship);
+ship.placeAt(0, 2.7, shipZ);
+ship.setUniformScale(0.35);
+ship.showDirection({ length: 1.5 });
+
+function updateHud() {
+  scoreText.setText(`Score: ${score}   Lives: ${lives}`);
+}
+
+function clampShipToArena() {
+  const x = Math.max(-arenaHalfWidth, Math.min(arenaHalfWidth, ship.x));
+  const y = Math.max(arenaMinY, Math.min(arenaMaxY, ship.y));
+  ship.placeAt(x, y, shipZ);
+}
+
+function randomRange(min: number, max: number) {
+  return min + Math.random() * (max - min);
+}
+
+function spawnAsteroid() {
+  const radius = randomRange(0.55, 1.05);
+  const asteroid = new waveSphere(radius, 12);
+  asteroid.placeAt(
+    randomRange(-arenaHalfWidth, arenaHalfWidth),
+    randomRange(arenaMinY, arenaMaxY),
+    asteroidSpawnZ
+  );
+  asteroid.setColor(PALETTE.darken(PALETTE.LIGHT_GRAY, 20));
+  asteroid.setRoughness(0.9);
+  asteroid.addTag("asteroid");
+
+  asteroids.push({
+    body: asteroid,
+    radius,
+    speed: randomRange(2.2, 4.2),
+    driftX: randomRange(-0.8, 0.8),
+    driftY: randomRange(-0.25, 0.25),
+    spin: randomRange(45, 130),
+    small: false,
+    age: 0,
+    lifetime: 8,
+  });
+}
+
+function spawnShard(center: Vector3, angleDegrees: number) {
+  const shardRadius = randomRange(0.16, 0.28);
+  const radians = angleDegrees * Math.PI / 180;
+  const shard = new waveSphere(shardRadius, 8);
+  shard.placeAt(
+    center.x + Math.cos(radians) * 0.5,
+    center.y + Math.sin(radians) * 0.3,
+    center.z
+  );
+  shard.setColor(PALETTE.SILVER);
+  shard.setOpacity(0.85);
+  shard.setRoughness(0.8);
+  shard.addTag("asteroid-fragment");
+
+  asteroids.push({
+    body: shard,
+    radius: shardRadius,
+    speed: randomRange(1.5, 2.6),
+    driftX: Math.cos(radians) * randomRange(0.8, 1.8),
+    driftY: Math.sin(radians) * randomRange(0.3, 0.9),
+    spin: randomRange(120, 260),
+    small: true,
+    age: 0,
+    lifetime: randomRange(1.4, 2.4),
+  });
+}
+
+function removeProjectile(index: number) {
+  const projectile = projectiles[index];
+  if (!projectile.body.isDestroyed) projectile.body.destroy();
+  projectiles.splice(index, 1);
+}
+
+function removeAsteroid(index: number) {
+  const asteroid = asteroids[index];
+  if (!asteroid.body.isDestroyed) asteroid.body.destroy();
+  asteroids.splice(index, 1);
+}
+
+function pulverizeAsteroid(index: number) {
+  const asteroid = asteroids[index];
+  const center = asteroid.body.position;
+  asteroid.body.fx.play(waveFxPresets.impactSparks());
+  removeAsteroid(index);
+
+  if (asteroid.small) {
+    score += 1;
+    updateHud();
+    return;
+  }
+
+  score += 5;
+  updateHud();
+
+  for (let i = 0; i &lt; 7; i++) {
+    spawnShard(center, i * 360 / 7);
+  }
+}
+
+function fireLaser() {
+  if (!canFire || gameOver) return;
+  canFire = false;
+
+  const laser = new waveSphere(0.12, 12);
+  laser.placeAt(ship.x, ship.y, ship.z + 0.8);
+  laser.setColor(PALETTE.CYAN);
+  laser.setEmissiveColor(PALETTE.CYAN);
+  laser.setEmissiveIntensity(2.5);
+  laser.addTag("laser");
+
+  projectiles.push({
+    body: laser,
+    age: 0,
+    lifetime: laserLifetime,
+  });
+
+  ship.after(fireCooldown, Seconds).do(() =&gt; canFire = true);
+}
+
+function damageShip() {
+  lives -= 1;
+  updateHud();
+  ship.setColor(PALETTE.CORAL);
+  ship.after(0.2, Seconds).do(() =&gt; ship.setColor(PALETTE.WHITE));
+
+  if (lives &lt;= 0) {
+    gameOver = true;
+    scene.print("Game over: press Run to restart", 30, PALETTE.WHITE);
+  }
+}
+
+function updateProjectiles(deltaTime: number) {
+  for (let i = projectiles.length - 1; i &gt;= 0; i--) {
+    const projectile = projectiles[i];
+    projectile.age += deltaTime;
+    projectile.body.moveBy({ x: 0, y: 0, z: laserSpeed * deltaTime });
+
+    if (projectile.age &gt; projectile.lifetime || projectile.body.z &gt; asteroidSpawnZ + 2) {
+      removeProjectile(i);
+    }
+  }
+}
+
+function updateAsteroids(deltaTime: number) {
+  for (let i = asteroids.length - 1; i &gt;= 0; i--) {
+    const asteroid = asteroids[i];
+    asteroid.age += deltaTime;
+    asteroid.body.moveBy({
+      x: asteroid.driftX * deltaTime,
+      y: asteroid.driftY * deltaTime,
+      z: -asteroid.speed * deltaTime,
+    });
+    asteroid.body.turnRight(asteroid.spin * deltaTime);
+
+    if (asteroid.small) {
+      const fade = Math.max(0, 1 - asteroid.age / asteroid.lifetime);
+      asteroid.body.setOpacity(fade);
+    }
+
+    if (asteroid.age &gt; asteroid.lifetime || asteroid.body.z &lt; asteroidExitZ) {
+      removeAsteroid(i);
+    }
+  }
+}
+
+function checkLaserHits() {
+  for (let p = projectiles.length - 1; p &gt;= 0; p--) {
+    const projectile = projectiles[p];
+
+    for (let a = asteroids.length - 1; a &gt;= 0; a--) {
+      const asteroid = asteroids[a];
+      const hitDistance = asteroid.radius + laserRadius;
+
+      if (projectile.body.distanceTo(asteroid.body) &lt;= hitDistance) {
+        removeProjectile(p);
+        pulverizeAsteroid(a);
+        break;
+      }
+    }
+  }
+}
+
+function checkShipHits() {
+  for (let i = asteroids.length - 1; i &gt;= 0; i--) {
+    const asteroid = asteroids[i];
+    const hitDistance = asteroid.radius + shipHitRadius;
+
+    if (ship.distanceTo(asteroid.body) &lt;= hitDistance) {
+      removeAsteroid(i);
+      damageShip();
+    }
+  }
+}
+
+ship.whenHolding(Keyboard.A, () =&gt; {
+  ship.moveLeft(shipStep);
+  clampShipToArena();
+});
+
+ship.whenHolding(Keyboard.D, () =&gt; {
+  ship.moveRight(shipStep);
+  clampShipToArena();
+});
+
+ship.whenHolding(Keyboard.W, () =&gt; {
+  ship.moveUp(shipStep);
+  clampShipToArena();
+});
+
+ship.whenHolding(Keyboard.S, () =&gt; {
+  ship.moveDown(shipStep);
+  clampShipToArena();
+});
+
+ship.whenPress(Keyboard.Space, fireLaser);
+
+ship.onTick((_self, deltaTime) =&gt; {
+  if (gameOver) return;
+
+  spawnTimer -= deltaTime;
+  if (spawnTimer &lt;= 0) {
+    spawnAsteroid();
+    spawnTimer = randomRange(0.55, 1.05);
+  }
+
+  updateProjectiles(deltaTime);
+  updateAsteroids(deltaTime);
+  checkLaserHits();
+  checkShipHits();
+});
+
+for (let i = 0; i &lt; 5; i++) {
+  spawnAsteroid();
+}
+
+updateHud();</code></pre>
+            <p><span class="mini-label">APIs to steal</span> <code>wave3DObject</code>, <code>models.Spaceship</code>, <code>whenHolding</code>, <code>whenPress</code>, <code>onTick</code>, <code>waveUIText</code>, <code>distanceTo</code>, <code>moveBy</code>, <code>setOpacity</code>, <code>waveFxPresets.impactSparks</code>, <code>after</code>, <code>Seconds</code>, and array-backed game state.</p>
+            <p><span class="mini-label">Natural-language constants</span> <code>Keyboard.W</code>, <code>Keyboard.Space</code>, <code>PALETTE.CYAN</code>, <code>PALETTE.CORAL</code>, <code>Seconds</code>, and named tuning values such as <code>laserSpeed</code>, <code>fireCooldown</code>, and <code>shipHitRadius</code>.</p>
+            <ul class="remix-list"><li>Add a start screen.</li><li>Save high score with <code>myCloud</code>.</li><li>Make asteroids split twice.</li><li>Add shield pickups.</li><li>Add a boss asteroid.</li></ul>
+            <p class="source-note">Source demo reference: combines ideas from <code>runway-runner/main.ts</code>, <code>shooting-range/main.ts</code>, and Boss Project 1's recursive-fragment mindset.</p>
+          </div>
         </div>
       </article>
 
@@ -3044,7 +3590,7 @@ if (result.success) {
           <table class="reference-table">
             <thead><tr><th>Demo</th><th>Project seed</th><th>APIs and ideas</th><th>Remix challenge</th></tr></thead>
             <tbody>
-              <tr><td><code>amy-vat-crowd</code></td><td><strong>Dance-Crowd Stress Test</strong></td><td><code>createVertexAnimation</code>, <code>useVertexAnimation</code>, <code>waveInstanceMesh</code>, procedural GPU animation.</td><td>Build a concert crowd where rows react to music or keyboard cues.</td></tr>
+              <tr><td><code>amy-vat-crowd</code></td><td><strong>Dance-Crowd Stress Test</strong></td><td><code>playAnimation</code>, shared timing, <code>waveInstanceMesh</code>, procedural GPU animation.</td><td>Build a concert crowd where rows react to music or keyboard cues.</td></tr>
               <tr><td><code>amy-voice-gesture</code></td><td><strong>Talk-to-Amy Stage Director</strong></td><td>Speech commands, webcam hands, microphone snap analysis, character lighting.</td><td>Let voice pick animation states and hand gestures move the performer.</td></tr>
               <tr><td><code>animal-signal-cartographer</code></td><td><strong>Animal Signal Radar</strong></td><td><code>waveUICanvas</code>, canvas sprites, <code>waveUIImage</code>, animal tags, signal arcs.</td><td>Click an animal and update a live radar panel.</td></tr>
               <tr><td><code>articulated-robotic-arm</code></td><td><strong>Factory Arm Pick-and-Place</strong></td><td>Model parts, target cubes, <code>getPart</code>, end-effector helper patterns.</td><td>Turn it into a color-sorting factory puzzle.</td></tr>
@@ -3078,18 +3624,40 @@ if (result.success) {
           </table>
 
           <h3>Atlas Starter: Pathfinding Farm</h3>
-          <pre><code class="language-ts">targetBrick.whenClickedOn(() =&gt; {
+          <pre><code class="language-ts">const brickGrid = scene.create3DGrid&lt;waveCube&gt;("farm-grid");
+brickGrid.configureGrid({
+  origin: { x: -2, y: 0.5, z: -2 },
+  rows: 3,
+  cols: 3,
+  layers: 1,
+  plane: "xz",
+  rowSpacing: 1.5,
+  colSpacing: 1.5,
+  layerSpacing: 1,
+});
+
+for (let row = 0; row &lt; 3; row++) {
+  for (let col = 0; col &lt; 3; col++) {
+    const brick = new waveCube(1, 0.2, 1);
+    brick.placeAt(brickGrid.getCellWorldPosition(row, col, 0));
+    brickGrid.setAt(row, col, 0, brick);
+  }
+}
+
+const startCell = { row: 0, col: 0 };
+const targetBrick = brickGrid.getCell(2, 2, 0);
+const sheep = new wave3DObject(models.Sheep).placeAt(-2, 1, -2);
+
+targetBrick.whenClickedOn(() =&gt; {
+  if (!targetBrick) return;
+
   const points = brickGrid
     .pathfind()
     .fromCell(startCell.row, startCell.col, 0)
     .to(targetBrick)
     .asWorldPoints();
 
-  sheep.animator
-    .followPath(points)
-    .atSpeed(4)
-    .turnToFace()
-    .start();
+  sheep.animator.followPath(points, 4, { turnToFace: true });
 });</code></pre>
           <p>Remix it into A-star visualization, maze games, tower-defense routing, or an algorithm lesson where every visited cell lights up.</p>
 
@@ -3136,22 +3704,32 @@ scene.director.whenPress(Keyboard.O, () =&gt; {
           <p>Remix it into a performance lab with FPS labels, building fade masks, window flicker, and before/after camera tours.</p>
 
           <h3>Atlas Starter: Crowd Animation Lab</h3>
-          <pre><code class="language-ts">const vatAssetName = leader.createVertexAnimation("walking-vat", {
-  animation: animations.Walking,
-  range: "Walking",
-  fps: "source",
-  rootMotion: "lock",
+          <pre><code class="language-ts">const leader = new wave3DObject(models.Amy);
+leader.placeAt(0, 0, 0);
+
+const crowd = [
+  new wave3DObject(models.Amy).placeAt(-2, 0, 0),
+  new wave3DObject(models.Amy).placeAt(2, 0, 0),
+];
+
+leader.playAnimation(animations.Walking, {
+  loop: true,
+  speed: 1,
 });
 
-leader.useVertexAnimation(vatAssetName, "Walking");
-
 for (const performer of crowd) {
-  performer.useVertexAnimation(vatAssetName, "Walking");
+  performer.playAnimation(animations.Walking, {
+    loop: true,
+    speed: 1,
+  });
 }</code></pre>
           <p>Remix it into a parade, dance floor, stadium, school hallway, or background population system.</p>
 
           <h3>Atlas Starter: Voice and Gesture Stage Director</h3>
-          <pre><code class="language-ts">const speechCommandSpecs = [
+          <pre><code class="language-ts">const amy = new wave3DObject(models.Amy).placeAt(0, 0, 0);
+const supportBox = new waveCube(1, 1, 1).placeAt(2, 1, 0);
+
+const speechCommandSpecs = [
   { name: "dance", aliases: ["dance", "spin"], color: PALETTE.VIOLET },
   { name: "wave", aliases: ["wave", "hello"], color: PALETTE.PINK },
   { name: "boom", aliases: ["boom", "explode"], color: PALETTE.RED },
@@ -3178,7 +3756,9 @@ const startHands = async () =&gt; {
     .withGestureRecognition()
     .withMaxHands(1)
     .onGesture(({ name }) =&gt; {
-      if (name === "open_palm") amy.playAnimation(ASSET_WAREHOUSE.animations.Waving);
+      if (name === VisionGestureName.OpenPalm) {
+        amy.playAnimation(ASSET_WAREHOUSE.animations.Waving);
+      }
     })
     .startTracking();
 };</code></pre>
@@ -3188,13 +3768,13 @@ const startHands = async () =&gt; {
           <pre><code class="language-ts">const terrain = myScene.terrain;
 const craterRange = myScene
   .createRange("craterBrush")
-  .anchorAt(0, 0, 0)
+  .anchorAt({ x: 0, y: 0, z: 0 })
   .asSphere(24)
   .showHelper();
 
 terrain.sculpt()
   .noise()
-  .inRange(craterRange)
+  .around({ x: 0, y: 0 }, 24)
   .amplitude(1.8)
   .frequency(0.045)
   .octaves(2)
@@ -3210,14 +3790,28 @@ terrain.paint()
   .apply();
 
 terrain.erode()
-  .inRange(craterRange)
+  .around({ x: 0, y: 0 }, 24)
   .preset("alpine")
   .strength(0.72)
   .apply();</code></pre>
           <p>Remix it into a terrain painter, road builder, crater spell, golf course designer, island generator, or explainable geology toy.</p>
 
           <h3>Atlas Starter: Vector Physics Planetarium</h3>
-          <pre><code class="language-ts">const gravityField = myScene
+          <pre><code class="language-ts">const ENGINE_GRAVITY_CONSTANT = 8;
+
+const sunBody = new waveSphere(1.4, 32).placeAt(0, 24, 0);
+sunBody.setColor(PALETTE.GOLDENROD);
+sunBody.useStaticBody();
+
+const planetBody = new waveSphere(0.45, 24).placeAt(18, 28, 0);
+planetBody.setColor(PALETTE.CYAN);
+planetBody.useDynamicBody();
+
+const cometBody = new waveSphere(0.3, 16).placeAt(-18, 32, 0);
+cometBody.setColor(PALETTE.WHITE);
+cometBody.useDynamicBody();
+
+const gravityField = myScene
   .createField("solarField")
   .asSphere(42)
   .anchorAt(sunBody)
@@ -3276,7 +3870,7 @@ key.rigidBody
     rearmWhen: { crosses: RigidBodyActuationCrossing.Below, value: 0.35 },
     requireImpact: true,
   })
-  .onActuate(() =&gt; audio.playNote(60, { velocity: 1 }));</code></pre>
+  .onActuate(() =&gt; key.playSound(audios.studioSound, { volume: 1 }));</code></pre>
           <p>Remix it into drums, bells, pinball flippers, keyboard training, a music puzzle, or a machine where every collision becomes a note.</p>
 
           <h3>Atlas Starter: Vehicle Control Lab</h3>
@@ -3293,7 +3887,7 @@ car.movementController.useVehicleScheme({
   steeringSensitivity: 0.05,
 });
 
-car.kinematicController.autoFitCapsule();
+car.useKinematicBody();
 car.camera.possess().followFrom(car.backward, 10, 25).activate();
 car.showDirection({ length: 2 });
 car.showPosition();
