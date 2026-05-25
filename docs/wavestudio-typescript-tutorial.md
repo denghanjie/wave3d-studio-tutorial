@@ -3009,15 +3009,15 @@ sculpting brush, or a CSG puzzle where players carve keys from blocks.
 
 ### Boss Project 11: Asteroid Evader
 
-**What you build:** a true-3D keyboard-controlled spaceship, rough asteroids, laser
-shots, score/lives HUD, and recursive-style asteroid breakup. Large asteroids
+**What you build:** a true-3D keyboard-controlled spaceship, rough asteroids,
+real missile shots, score/lives HUD, and recursive-style asteroid breakup. Large asteroids
 turn into small fragments; fragments fade away over time.
 
 **Smallest useful snippet:**
 
 ```ts
 type GameProjectile = {
-  body: waveSphere;
+  body: wave3DObject;
   age: number;
   lifetime: number;
 };
@@ -3045,11 +3045,11 @@ const arenaMinZ = -8;
 const arenaMaxZ = -2;
 const shipStartZ = -7;
 const shipMoveSpeed = 6;
-const laserSpeed = 18;
-const laserLifetime = 1.2;
+const missileSpeed = 20;
+const missileLifetime = 1.2;
 const fireCooldown = 0.18;
 const shipHitRadius = 0.42;
-const laserRadius = 0.18;
+const missileHitRadius = 0.28;
 const nearMissBonusRadius = 1.6;
 
 let score = 0;
@@ -3096,7 +3096,7 @@ scoreText.setSize(300, 40);
 scoreText.setScreenPositionPixels(24, 24);
 
 const helpText = new waveUIText();
-helpText.setText("WASD/QE fly | Space blast | Coral dots show impact paths");
+helpText.setText("WASD/QE fly | Space missile | Coral dots show impact paths");
 helpText.setFontSize(16);
 helpText.setColor(PALETTE.CYAN);
 helpText.setBackgroundColor(PALETTE.modifyAlphaChannel(PALETTE.BLACK, 35));
@@ -3349,22 +3349,29 @@ function pulverizeAsteroid(index: number) {
   }
 }
 
-function fireLaser() {
+function fireMissile() {
   if (!canFire || gameOver) return;
   canFire = false;
 
-  const laser = new waveSphere(0.12, 12);
   const shipPosition = ship.position;
-  laser.placeAt(shipPosition.x, shipPosition.y, shipPosition.z + 0.8);
-  laser.setColor(PALETTE.CYAN);
-  laser.setEmissiveColor(PALETTE.CYAN);
-  laser.setEmissiveIntensity(2.5);
-  laser.addTag("laser");
+  const missile = new wave3DObject(models.Missile);
+  missile.placeAt(shipPosition.x, shipPosition.y, shipPosition.z + 0.95);
+  missile.setUniformScale(0.16);
+  missile.alignDirectionWith(ship);
+  missile.setColor(PALETTE.WHITE);
+  missile.setEmissiveColor(PALETTE.ORANGE);
+  missile.setEmissiveIntensity(0.6);
+  missile.model.enableTrail({
+    trailColor: PALETTE.ORANGE,
+    intensity: 1.4,
+    samples: 10,
+  });
+  missile.addTag("player-missile");
 
   projectiles.push({
-    body: laser,
+    body: missile,
     age: 0,
-    lifetime: laserLifetime,
+    lifetime: missileLifetime,
   });
 
   ship.after(fireCooldown, Seconds).do(() => canFire = true);
@@ -3389,7 +3396,7 @@ function updateProjectiles(deltaTime: number) {
   for (let i = projectiles.length - 1; i >= 0; i--) {
     const projectile = projectiles[i];
     projectile.age += deltaTime;
-    projectile.body.moveBy({ x: 0, y: 0, z: laserSpeed * deltaTime });
+    projectile.body.moveBy({ x: 0, y: 0, z: missileSpeed * deltaTime });
 
     if (projectile.age > projectile.lifetime || projectile.body.position.z > asteroidSpawnZ + 2) {
       removeProjectile(i);
@@ -3444,13 +3451,13 @@ function updateAsteroids(deltaTime: number) {
   }
 }
 
-function checkLaserHits() {
+function checkMissileHits() {
   for (let p = projectiles.length - 1; p >= 0; p--) {
     const projectile = projectiles[p];
 
     for (let a = asteroids.length - 1; a >= 0; a--) {
       const asteroid = asteroids[a];
-      const hitDistance = asteroid.radius + laserRadius;
+      const hitDistance = asteroid.radius + missileHitRadius;
 
       if (projectile.body.distanceTo(asteroid.body) <= hitDistance) {
         removeProjectile(p);
@@ -3477,7 +3484,7 @@ soundKey.whenPress(Keyboard.Space, playExplosionSound);
 
 myScene.director.whenPress(Keyboard.Space, () => {
   playExplosionSound();
-  fireLaser();
+  fireMissile();
 });
 
 myScene.director.onTick((_self, deltaTime) => {
@@ -3494,7 +3501,7 @@ myScene.director.onTick((_self, deltaTime) => {
 
   updateProjectiles(deltaTime);
   updateAsteroids(deltaTime);
-  checkLaserHits();
+  checkMissileHits();
   checkShipHits();
 });
 
@@ -3514,9 +3521,10 @@ rocks are aimed, and near-misses add bonus points. W/S fly forward and backward
 through depth, A/D strafe, and Arrow Up/Down or Q/E change height. A tiny cyan
 `soundKey` sphere owns the object-level sound pattern,
 `soundKey.whenPress(Keyboard.Space, playExplosionSound)`, while the director
-also fires the laser.
+also fires the missile.
 
 **APIs to steal:** `wave3DObject`, `models.Spaceship`,
+`models.Missile`, `model.enableTrail`,
 `myScene.terrain.remove`, `myScene.sky.withSkyboxTexture`,
 `myScene.director.isKeyPressed`, `myScene.director.whenPress`,
 `myScene.director.onTick`, `waveSphere.whenPress`, `waveIcoSphere`,
@@ -3527,10 +3535,10 @@ also fires the laser.
 **Natural-language constants:** `Keyboard.W`, `Keyboard.ArrowUp`,
 `Keyboard.ArrowDown`, `Keyboard.Q`, `Keyboard.E`, `Keyboard.Space`,
 `PALETTE.BLACK`, `PALETTE.BLUE`, `PALETTE.CYAN`, `PALETTE.CORAL`,
-`PALETTE.YELLOW`, `PALETTE.GREEN`, `textures.space1`,
+`PALETTE.YELLOW`, `PALETTE.GREEN`, `PALETTE.ORANGE`, `textures.space1`,
 `materials.CrateredRock`, `audios.explosion`, `audios.player_hit`,
 `audios.game_over`, `Seconds`, and named tuning values
-such as `shipMoveSpeed`, `laserSpeed`, `fireCooldown`, and `shipHitRadius`.
+such as `shipMoveSpeed`, `missileSpeed`, `fireCooldown`, and `shipHitRadius`.
 
 **Remix challenges:** add a start screen, save high score with `myCloud`, make
 asteroids split twice, add shield pickups, use a real asteroid model, or add a
