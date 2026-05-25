@@ -3077,17 +3077,26 @@ scene.lighting
 
 const hudBackground = PALETTE.modifyAlphaChannel(PALETTE.BLACK, 55);
 const scoreText = new waveUIText();
-scoreText.setFontSize(24);
+scoreText.setFontSize(20);
 scoreText.setColor(PALETTE.WHITE);
 scoreText.setBackgroundColor(hudBackground);
-scoreText.setSize(330, 46);
+scoreText.setSize(300, 40);
 scoreText.setScreenPositionPixels(24, 24);
 
 const helpText = new waveUIText();
-helpText.setText("Click preview, then WASD fly | Q/E height | Space fire");
-helpText.setFontSize(18);
+helpText.setText("W/S depth | A/D strafe | Arrow Up/Down or Q/E height | Space fire");
+helpText.setFontSize(16);
 helpText.setColor(PALETTE.CYAN);
-helpText.setScreenPositionPixels(24, 76);
+helpText.setBackgroundColor(PALETTE.modifyAlphaChannel(PALETTE.BLACK, 35));
+helpText.setSize(620, 40);
+helpText.setScreenPositionPixels(24, 72);
+
+const gameOverText = new waveUIText();
+gameOverText.setText("");
+gameOverText.setFontSize(24);
+gameOverText.setColor(PALETTE.CORAL);
+gameOverText.setSize(520, 46);
+gameOverText.setScreenPositionPixels(24, 124);
 
 const playfield = new waveGround(18, 22, 4);
 playfield.placeAt(0, -0.05, 0);
@@ -3097,7 +3106,6 @@ playfield.setOpacity(0.35);
 const ship = new wave3DObject(models.Spaceship);
 ship.placeAt(0, 2.7, shipStartZ);
 ship.setUniformScale(0.18);
-ship.showDirection({ length: 0.85 });
 
 function updateHud() {
   scoreText.setText(`Score: ${score}   Lives: ${lives}`);
@@ -3122,7 +3130,9 @@ function updateShipControls(deltaTime: number) {
   if (myScene.director.isKeyPressed(Keyboard.A)) inputX -= 1;
   if (myScene.director.isKeyPressed(Keyboard.D)) inputX += 1;
   if (myScene.director.isKeyPressed(Keyboard.Q)) inputY -= 1;
+  if (myScene.director.isKeyPressed(Keyboard.ArrowDown)) inputY -= 1;
   if (myScene.director.isKeyPressed(Keyboard.E)) inputY += 1;
+  if (myScene.director.isKeyPressed(Keyboard.ArrowUp)) inputY += 1;
   if (myScene.director.isKeyPressed(Keyboard.W)) inputZ += 1;
   if (myScene.director.isKeyPressed(Keyboard.S)) inputZ -= 1;
 
@@ -3229,6 +3239,9 @@ function pulverizeAsteroid(index: number) {
     z: asteroid.body.position.z,
   };
   asteroid.body.fx.play(waveFxPresets.impactSparks());
+  asteroid.body.playSound(audios.explosion, {
+    volume: asteroid.small ? 0.35 : 0.75,
+  });
   removeAsteroid(index);
 
   if (asteroid.small) {
@@ -3269,12 +3282,15 @@ function fireLaser() {
 function damageShip() {
   lives -= 1;
   updateHud();
+  ship.playSound(audios.player_hit, { volume: 0.7 });
   ship.setColor(PALETTE.CORAL);
   ship.after(0.2, Seconds).do(() => ship.setColor(PALETTE.WHITE));
 
   if (lives <= 0) {
     gameOver = true;
-    scene.print("Game over: press Run to restart", 30, PALETTE.WHITE);
+    ship.playSound(audios.game_over, { volume: 0.65 });
+    gameOverText.setBackgroundColor(hudBackground);
+    gameOverText.setText("Game over: press Run to restart");
   }
 }
 
@@ -3370,18 +3386,20 @@ updateHud();
 ```
 
 This version polls `myScene.director.isKeyPressed(...)` inside the frame loop.
-W/S fly forward and backward through depth, A/D strafe, and Q/E change height.
+W/S fly forward and backward through depth, A/D strafe, and Arrow Up/Down or
+Q/E change height.
 
 **APIs to steal:** `wave3DObject`, `models.Spaceship`,
 `myScene.director.isKeyPressed`, `myScene.director.whenPress`, `onTick`,
 `waveIcoSphere`, `materials.CrateredRock`, `setScale`, `rollRight`,
-`waveUIText`, `distanceTo`, `moveBy`, `setOpacity`,
+`waveUIText`, `playSound`, `distanceTo`, `moveBy`, `setOpacity`,
 `waveFxPresets.impactSparks`, `after`, `Seconds`, and array-backed game state.
 
-**Natural-language constants:** `Keyboard.W`, `Keyboard.Q`, `Keyboard.E`,
-`Keyboard.Space`, `PALETTE.CYAN`, `PALETTE.CORAL`, `materials.CrateredRock`,
-`Seconds`, and named tuning values such as `shipMoveSpeed`, `laserSpeed`,
-`fireCooldown`, and `shipHitRadius`.
+**Natural-language constants:** `Keyboard.W`, `Keyboard.ArrowUp`,
+`Keyboard.ArrowDown`, `Keyboard.Q`, `Keyboard.E`, `Keyboard.Space`,
+`PALETTE.CYAN`, `PALETTE.CORAL`, `materials.CrateredRock`,
+`audios.explosion`, `audios.player_hit`, `Seconds`, and named tuning values
+such as `shipMoveSpeed`, `laserSpeed`, `fireCooldown`, and `shipHitRadius`.
 
 **Remix challenges:** add a start screen, save high score with `myCloud`, make
 asteroids split twice, add shield pickups, use a real asteroid model, or add a
