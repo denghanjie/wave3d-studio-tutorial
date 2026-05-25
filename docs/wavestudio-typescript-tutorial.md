@@ -3111,6 +3111,33 @@ const ship = new wave3DObject(models.Spaceship);
 ship.placeAt(0, 2.7, shipStartZ);
 ship.setUniformScale(0.18);
 
+const soundKey = new waveSphere(0.16, 12);
+soundKey.placeAt(0, 2.7, 0);
+soundKey.setColor(PALETTE.CYAN);
+soundKey.setEmissiveColor(PALETTE.CYAN);
+soundKey.setEmissiveIntensity(1.8);
+soundKey.setOpacity(0.35);
+
+let lastExplosionSoundAt = 0;
+
+function flashSoundKey(color: number) {
+  soundKey.setColor(color);
+  soundKey.after(0.08, Seconds).do(() => soundKey.setColor(PALETTE.CYAN));
+}
+
+function playExplosionSound() {
+  const now = Date.now();
+  if (now - lastExplosionSoundAt < 80) return;
+  lastExplosionSoundAt = now;
+  soundKey.playSound(audios.explosion);
+  flashSoundKey(PALETTE.YELLOW);
+}
+
+function playHitSound() {
+  soundKey.playSound(audios.player_hit);
+  flashSoundKey(PALETTE.CORAL);
+}
+
 function updateHud() {
   scoreText.setText(`Score: ${score}   Lives: ${lives}`);
 }
@@ -3243,7 +3270,7 @@ function pulverizeAsteroid(index: number) {
     z: asteroid.body.position.z,
   };
   asteroid.body.fx.play(waveFxPresets.impactSparks());
-  ship.playSound(audios.explosion);
+  playExplosionSound();
   removeAsteroid(index);
 
   if (asteroid.small) {
@@ -3284,13 +3311,13 @@ function fireLaser() {
 function damageShip() {
   lives -= 1;
   updateHud();
-  ship.playSound(audios.player_hit);
+  playHitSound();
   ship.setColor(PALETTE.CORAL);
   ship.after(0.2, Seconds).do(() => ship.setColor(PALETTE.WHITE));
 
   if (lives <= 0) {
     gameOver = true;
-    ship.playSound(audios.game_over);
+    soundKey.playSound(audios.game_over);
     gameOverText.setBackgroundColor(hudBackground);
     gameOverText.setText("Game over: press Run to restart");
   }
@@ -3360,8 +3387,10 @@ function checkShipHits() {
   }
 }
 
+soundKey.whenPress(Keyboard.Space, playExplosionSound);
+
 myScene.director.whenPress(Keyboard.Space, () => {
-  ship.playSound(audios.explosion);
+  playExplosionSound();
   fireLaser();
 });
 
@@ -3395,16 +3424,17 @@ skybox with the demo-tested `withSkyboxTexture(...)` chain, and runs the game
 loop from `myScene.director.onTick(...)` so asteroid spawning and keyboard
 control do not depend on the spaceship model receiving object-level events. W/S
 fly forward and backward through depth, A/D strafe, and Arrow Up/Down or Q/E
-change height. Space uses a direct key callback with
-`ship.playSound(audios.explosion)` before firing the laser.
+change height. A tiny cyan `soundKey` sphere owns the object-level sound
+pattern, `soundKey.whenPress(Keyboard.Space, playExplosionSound)`, while the
+director also fires the laser.
 
 **APIs to steal:** `wave3DObject`, `models.Spaceship`,
 `myScene.terrain.remove`, `myScene.sky.withSkyboxTexture`,
 `myScene.director.isKeyPressed`, `myScene.director.whenPress`,
-`myScene.director.onTick`, `waveIcoSphere`, `materials.CrateredRock`,
-`setScale`, `rollRight`, `waveUIText`, `playSound`, `distanceTo`, `moveBy`,
-`setOpacity`, `waveFxPresets.impactSparks`, `after`, `Seconds`, and
-array-backed game state.
+`myScene.director.onTick`, `waveSphere.whenPress`, `waveIcoSphere`,
+`materials.CrateredRock`, `setScale`, `rollRight`, `waveUIText`, `playSound`,
+`distanceTo`, `moveBy`, `setOpacity`, `waveFxPresets.impactSparks`, `after`,
+`Seconds`, and array-backed game state.
 
 **Natural-language constants:** `Keyboard.W`, `Keyboard.ArrowUp`,
 `Keyboard.ArrowDown`, `Keyboard.Q`, `Keyboard.E`, `Keyboard.Space`,
