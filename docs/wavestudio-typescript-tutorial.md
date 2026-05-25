@@ -3107,14 +3107,6 @@ const ship = new wave3DObject(models.Spaceship);
 ship.placeAt(0, 2.7, shipStartZ);
 ship.setUniformScale(0.18);
 
-function playGameSound(clipName: string, volume: number) {
-  ship.playSound(clipName, {
-    volume,
-    oneShot: true,
-    spatialSound: false,
-  });
-}
-
 function updateHud() {
   scoreText.setText(`Score: ${score}   Lives: ${lives}`);
 }
@@ -3247,7 +3239,7 @@ function pulverizeAsteroid(index: number) {
     z: asteroid.body.position.z,
   };
   asteroid.body.fx.play(waveFxPresets.impactSparks());
-  playGameSound(asteroid.small ? audios.enemy_hit : audios.medium_explosion, 1);
+  ship.playSound(audios.explosion);
   removeAsteroid(index);
 
   if (asteroid.small) {
@@ -3282,20 +3274,19 @@ function fireLaser() {
     lifetime: laserLifetime,
   });
 
-  playGameSound(audios.canon_shoot, 0.65);
   ship.after(fireCooldown, Seconds).do(() => canFire = true);
 }
 
 function damageShip() {
   lives -= 1;
   updateHud();
-  playGameSound(audios.player_hit, 1);
+  ship.playSound(audios.player_hit);
   ship.setColor(PALETTE.CORAL);
   ship.after(0.2, Seconds).do(() => ship.setColor(PALETTE.WHITE));
 
   if (lives <= 0) {
     gameOver = true;
-    playGameSound(audios.game_over, 1);
+    ship.playSound(audios.game_over);
     gameOverText.setBackgroundColor(hudBackground);
     gameOverText.setText("Game over: press Run to restart");
   }
@@ -3365,7 +3356,10 @@ function checkShipHits() {
   }
 }
 
-myScene.director.whenPress(Keyboard.Space, fireLaser);
+ship.whenPress(Keyboard.Space, () => {
+  ship.playSound(audios.explosion);
+  fireLaser();
+});
 
 ship.onTick((_self, deltaTime) => {
   if (gameOver) return;
@@ -3394,10 +3388,12 @@ updateHud();
 
 This version polls `myScene.director.isKeyPressed(...)` inside the frame loop.
 W/S fly forward and backward through depth, A/D strafe, and Arrow Up/Down or
-Q/E change height.
+Q/E change height. Space is bound with `ship.whenPress(...)`, matching
+WaveStudio's built-in `t.whenPress(Keyboard.Space, () =>
+t.playSound(audios.explosion))` sound style, then it fires the laser.
 
 **APIs to steal:** `wave3DObject`, `models.Spaceship`,
-`myScene.director.isKeyPressed`, `myScene.director.whenPress`, `onTick`,
+`myScene.director.isKeyPressed`, `ship.whenPress`, `onTick`,
 `waveIcoSphere`, `materials.CrateredRock`, `setScale`, `rollRight`,
 `waveUIText`, `playSound`, `distanceTo`, `moveBy`, `setOpacity`,
 `waveFxPresets.impactSparks`, `after`, `Seconds`, and array-backed game state.
@@ -3405,8 +3401,8 @@ Q/E change height.
 **Natural-language constants:** `Keyboard.W`, `Keyboard.ArrowUp`,
 `Keyboard.ArrowDown`, `Keyboard.Q`, `Keyboard.E`, `Keyboard.Space`,
 `PALETTE.CYAN`, `PALETTE.CORAL`, `materials.CrateredRock`,
-`audios.canon_shoot`, `audios.medium_explosion`, `audios.enemy_hit`,
-`audios.player_hit`, `audios.game_over`, `Seconds`, and named tuning values
+`audios.explosion`, `audios.player_hit`, `audios.game_over`, `Seconds`,
+and named tuning values
 such as `shipMoveSpeed`, `laserSpeed`, `fireCooldown`, and `shipHitRadius`.
 
 **Remix challenges:** add a start screen, save high score with `myCloud`, make

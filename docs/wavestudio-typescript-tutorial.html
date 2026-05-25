@@ -3382,14 +3382,6 @@ const ship = new wave3DObject(models.Spaceship);
 ship.placeAt(0, 2.7, shipStartZ);
 ship.setUniformScale(0.18);
 
-function playGameSound(clipName: string, volume: number) {
-  ship.playSound(clipName, {
-    volume,
-    oneShot: true,
-    spatialSound: false,
-  });
-}
-
 function updateHud() {
   scoreText.setText(`Score: ${score}   Lives: ${lives}`);
 }
@@ -3522,7 +3514,7 @@ function pulverizeAsteroid(index: number) {
     z: asteroid.body.position.z,
   };
   asteroid.body.fx.play(waveFxPresets.impactSparks());
-  playGameSound(asteroid.small ? audios.enemy_hit : audios.medium_explosion, 1);
+  ship.playSound(audios.explosion);
   removeAsteroid(index);
 
   if (asteroid.small) {
@@ -3557,20 +3549,19 @@ function fireLaser() {
     lifetime: laserLifetime,
   });
 
-  playGameSound(audios.canon_shoot, 0.65);
   ship.after(fireCooldown, Seconds).do(() =&gt; canFire = true);
 }
 
 function damageShip() {
   lives -= 1;
   updateHud();
-  playGameSound(audios.player_hit, 1);
+  ship.playSound(audios.player_hit);
   ship.setColor(PALETTE.CORAL);
   ship.after(0.2, Seconds).do(() =&gt; ship.setColor(PALETTE.WHITE));
 
   if (lives &lt;= 0) {
     gameOver = true;
-    playGameSound(audios.game_over, 1);
+    ship.playSound(audios.game_over);
     gameOverText.setBackgroundColor(hudBackground);
     gameOverText.setText("Game over: press Run to restart");
   }
@@ -3640,7 +3631,10 @@ function checkShipHits() {
   }
 }
 
-myScene.director.whenPress(Keyboard.Space, fireLaser);
+ship.whenPress(Keyboard.Space, () =&gt; {
+  ship.playSound(audios.explosion);
+  fireLaser();
+});
 
 ship.onTick((_self, deltaTime) =&gt; {
   if (gameOver) return;
@@ -3665,9 +3659,9 @@ for (let i = 0; i &lt; 5; i++) {
 }
 
 updateHud();</code></pre>
-            <p>This version polls <code>myScene.director.isKeyPressed(...)</code> inside the frame loop. W/S fly forward and backward through depth, A/D strafe, and Arrow Up/Down or Q/E change height.</p>
-            <p><span class="mini-label">APIs to steal</span> <code>wave3DObject</code>, <code>models.Spaceship</code>, <code>myScene.director.isKeyPressed</code>, <code>myScene.director.whenPress</code>, <code>onTick</code>, <code>waveIcoSphere</code>, <code>materials.CrateredRock</code>, <code>setScale</code>, <code>rollRight</code>, <code>waveUIText</code>, <code>playSound</code>, <code>distanceTo</code>, <code>moveBy</code>, <code>setOpacity</code>, <code>waveFxPresets.impactSparks</code>, <code>after</code>, <code>Seconds</code>, and array-backed game state.</p>
-            <p><span class="mini-label">Natural-language constants</span> <code>Keyboard.W</code>, <code>Keyboard.ArrowUp</code>, <code>Keyboard.ArrowDown</code>, <code>Keyboard.Q</code>, <code>Keyboard.E</code>, <code>Keyboard.Space</code>, <code>PALETTE.CYAN</code>, <code>PALETTE.CORAL</code>, <code>materials.CrateredRock</code>, <code>audios.canon_shoot</code>, <code>audios.medium_explosion</code>, <code>audios.enemy_hit</code>, <code>audios.player_hit</code>, <code>audios.game_over</code>, <code>Seconds</code>, and named tuning values such as <code>shipMoveSpeed</code>, <code>laserSpeed</code>, <code>fireCooldown</code>, and <code>shipHitRadius</code>.</p>
+            <p>This version polls <code>myScene.director.isKeyPressed(...)</code> inside the frame loop. W/S fly forward and backward through depth, A/D strafe, and Arrow Up/Down or Q/E change height. Space is bound with <code>ship.whenPress(...)</code>, matching WaveStudio's built-in <code>t.whenPress(Keyboard.Space, () =&gt; t.playSound(audios.explosion))</code> sound style, then it fires the laser.</p>
+            <p><span class="mini-label">APIs to steal</span> <code>wave3DObject</code>, <code>models.Spaceship</code>, <code>myScene.director.isKeyPressed</code>, <code>ship.whenPress</code>, <code>onTick</code>, <code>waveIcoSphere</code>, <code>materials.CrateredRock</code>, <code>setScale</code>, <code>rollRight</code>, <code>waveUIText</code>, <code>playSound</code>, <code>distanceTo</code>, <code>moveBy</code>, <code>setOpacity</code>, <code>waveFxPresets.impactSparks</code>, <code>after</code>, <code>Seconds</code>, and array-backed game state.</p>
+            <p><span class="mini-label">Natural-language constants</span> <code>Keyboard.W</code>, <code>Keyboard.ArrowUp</code>, <code>Keyboard.ArrowDown</code>, <code>Keyboard.Q</code>, <code>Keyboard.E</code>, <code>Keyboard.Space</code>, <code>PALETTE.CYAN</code>, <code>PALETTE.CORAL</code>, <code>materials.CrateredRock</code>, <code>audios.explosion</code>, <code>audios.player_hit</code>, <code>audios.game_over</code>, <code>Seconds</code>, and named tuning values such as <code>shipMoveSpeed</code>, <code>laserSpeed</code>, <code>fireCooldown</code>, and <code>shipHitRadius</code>.</p>
             <ul class="remix-list"><li>Add a start screen.</li><li>Save high score with <code>myCloud</code>.</li><li>Make asteroids split twice.</li><li>Add shield pickups.</li><li>Add a boss asteroid.</li></ul>
             <p class="source-note">Source demo reference: combines ideas from <code>runway-runner/main.ts</code>, <code>shooting-range/main.ts</code>, and Boss Project 1's recursive-fragment mindset.</p>
           </div>
