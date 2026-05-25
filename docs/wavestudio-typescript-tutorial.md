@@ -3024,12 +3024,14 @@ type GameProjectile = {
 
 type GameAsteroid = {
   body: waveIcoSphere;
+  warning: waveSphere | null;
   radius: number;
   speed: number;
   driftX: number;
   driftY: number;
   spin: number;
   small: boolean;
+  nearMissScored: boolean;
   age: number;
   lifetime: number;
 };
@@ -3037,17 +3039,18 @@ type GameAsteroid = {
 const arenaHalfWidth = 8;
 const arenaMinY = 0.8;
 const arenaMaxY = 5.6;
-const asteroidSpawnZ = 9;
-const asteroidExitZ = -10;
+const asteroidSpawnZ = 11;
+const asteroidExitZ = -12;
 const arenaMinZ = -8;
 const arenaMaxZ = -2;
 const shipStartZ = -7;
-const shipMoveSpeed = 5;
+const shipMoveSpeed = 6;
 const laserSpeed = 18;
 const laserLifetime = 1.2;
 const fireCooldown = 0.18;
 const shipHitRadius = 0.42;
 const laserRadius = 0.18;
+const nearMissBonusRadius = 1.6;
 
 let score = 0;
 let lives = 3;
@@ -3093,11 +3096,11 @@ scoreText.setSize(300, 40);
 scoreText.setScreenPositionPixels(24, 24);
 
 const helpText = new waveUIText();
-helpText.setText("Click preview | W/S depth | A/D strafe | Arrows/QE height | Space fire");
+helpText.setText("WASD/QE fly | Space blast | Coral dots show impact paths");
 helpText.setFontSize(16);
 helpText.setColor(PALETTE.CYAN);
 helpText.setBackgroundColor(PALETTE.modifyAlphaChannel(PALETTE.BLACK, 35));
-helpText.setSize(620, 40);
+helpText.setSize(650, 40);
 helpText.setScreenPositionPixels(24, 72);
 
 const gameOverText = new waveUIText();
@@ -3137,6 +3140,48 @@ function playHitSound() {
   soundKey.playSound(audios.player_hit);
   flashSoundKey(PALETTE.CORAL);
 }
+
+function createGateBar(
+  width: number,
+  height: number,
+  depth: number,
+  x: number,
+  y: number,
+  z: number,
+  color: number,
+  opacity: number
+) {
+  const bar = new waveCube(width, height, depth);
+  bar.placeAt(x, y, z);
+  bar.setColor(color);
+  bar.setEmissiveColor(color);
+  bar.setEmissiveIntensity(0.7);
+  bar.setOpacity(opacity);
+  return bar;
+}
+
+function createDepthGate(z: number, color: number, opacity: number) {
+  const centerY = (arenaMinY + arenaMaxY) / 2;
+  const height = arenaMaxY - arenaMinY;
+  createGateBar(0.08, height, 0.08, -arenaHalfWidth, centerY, z, color, opacity);
+  createGateBar(0.08, height, 0.08, arenaHalfWidth, centerY, z, color, opacity);
+  createGateBar(arenaHalfWidth * 2, 0.08, 0.08, 0, arenaMinY, z, color, opacity);
+  createGateBar(arenaHalfWidth * 2, 0.08, 0.08, 0, arenaMaxY, z, color, opacity);
+}
+
+function createTunnelRail(x: number, y: number) {
+  const railDepth = asteroidSpawnZ - arenaMinZ + 2;
+  const railCenterZ = (asteroidSpawnZ + arenaMinZ) / 2;
+  createGateBar(0.06, 0.06, railDepth, x, y, railCenterZ, PALETTE.BLUE, 0.38);
+}
+
+[arenaMinZ, -5, arenaMaxZ, 1, 4, 7, asteroidSpawnZ].forEach((z, index) => {
+  createDepthGate(z, index % 2 === 0 ? PALETTE.CYAN : PALETTE.BLUE, 0.32);
+});
+createTunnelRail(-arenaHalfWidth, arenaMinY);
+createTunnelRail(arenaHalfWidth, arenaMinY);
+createTunnelRail(-arenaHalfWidth, arenaMaxY);
+createTunnelRail(arenaHalfWidth, arenaMaxY);
 
 function updateHud() {
   scoreText.setText(`Score: ${score}   Lives: ${lives}`);
@@ -3196,28 +3241,42 @@ function spawnAsteroid(z = asteroidSpawnZ) {
   const rockScaleX = randomRange(0.85, 1.45);
   const rockScaleY = randomRange(0.7, 1.25);
   const rockScaleZ = randomRange(0.8, 1.5);
+  const startX = randomRange(-arenaHalfWidth, arenaHalfWidth);
+  const startY = randomRange(arenaMinY, arenaMaxY);
+  const targetZ = clamp(ship.position.z, arenaMinZ, arenaMaxZ);
+  const targetX = clamp(ship.position.x + randomRange(-2.4, 2.4), -arenaHalfWidth + 0.8, arenaHalfWidth - 0.8);
+  const targetY = clamp(ship.position.y + randomRange(-1.1, 1.1), arenaMinY + 0.3, arenaMaxY - 0.3);
+  const speed = randomRange(4.8, 7.2) + Math.min(score * 0.04, 2.8);
+  const timeToTarget = Math.max(0.75, (z - targetZ) / speed);
+
   const asteroid = new waveIcoSphere(rockRadius, 1, true);
-  asteroid.placeAt(
-    randomRange(-arenaHalfWidth, arenaHalfWidth),
-    randomRange(arenaMinY, arenaMaxY),
-    z
-  );
+  asteroid.placeAt(startX, startY, z);
   asteroid.setScale(rockScaleX, rockScaleY, rockScaleZ);
   asteroid.useMaterial(materials.CrateredRock);
   asteroid.setColor(PALETTE.darken(PALETTE.SLATE, 25));
   asteroid.setRoughness(1);
   asteroid.addTag("asteroid");
 
+  const warning = new waveSphere(Math.max(0.18, rockRadius * 0.35), 12);
+  warning.placeAt(targetX, targetY, targetZ);
+  warning.setColor(PALETTE.CORAL);
+  warning.setEmissiveColor(PALETTE.CORAL);
+  warning.setEmissiveIntensity(2.2);
+  warning.setOpacity(0.72);
+  warning.addTag("danger-marker");
+
   asteroids.push({
     body: asteroid,
+    warning,
     radius: rockRadius * Math.max(rockScaleX, rockScaleY, rockScaleZ),
-    speed: randomRange(2.2, 4.2),
-    driftX: randomRange(-0.8, 0.8),
-    driftY: randomRange(-0.25, 0.25),
+    speed,
+    driftX: (targetX - startX) / timeToTarget,
+    driftY: (targetY - startY) / timeToTarget,
     spin: randomRange(45, 130),
     small: false,
+    nearMissScored: false,
     age: 0,
-    lifetime: 8,
+    lifetime: 5.5,
   });
 }
 
@@ -3239,12 +3298,14 @@ function spawnShard(center: { x: number; y: number; z: number }, angleDegrees: n
 
   asteroids.push({
     body: shard,
+    warning: null,
     radius: shardRadius,
-    speed: randomRange(1.5, 2.6),
+    speed: randomRange(2.6, 4.0),
     driftX: Math.cos(radians) * randomRange(0.8, 1.8),
     driftY: Math.sin(radians) * randomRange(0.3, 0.9),
     spin: randomRange(120, 260),
     small: true,
+    nearMissScored: true,
     age: 0,
     lifetime: randomRange(1.4, 2.4),
   });
@@ -3259,6 +3320,7 @@ function removeProjectile(index: number) {
 function removeAsteroid(index: number) {
   const asteroid = asteroids[index];
   if (!asteroid.body.isDestroyed) asteroid.body.destroy();
+  if (asteroid.warning && !asteroid.warning.isDestroyed) asteroid.warning.destroy();
   asteroids.splice(index, 1);
 }
 
@@ -3347,6 +3409,30 @@ function updateAsteroids(deltaTime: number) {
     asteroid.body.turnRight(asteroid.spin * deltaTime);
     asteroid.body.rollRight(asteroid.spin * 0.45 * deltaTime);
 
+    if (asteroid.warning && !asteroid.warning.isDestroyed) {
+      const warningDistance = Math.abs(asteroid.body.position.z - asteroid.warning.position.z);
+      asteroid.warning.setOpacity(clamp(1 - warningDistance / 8, 0.22, 0.82));
+      if (warningDistance < 1.2) asteroid.warning.setColor(PALETTE.CORAL);
+      else if (warningDistance < 3) asteroid.warning.setColor(PALETTE.YELLOW);
+      else asteroid.warning.setColor(PALETTE.CORAL);
+    }
+
+    if (!asteroid.small && !asteroid.nearMissScored && asteroid.body.position.z < ship.position.z - 0.25) {
+      const dx = asteroid.body.position.x - ship.position.x;
+      const dy = asteroid.body.position.y - ship.position.y;
+      const lateralDistance = Math.sqrt(dx * dx + dy * dy);
+      const crashDistance = asteroid.radius + shipHitRadius;
+      if (lateralDistance > crashDistance && lateralDistance < crashDistance + nearMissBonusRadius) {
+        asteroid.nearMissScored = true;
+        score += 2;
+        updateHud();
+        if (asteroid.warning && !asteroid.warning.isDestroyed) {
+          asteroid.warning.setColor(PALETTE.GREEN);
+          asteroid.warning.setOpacity(0.9);
+        }
+      }
+    }
+
     if (asteroid.small) {
       const fade = Math.max(0, 1 - asteroid.age / asteroid.lifetime);
       asteroid.body.setOpacity(fade);
@@ -3403,7 +3489,7 @@ myScene.director.onTick((_self, deltaTime) => {
   spawnTimer -= deltaTime;
   if (spawnTimer <= 0) {
     spawnAsteroid();
-    spawnTimer = randomRange(0.55, 1.05);
+    spawnTimer = randomRange(0.32, 0.62);
   }
 
   updateProjectiles(deltaTime);
@@ -3412,8 +3498,8 @@ myScene.director.onTick((_self, deltaTime) => {
   checkShipHits();
 });
 
-for (let i = 0; i < 5; i++) {
-  spawnAsteroid(asteroidSpawnZ - i * 2.5);
+for (let i = 0; i < 7; i++) {
+  spawnAsteroid(asteroidSpawnZ - i * 2);
 }
 
 updateHud();
@@ -3422,23 +3508,26 @@ updateHud();
 This version removes the default terrain, uses the built-in `textures.space1`
 skybox with the demo-tested `withSkyboxTexture(...)` chain, and runs the game
 loop from `myScene.director.onTick(...)` so asteroid spawning and keyboard
-control do not depend on the spaceship model receiving object-level events. W/S
-fly forward and backward through depth, A/D strafe, and Arrow Up/Down or Q/E
-change height. A tiny cyan `soundKey` sphere owns the object-level sound
-pattern, `soundKey.whenPress(Keyboard.Space, playExplosionSound)`, while the
-director also fires the laser.
+control do not depend on the spaceship model receiving object-level events. The
+neon corridor makes the playable volume visible, coral impact dots show where
+rocks are aimed, and near-misses add bonus points. W/S fly forward and backward
+through depth, A/D strafe, and Arrow Up/Down or Q/E change height. A tiny cyan
+`soundKey` sphere owns the object-level sound pattern,
+`soundKey.whenPress(Keyboard.Space, playExplosionSound)`, while the director
+also fires the laser.
 
 **APIs to steal:** `wave3DObject`, `models.Spaceship`,
 `myScene.terrain.remove`, `myScene.sky.withSkyboxTexture`,
 `myScene.director.isKeyPressed`, `myScene.director.whenPress`,
 `myScene.director.onTick`, `waveSphere.whenPress`, `waveIcoSphere`,
-`materials.CrateredRock`, `setScale`, `rollRight`, `waveUIText`, `playSound`,
-`distanceTo`, `moveBy`, `setOpacity`, `waveFxPresets.impactSparks`, `after`,
-`Seconds`, and array-backed game state.
+`waveCube`, `materials.CrateredRock`, `setScale`, `rollRight`, `waveUIText`,
+`playSound`, `distanceTo`, `moveBy`, `setOpacity`,
+`waveFxPresets.impactSparks`, `after`, `Seconds`, and array-backed game state.
 
 **Natural-language constants:** `Keyboard.W`, `Keyboard.ArrowUp`,
 `Keyboard.ArrowDown`, `Keyboard.Q`, `Keyboard.E`, `Keyboard.Space`,
-`PALETTE.BLACK`, `PALETTE.CYAN`, `PALETTE.CORAL`, `textures.space1`,
+`PALETTE.BLACK`, `PALETTE.BLUE`, `PALETTE.CYAN`, `PALETTE.CORAL`,
+`PALETTE.YELLOW`, `PALETTE.GREEN`, `textures.space1`,
 `materials.CrateredRock`, `audios.explosion`, `audios.player_hit`,
 `audios.game_over`, `Seconds`, and named tuning values
 such as `shipMoveSpeed`, `laserSpeed`, `fireCooldown`, and `shipHitRadius`.
