@@ -3058,6 +3058,16 @@ let gameOver = false;
 const projectiles: GameProjectile[] = [];
 const asteroids: GameAsteroid[] = [];
 
+myScene.terrain.remove();
+
+myScene.sky
+  .disableProcedural()
+  .skyboxTexture(textures.space1)
+  .skyboxSize(50000)
+  .skyboxIntensity(0.8)
+  .backgroundColor(PALETTE.BLACK)
+  .apply();
+
 scene.camera
   .orbit({
     target: { x: 0, y: 2.6, z: 0 },
@@ -3097,11 +3107,6 @@ gameOverText.setFontSize(24);
 gameOverText.setColor(PALETTE.CORAL);
 gameOverText.setSize(520, 46);
 gameOverText.setScreenPositionPixels(24, 124);
-
-const playfield = new waveGround(18, 22, 4);
-playfield.placeAt(0, -0.05, 0);
-playfield.setColor(PALETTE.CHARCOAL);
-playfield.setOpacity(0.35);
 
 const ship = new wave3DObject(models.Spaceship);
 ship.placeAt(0, 2.7, shipStartZ);
@@ -3160,7 +3165,7 @@ function randomRange(min: number, max: number) {
   return min + Math.random() * (max - min);
 }
 
-function spawnAsteroid() {
+function spawnAsteroid(z = asteroidSpawnZ) {
   const rockRadius = randomRange(0.55, 1.05);
   const rockScaleX = randomRange(0.85, 1.45);
   const rockScaleY = randomRange(0.7, 1.25);
@@ -3169,7 +3174,7 @@ function spawnAsteroid() {
   asteroid.placeAt(
     randomRange(-arenaHalfWidth, arenaHalfWidth),
     randomRange(arenaMinY, arenaMaxY),
-    asteroidSpawnZ
+    z
   );
   asteroid.setScale(rockScaleX, rockScaleY, rockScaleZ);
   asteroid.useMaterial(materials.CrateredRock);
@@ -3356,12 +3361,12 @@ function checkShipHits() {
   }
 }
 
-ship.whenPress(Keyboard.Space, () => {
+myScene.director.whenPress(Keyboard.Space, () => {
   ship.playSound(audios.explosion);
   fireLaser();
 });
 
-ship.onTick((_self, deltaTime) => {
+myScene.director.onTick((_self, deltaTime) => {
   if (gameOver) return;
 
   updateShipControls(deltaTime);
@@ -3380,29 +3385,32 @@ ship.onTick((_self, deltaTime) => {
 });
 
 for (let i = 0; i < 5; i++) {
-  spawnAsteroid();
+  spawnAsteroid(asteroidSpawnZ - i * 2.5);
 }
 
 updateHud();
 ```
 
-This version polls `myScene.director.isKeyPressed(...)` inside the frame loop.
-W/S fly forward and backward through depth, A/D strafe, and Arrow Up/Down or
-Q/E change height. Space is bound with `ship.whenPress(...)`, matching
-WaveStudio's built-in `t.whenPress(Keyboard.Space, () =>
-t.playSound(audios.explosion))` sound style, then it fires the laser.
+This version removes the default terrain, uses the built-in `textures.space1`
+skybox, and runs the game loop from `myScene.director.onTick(...)` so asteroid
+spawning and keyboard control do not depend on the spaceship model receiving
+object-level events. W/S fly forward and backward through depth, A/D strafe, and
+Arrow Up/Down or Q/E change height. Space uses a direct key callback with
+`ship.playSound(audios.explosion)` before firing the laser.
 
 **APIs to steal:** `wave3DObject`, `models.Spaceship`,
-`myScene.director.isKeyPressed`, `ship.whenPress`, `onTick`,
-`waveIcoSphere`, `materials.CrateredRock`, `setScale`, `rollRight`,
-`waveUIText`, `playSound`, `distanceTo`, `moveBy`, `setOpacity`,
-`waveFxPresets.impactSparks`, `after`, `Seconds`, and array-backed game state.
+`myScene.terrain.remove`, `myScene.sky.skyboxTexture`,
+`myScene.director.isKeyPressed`, `myScene.director.whenPress`,
+`myScene.director.onTick`, `waveIcoSphere`, `materials.CrateredRock`,
+`setScale`, `rollRight`, `waveUIText`, `playSound`, `distanceTo`, `moveBy`,
+`setOpacity`, `waveFxPresets.impactSparks`, `after`, `Seconds`, and
+array-backed game state.
 
 **Natural-language constants:** `Keyboard.W`, `Keyboard.ArrowUp`,
 `Keyboard.ArrowDown`, `Keyboard.Q`, `Keyboard.E`, `Keyboard.Space`,
-`PALETTE.CYAN`, `PALETTE.CORAL`, `materials.CrateredRock`,
-`audios.explosion`, `audios.player_hit`, `audios.game_over`, `Seconds`,
-and named tuning values
+`PALETTE.BLACK`, `PALETTE.CYAN`, `PALETTE.CORAL`, `textures.space1`,
+`materials.CrateredRock`, `audios.explosion`, `audios.player_hit`,
+`audios.game_over`, `Seconds`, and named tuning values
 such as `shipMoveSpeed`, `laserSpeed`, `fireCooldown`, and `shipHitRadius`.
 
 **Remix challenges:** add a start screen, save high score with `myCloud`, make
