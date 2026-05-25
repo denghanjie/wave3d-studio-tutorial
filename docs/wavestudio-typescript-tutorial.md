@@ -3009,7 +3009,7 @@ sculpting brush, or a CSG puzzle where players carve keys from blocks.
 
 ### Boss Project 11: Asteroid Evader
 
-**What you build:** a keyboard-controlled spaceship, moving asteroids, laser
+**What you build:** a true-3D keyboard-controlled spaceship, rough asteroids, laser
 shots, score/lives HUD, and recursive-style asteroid breakup. Large asteroids
 turn into small fragments; fragments fade away over time.
 
@@ -3023,7 +3023,7 @@ type GameProjectile = {
 };
 
 type GameAsteroid = {
-  body: waveSphere;
+  body: waveIcoSphere;
   radius: number;
   speed: number;
   driftX: number;
@@ -3039,12 +3039,14 @@ const arenaMinY = 0.8;
 const arenaMaxY = 5.6;
 const asteroidSpawnZ = 9;
 const asteroidExitZ = -10;
-const shipZ = -7;
+const arenaMinZ = -8;
+const arenaMaxZ = -2;
+const shipStartZ = -7;
 const shipMoveSpeed = 5;
 const laserSpeed = 18;
 const laserLifetime = 1.2;
 const fireCooldown = 0.18;
-const shipHitRadius = 0.75;
+const shipHitRadius = 0.42;
 const laserRadius = 0.18;
 
 let score = 0;
@@ -3082,7 +3084,7 @@ scoreText.setSize(330, 46);
 scoreText.setScreenPositionPixels(24, 24);
 
 const helpText = new waveUIText();
-helpText.setText("Click preview, then WASD move | Space fire");
+helpText.setText("Click preview, then WASD fly | Q/E height | Space fire");
 helpText.setFontSize(18);
 helpText.setColor(PALETTE.CYAN);
 helpText.setScreenPositionPixels(24, 76);
@@ -3093,9 +3095,9 @@ playfield.setColor(PALETTE.CHARCOAL);
 playfield.setOpacity(0.35);
 
 const ship = new wave3DObject(models.Spaceship);
-ship.placeAt(0, 2.7, shipZ);
-ship.setUniformScale(0.35);
-ship.showDirection({ length: 1.5 });
+ship.placeAt(0, 2.7, shipStartZ);
+ship.setUniformScale(0.18);
+ship.showDirection({ length: 0.85 });
 
 function updateHud() {
   scoreText.setText(`Score: ${score}   Lives: ${lives}`);
@@ -3105,34 +3107,43 @@ function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
 }
 
-function placeShipInArena(x: number, y: number) {
+function placeShipInArena(x: number, y: number, z: number) {
   const nextX = clamp(x, -arenaHalfWidth, arenaHalfWidth);
   const nextY = clamp(y, arenaMinY, arenaMaxY);
-  ship.placeAt(nextX, nextY, shipZ);
+  const nextZ = clamp(z, arenaMinZ, arenaMaxZ);
+  ship.placeAt(nextX, nextY, nextZ);
 }
 
 function updateShipControls(deltaTime: number) {
   let inputX = 0;
   let inputY = 0;
+  let inputZ = 0;
 
   if (myScene.director.isKeyPressed(Keyboard.A)) inputX -= 1;
   if (myScene.director.isKeyPressed(Keyboard.D)) inputX += 1;
-  if (myScene.director.isKeyPressed(Keyboard.W)) inputY += 1;
-  if (myScene.director.isKeyPressed(Keyboard.S)) inputY -= 1;
+  if (myScene.director.isKeyPressed(Keyboard.Q)) inputY -= 1;
+  if (myScene.director.isKeyPressed(Keyboard.E)) inputY += 1;
+  if (myScene.director.isKeyPressed(Keyboard.W)) inputZ += 1;
+  if (myScene.director.isKeyPressed(Keyboard.S)) inputZ -= 1;
 
-  if (inputX === 0 && inputY === 0) return;
+  if (inputX === 0 && inputY === 0 && inputZ === 0) return;
 
-  const diagonalScale = inputX !== 0 && inputY !== 0 ? 0.707 : 1;
-  const step = shipMoveSpeed * deltaTime * diagonalScale;
+  const activeAxes = Math.abs(inputX) + Math.abs(inputY) + Math.abs(inputZ);
+  const step = shipMoveSpeed * deltaTime / Math.sqrt(activeAxes);
   const position = ship.position;
-  placeShipInArena(position.x + inputX * step, position.y + inputY * step);
+  placeShipInArena(
+    position.x + inputX * step,
+    position.y + inputY * step,
+    position.z + inputZ * step
+  );
 }
 
 function clampShipToArena() {
   const position = ship.position;
   const x = clamp(position.x, -arenaHalfWidth, arenaHalfWidth);
   const y = clamp(position.y, arenaMinY, arenaMaxY);
-  ship.placeAt(x, y, shipZ);
+  const z = clamp(position.z, arenaMinZ, arenaMaxZ);
+  ship.placeAt(x, y, z);
 }
 
 function randomRange(min: number, max: number) {
@@ -3140,20 +3151,25 @@ function randomRange(min: number, max: number) {
 }
 
 function spawnAsteroid() {
-  const radius = randomRange(0.55, 1.05);
-  const asteroid = new waveSphere(radius, 12);
+  const rockRadius = randomRange(0.55, 1.05);
+  const rockScaleX = randomRange(0.85, 1.45);
+  const rockScaleY = randomRange(0.7, 1.25);
+  const rockScaleZ = randomRange(0.8, 1.5);
+  const asteroid = new waveIcoSphere(rockRadius, 1, true);
   asteroid.placeAt(
     randomRange(-arenaHalfWidth, arenaHalfWidth),
     randomRange(arenaMinY, arenaMaxY),
     asteroidSpawnZ
   );
-  asteroid.setColor(PALETTE.darken(PALETTE.LIGHT_GRAY, 20));
-  asteroid.setRoughness(0.9);
+  asteroid.setScale(rockScaleX, rockScaleY, rockScaleZ);
+  asteroid.useMaterial(materials.CrateredRock);
+  asteroid.setColor(PALETTE.darken(PALETTE.SLATE, 25));
+  asteroid.setRoughness(1);
   asteroid.addTag("asteroid");
 
   asteroids.push({
     body: asteroid,
-    radius,
+    radius: rockRadius * Math.max(rockScaleX, rockScaleY, rockScaleZ),
     speed: randomRange(2.2, 4.2),
     driftX: randomRange(-0.8, 0.8),
     driftY: randomRange(-0.25, 0.25),
@@ -3167,15 +3183,17 @@ function spawnAsteroid() {
 function spawnShard(center: { x: number; y: number; z: number }, angleDegrees: number) {
   const shardRadius = randomRange(0.16, 0.28);
   const radians = angleDegrees * Math.PI / 180;
-  const shard = new waveSphere(shardRadius, 8);
+  const shard = new waveIcoSphere(shardRadius, 1, true);
   shard.placeAt(
     center.x + Math.cos(radians) * 0.5,
     center.y + Math.sin(radians) * 0.3,
     center.z
   );
-  shard.setColor(PALETTE.SILVER);
+  shard.setScale(randomRange(0.75, 1.35), randomRange(0.65, 1.25), randomRange(0.8, 1.4));
+  shard.useMaterial(materials.CrateredRock);
+  shard.setColor(PALETTE.darken(PALETTE.LIGHT_GRAY, 35));
   shard.setOpacity(0.85);
-  shard.setRoughness(0.8);
+  shard.setRoughness(1);
   shard.addTag("asteroid-fragment");
 
   asteroids.push({
@@ -3282,6 +3300,7 @@ function updateAsteroids(deltaTime: number) {
       z: -asteroid.speed * deltaTime,
     });
     asteroid.body.turnRight(asteroid.spin * deltaTime);
+    asteroid.body.rollRight(asteroid.spin * 0.45 * deltaTime);
 
     if (asteroid.small) {
       const fade = Math.max(0, 1 - asteroid.age / asteroid.lifetime);
@@ -3350,18 +3369,19 @@ for (let i = 0; i < 5; i++) {
 updateHud();
 ```
 
-This version polls `myScene.director.isKeyPressed(...)` inside the frame loop,
-which is usually more dependable for a copied game snippet than attaching
-movement to object-scoped `whenHolding` callbacks.
+This version polls `myScene.director.isKeyPressed(...)` inside the frame loop.
+W/S fly forward and backward through depth, A/D strafe, and Q/E change height.
 
 **APIs to steal:** `wave3DObject`, `models.Spaceship`,
 `myScene.director.isKeyPressed`, `myScene.director.whenPress`, `onTick`,
+`waveIcoSphere`, `materials.CrateredRock`, `setScale`, `rollRight`,
 `waveUIText`, `distanceTo`, `moveBy`, `setOpacity`,
 `waveFxPresets.impactSparks`, `after`, `Seconds`, and array-backed game state.
 
-**Natural-language constants:** `Keyboard.W`, `Keyboard.Space`,
-`PALETTE.CYAN`, `PALETTE.CORAL`, `Seconds`, and named tuning values such as
-`laserSpeed`, `fireCooldown`, and `shipHitRadius`.
+**Natural-language constants:** `Keyboard.W`, `Keyboard.Q`, `Keyboard.E`,
+`Keyboard.Space`, `PALETTE.CYAN`, `PALETTE.CORAL`, `materials.CrateredRock`,
+`Seconds`, and named tuning values such as `shipMoveSpeed`, `laserSpeed`,
+`fireCooldown`, and `shipHitRadius`.
 
 **Remix challenges:** add a start screen, save high score with `myCloud`, make
 asteroids split twice, add shield pickups, use a real asteroid model, or add a
