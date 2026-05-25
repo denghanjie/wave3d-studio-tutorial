@@ -3336,8 +3336,7 @@ const asteroids: GameAsteroid[] = [];
 myScene.terrain.remove();
 
 myScene.sky
-  .disableProcedural()
-  .skyboxTexture(textures.space1)
+  .withSkyboxTexture(textures.space1)
   .skyboxSize(50000)
   .skyboxIntensity(0.8)
   .backgroundColor(PALETTE.BLACK)
@@ -3664,8 +3663,8 @@ for (let i = 0; i &lt; 5; i++) {
 }
 
 updateHud();</code></pre>
-            <p>This version removes the default terrain, uses the built-in <code>textures.space1</code> skybox, and runs the game loop from <code>myScene.director.onTick(...)</code> so asteroid spawning and keyboard control do not depend on the spaceship model receiving object-level events. W/S fly forward and backward through depth, A/D strafe, and Arrow Up/Down or Q/E change height. Space uses a direct key callback with <code>ship.playSound(audios.explosion)</code> before firing the laser.</p>
-            <p><span class="mini-label">APIs to steal</span> <code>wave3DObject</code>, <code>models.Spaceship</code>, <code>myScene.terrain.remove</code>, <code>myScene.sky.skyboxTexture</code>, <code>myScene.director.isKeyPressed</code>, <code>myScene.director.whenPress</code>, <code>myScene.director.onTick</code>, <code>waveIcoSphere</code>, <code>materials.CrateredRock</code>, <code>setScale</code>, <code>rollRight</code>, <code>waveUIText</code>, <code>playSound</code>, <code>distanceTo</code>, <code>moveBy</code>, <code>setOpacity</code>, <code>waveFxPresets.impactSparks</code>, <code>after</code>, <code>Seconds</code>, and array-backed game state.</p>
+            <p>This version removes the default terrain, uses the built-in <code>textures.space1</code> skybox with the demo-tested <code>withSkyboxTexture(...)</code> chain, and runs the game loop from <code>myScene.director.onTick(...)</code> so asteroid spawning and keyboard control do not depend on the spaceship model receiving object-level events. W/S fly forward and backward through depth, A/D strafe, and Arrow Up/Down or Q/E change height. Space uses a direct key callback with <code>ship.playSound(audios.explosion)</code> before firing the laser.</p>
+            <p><span class="mini-label">APIs to steal</span> <code>wave3DObject</code>, <code>models.Spaceship</code>, <code>myScene.terrain.remove</code>, <code>myScene.sky.withSkyboxTexture</code>, <code>myScene.director.isKeyPressed</code>, <code>myScene.director.whenPress</code>, <code>myScene.director.onTick</code>, <code>waveIcoSphere</code>, <code>materials.CrateredRock</code>, <code>setScale</code>, <code>rollRight</code>, <code>waveUIText</code>, <code>playSound</code>, <code>distanceTo</code>, <code>moveBy</code>, <code>setOpacity</code>, <code>waveFxPresets.impactSparks</code>, <code>after</code>, <code>Seconds</code>, and array-backed game state.</p>
             <p><span class="mini-label">Natural-language constants</span> <code>Keyboard.W</code>, <code>Keyboard.ArrowUp</code>, <code>Keyboard.ArrowDown</code>, <code>Keyboard.Q</code>, <code>Keyboard.E</code>, <code>Keyboard.Space</code>, <code>PALETTE.BLACK</code>, <code>PALETTE.CYAN</code>, <code>PALETTE.CORAL</code>, <code>textures.space1</code>, <code>materials.CrateredRock</code>, <code>audios.explosion</code>, <code>audios.player_hit</code>, <code>audios.game_over</code>, <code>Seconds</code>, and named tuning values such as <code>shipMoveSpeed</code>, <code>laserSpeed</code>, <code>fireCooldown</code>, and <code>shipHitRadius</code>.</p>
             <ul class="remix-list"><li>Add a start screen.</li><li>Save high score with <code>myCloud</code>.</li><li>Make asteroids split twice.</li><li>Add shield pickups.</li><li>Add a boss asteroid.</li></ul>
             <p class="source-note">Source demo reference: combines ideas from <code>runway-runner/main.ts</code>, <code>shooting-range/main.ts</code>, and Boss Project 1's recursive-fragment mindset.</p>

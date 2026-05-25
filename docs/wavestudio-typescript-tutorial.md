@@ -3061,8 +3061,7 @@ const asteroids: GameAsteroid[] = [];
 myScene.terrain.remove();
 
 myScene.sky
-  .disableProcedural()
-  .skyboxTexture(textures.space1)
+  .withSkyboxTexture(textures.space1)
   .skyboxSize(50000)
   .skyboxIntensity(0.8)
   .backgroundColor(PALETTE.BLACK)
@@ -3392,14 +3391,15 @@ updateHud();
 ```
 
 This version removes the default terrain, uses the built-in `textures.space1`
-skybox, and runs the game loop from `myScene.director.onTick(...)` so asteroid
-spawning and keyboard control do not depend on the spaceship model receiving
-object-level events. W/S fly forward and backward through depth, A/D strafe, and
-Arrow Up/Down or Q/E change height. Space uses a direct key callback with
+skybox with the demo-tested `withSkyboxTexture(...)` chain, and runs the game
+loop from `myScene.director.onTick(...)` so asteroid spawning and keyboard
+control do not depend on the spaceship model receiving object-level events. W/S
+fly forward and backward through depth, A/D strafe, and Arrow Up/Down or Q/E
+change height. Space uses a direct key callback with
 `ship.playSound(audios.explosion)` before firing the laser.
 
 **APIs to steal:** `wave3DObject`, `models.Spaceship`,
-`myScene.terrain.remove`, `myScene.sky.skyboxTexture`,
+`myScene.terrain.remove`, `myScene.sky.withSkyboxTexture`,
 `myScene.director.isKeyPressed`, `myScene.director.whenPress`,
 `myScene.director.onTick`, `waveIcoSphere`, `materials.CrateredRock`,
 `setScale`, `rollRight`, `waveUIText`, `playSound`, `distanceTo`, `moveBy`,
