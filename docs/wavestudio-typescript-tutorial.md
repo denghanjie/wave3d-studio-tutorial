@@ -3381,7 +3381,7 @@ function damageShip() {
     gameOver = true;
     soundKey.playSound(audios.game_over);
     gameOverText.setBackgroundColor(hudBackground);
-    gameOverText.setText("Game over: press Run to restart");
+    gameOverText.setText("Game over: restart the script to play again");
   }
 }
 
@@ -3594,7 +3594,7 @@ hud.setSize(360, 48);
 hud.setScreenPositionPixels(24, 24);
 
 const help = new waveUIText();
-help.setText("Click preview, WASD move, Space repaint");
+help.setText("Focus 3D view | WASD move | Space color");
 help.setFontSize(18);
 help.setColor(PALETTE.CYAN);
 help.setScreenPositionPixels(24, 76);
@@ -3690,7 +3690,7 @@ function handleCatch(index: number) {
 
   if (lives <= 0) {
     gameOver = true;
-    scene.print("Game over. Press Run to play again!", 30, PALETTE.WHITE);
+    scene.print("Game over. Restart the script to play again!", 30, PALETTE.WHITE);
   }
 }
 
@@ -3793,7 +3793,7 @@ bubbleHud.setSize(380, 48);
 bubbleHud.setScreenPositionPixels(24, 24);
 
 const bubbleHelp = new waveUIText();
-bubbleHelp.setText("Click preview, A/D move, Space spell");
+bubbleHelp.setText("Focus 3D view | A/D move | Space spell");
 bubbleHelp.setFontSize(18);
 bubbleHelp.setColor(PALETTE.CYAN);
 bubbleHelp.setScreenPositionPixels(24, 76);
@@ -3944,7 +3944,7 @@ wand.onTick((_self, deltaTime) => {
       updateBubbleHud();
       if (bubbleLives <= 0) {
         bubbleGameOver = true;
-        scene.print("The bubbles won. Press Run to try again!", 30, PALETTE.WHITE);
+        scene.print("The bubbles won. Restart the script to try again!", 30, PALETTE.WHITE);
       }
       continue;
     }
@@ -4832,8 +4832,8 @@ Run this check every time the tutorial is added to, removed from, or modified:
 6. Copyability: every `ts` or `typescript` block compiles as an isolated
    WaveStudio paste; partial fragments, command examples, and globals lists use
    non-TypeScript fences.
-7. Runtime behavior: interactive snippets are pasted into WaveStudio, Run is
-   pressed, the preview is focused, and the primary behavior is checked with
+7. Runtime behavior: interactive snippets are pasted into WaveStudio, the 3D
+   view is focused, and the primary behavior is checked with
    real input such as click, WASD, Space, or pointer drawing. Typecheck alone is
    not enough for game examples.
 8. Studio style: snippets avoid unnecessary manual scene insertion calls,
