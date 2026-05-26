@@ -3371,7 +3371,7 @@ scoreText.setSize(300, 40);
 scoreText.setScreenPositionPixels(24, 24);
 
 const helpText = new waveUIText();
-helpText.setText("WASD/QE fly | Space missile | Coral dots show impact paths");
+helpText.setText("WASD/QE fly | Hold Space to fire | Coral dots show impact paths");
 helpText.setFontSize(16);
 helpText.setColor(PALETTE.CYAN);
 helpText.setBackgroundColor(PALETTE.modifyAlphaChannel(PALETTE.BLACK, 35));
@@ -3627,6 +3627,7 @@ function pulverizeAsteroid(index: number) {
 function fireMissile() {
   if (!canFire || gameOver) return;
   canFire = false;
+  playExplosionSound();
 
   const shipPosition = ship.position;
   const missile = new wave3DObject(models.Missile);
@@ -3756,18 +3757,16 @@ function checkShipHits() {
   }
 }
 
-soundKey.whenPress(Keyboard.Space, playExplosionSound);
+soundKey.whenPress(Keyboard.Space, fireMissile);
 
-myScene.director.whenPress(Keyboard.Space, () =&gt; {
-  playExplosionSound();
-  fireMissile();
-});
+myScene.director.whenPress(Keyboard.Space, fireMissile);
 
 myScene.director.onTick((_self, deltaTime) =&gt; {
   if (gameOver) return;
 
   updateShipControls(deltaTime);
   clampShipToArena();
+  if (myScene.director.isKeyPressed(Keyboard.Space)) fireMissile();
 
   spawnTimer -= deltaTime;
   if (spawnTimer &lt;= 0) {
@@ -3786,7 +3785,7 @@ for (let i = 0; i &lt; 7; i++) {
 }
 
 updateHud();</code></pre>
-            <p>This version removes the default terrain, uses the built-in <code>textures.space1</code> skybox with the demo-tested <code>withSkyboxTexture(...)</code> chain, and runs the game loop from <code>myScene.director.onTick(...)</code> so asteroid spawning and keyboard control do not depend on the spaceship model receiving object-level events. The neon corridor makes the playable volume visible, coral impact dots show where rocks are aimed, and near-misses add bonus points. W/S fly forward and backward through depth, A/D strafe, and Arrow Up/Down or Q/E change height. A tiny cyan <code>soundKey</code> sphere owns the object-level sound pattern, <code>soundKey.whenPress(Keyboard.Space, playExplosionSound)</code>, while the director also fires the missile.</p>
+            <p>This version removes the default terrain, uses the built-in <code>textures.space1</code> skybox with the demo-tested <code>withSkyboxTexture(...)</code> chain, and runs the game loop from <code>myScene.director.onTick(...)</code> so asteroid spawning and keyboard control do not depend on the spaceship model receiving object-level events. The neon corridor makes the playable volume visible, coral impact dots show where rocks are aimed, and near-misses add bonus points. W/S fly forward and backward through depth, A/D strafe, and Arrow Up/Down or Q/E change height. A tiny cyan <code>soundKey</code> sphere owns the object-level sound pattern, <code>soundKey.whenPress(Keyboard.Space, fireMissile)</code>. The director also calls <code>fireMissile</code> on the initial press and from <code>onTick</code> while Space is held, with <code>fireCooldown</code> deciding when the next missile is allowed.</p>
             <p><span class="mini-label">APIs to steal</span> <code>wave3DObject</code>, <code>models.Spaceship</code>, <code>models.Missile</code>, <code>model.enableTrail</code>, <code>myScene.terrain.remove</code>, <code>myScene.sky.withSkyboxTexture</code>, <code>myScene.director.isKeyPressed</code>, <code>myScene.director.whenPress</code>, <code>myScene.director.onTick</code>, <code>waveSphere.whenPress</code>, <code>waveIcoSphere</code>, <code>waveCube</code>, <code>materials.CrateredRock</code>, <code>setScale</code>, <code>rollRight</code>, <code>waveUIText</code>, <code>playSound</code>, <code>distanceTo</code>, <code>moveBy</code>, <code>setOpacity</code>, <code>waveFxPresets.impactSparks</code>, <code>after</code>, <code>Seconds</code>, and array-backed game state.</p>
             <p><span class="mini-label">Natural-language constants</span> <code>Keyboard.W</code>, <code>Keyboard.ArrowUp</code>, <code>Keyboard.ArrowDown</code>, <code>Keyboard.Q</code>, <code>Keyboard.E</code>, <code>Keyboard.Space</code>, <code>PALETTE.BLACK</code>, <code>PALETTE.BLUE</code>, <code>PALETTE.CYAN</code>, <code>PALETTE.CORAL</code>, <code>PALETTE.YELLOW</code>, <code>PALETTE.GREEN</code>, <code>PALETTE.ORANGE</code>, <code>textures.space1</code>, <code>materials.CrateredRock</code>, <code>audios.explosion</code>, <code>audios.player_hit</code>, <code>audios.game_over</code>, <code>Seconds</code>, and named tuning values such as <code>shipMoveSpeed</code>, <code>missileSpeed</code>, <code>fireCooldown</code>, and <code>shipHitRadius</code>.</p>
             <ul class="remix-list"><li>Add a start screen.</li><li>Save high score with <code>myCloud</code>.</li><li>Make asteroids split twice.</li><li>Add shield pickups.</li><li>Add a boss asteroid.</li></ul>

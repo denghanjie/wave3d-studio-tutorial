@@ -3096,7 +3096,7 @@ scoreText.setSize(300, 40);
 scoreText.setScreenPositionPixels(24, 24);
 
 const helpText = new waveUIText();
-helpText.setText("WASD/QE fly | Space missile | Coral dots show impact paths");
+helpText.setText("WASD/QE fly | Hold Space to fire | Coral dots show impact paths");
 helpText.setFontSize(16);
 helpText.setColor(PALETTE.CYAN);
 helpText.setBackgroundColor(PALETTE.modifyAlphaChannel(PALETTE.BLACK, 35));
@@ -3352,6 +3352,7 @@ function pulverizeAsteroid(index: number) {
 function fireMissile() {
   if (!canFire || gameOver) return;
   canFire = false;
+  playExplosionSound();
 
   const shipPosition = ship.position;
   const missile = new wave3DObject(models.Missile);
@@ -3481,18 +3482,16 @@ function checkShipHits() {
   }
 }
 
-soundKey.whenPress(Keyboard.Space, playExplosionSound);
+soundKey.whenPress(Keyboard.Space, fireMissile);
 
-myScene.director.whenPress(Keyboard.Space, () => {
-  playExplosionSound();
-  fireMissile();
-});
+myScene.director.whenPress(Keyboard.Space, fireMissile);
 
 myScene.director.onTick((_self, deltaTime) => {
   if (gameOver) return;
 
   updateShipControls(deltaTime);
   clampShipToArena();
+  if (myScene.director.isKeyPressed(Keyboard.Space)) fireMissile();
 
   spawnTimer -= deltaTime;
   if (spawnTimer <= 0) {
@@ -3521,8 +3520,9 @@ neon corridor makes the playable volume visible, coral impact dots show where
 rocks are aimed, and near-misses add bonus points. W/S fly forward and backward
 through depth, A/D strafe, and Arrow Up/Down or Q/E change height. A tiny cyan
 `soundKey` sphere owns the object-level sound pattern,
-`soundKey.whenPress(Keyboard.Space, playExplosionSound)`, while the director
-also fires the missile.
+`soundKey.whenPress(Keyboard.Space, fireMissile)`. The director also calls
+`fireMissile` on the initial press and from `onTick` while Space is held, with
+`fireCooldown` deciding when the next missile is allowed.
 
 **APIs to steal:** `wave3DObject`, `models.Spaceship`,
 `models.Missile`, `model.enableTrail`,
