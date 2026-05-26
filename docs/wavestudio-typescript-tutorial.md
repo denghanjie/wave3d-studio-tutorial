@@ -3010,8 +3010,9 @@ sculpting brush, or a CSG puzzle where players carve keys from blocks.
 ### Boss Project 11: Asteroid Evader
 
 **What you build:** a true-3D keyboard-controlled spaceship, rough asteroids,
-real missile shots, score/lives HUD, and recursive-style asteroid breakup. Large asteroids
-turn into small fragments; fragments fade away over time.
+green power cores, real missile shots, score/lives/power HUD, and recursive-style
+asteroid breakup. Large asteroids turn into small fragments; fragments fade away
+over time, while asteroid waves get faster and denser.
 
 **Smallest useful snippet:**
 
@@ -3037,6 +3038,17 @@ type GameAsteroid = {
   lifetime: number;
 };
 
+type GamePowerUp = {
+  body: waveSphere;
+  ring: waveTorus;
+  radius: number;
+  speed: number;
+  driftX: number;
+  driftY: number;
+  age: number;
+  lifetime: number;
+};
+
 const arenaHalfWidth = 8;
 const arenaMinY = 0.8;
 const arenaMaxY = 5.6;
@@ -3048,19 +3060,27 @@ const shipStartZ = -7;
 const shipMoveSpeed = 6;
 const missileSpeed = 20;
 const missileLifetime = 1.2;
-const fireCooldown = 0.18;
-const shipHitRadius = 0.32;
+const startingFireCooldown = 0.18;
+const minimumFireCooldown = 0.08;
+const shipHitRadius = 0.38;
 const missileHitRadius = 0.28;
 const nearMissBonusRadius = 1.6;
+const powerUpRadius = 0.42;
 
 let score = 0;
 let lives = 3;
 let spawnTimer = 0;
+let powerSpawnTimer = 4;
+let difficultySeconds = 0;
+let fireCooldown = startingFireCooldown;
+let powerLevel = 1;
+let shieldCharges = 0;
 let canFire = true;
 let gameOver = false;
 
 const projectiles: GameProjectile[] = [];
 const asteroids: GameAsteroid[] = [];
+const powerUps: GamePowerUp[] = [];
 
 myScene.terrain.remove();
 
@@ -3094,11 +3114,11 @@ const scoreText = new waveUIText();
 scoreText.setFontSize(20);
 scoreText.setColor(PALETTE.WHITE);
 scoreText.setBackgroundColor(hudBackground);
-scoreText.setSize(300, 40);
+scoreText.setSize(520, 40);
 scoreText.setScreenPositionPixels(24, 24);
 
 const helpText = new waveUIText();
-helpText.setText("WASD/QE fly | Hold Space to fire | Coral dots show impact paths");
+helpText.setText("WASD/QE fly | Hold Space fire | Green cores power up");
 helpText.setFontSize(16);
 helpText.setColor(PALETTE.CYAN);
 helpText.setBackgroundColor(PALETTE.modifyAlphaChannel(PALETTE.BLACK, 35));
@@ -3114,7 +3134,7 @@ gameOverText.setScreenPositionPixels(24, 124);
 
 const ship = new wave3DObject(models.Spaceship);
 ship.placeAt(0, 2.7, shipStartZ);
-ship.setUniformScale(0.12);
+ship.setUniformScale(0.15);
 
 const soundKey = new waveSphere(0.16, 12);
 soundKey.placeAt(0, 2.7, 0);
@@ -3194,7 +3214,7 @@ createTunnelRail(arenaHalfWidth, arenaMaxY);
 createAltitudeRail((arenaMinY + arenaMaxY) / 2, PALETTE.GREEN);
 
 function updateHud() {
-  scoreText.setText(`Score: ${score}   Lives: ${lives}`);
+  scoreText.setText(`Score: ${score}   Lives: ${lives}   Power: ${powerLevel}   Shield: ${shieldCharges}`);
 }
 
 function clamp(value: number, min: number, max: number) {
@@ -3246,17 +3266,33 @@ function randomRange(min: number, max: number) {
   return min + Math.random() * (max - min);
 }
 
+function asteroidSpeedBonus() {
+  return Math.min(difficultySeconds * 0.07, 5);
+}
+
+function nextAsteroidSpawnDelay() {
+  const minDelay = Math.max(0.18, 0.62 - difficultySeconds * 0.006);
+  const maxDelay = Math.max(0.34, 1.05 - difficultySeconds * 0.009);
+  return randomRange(minDelay, maxDelay);
+}
+
+function asteroidsPerWave() {
+  if (difficultySeconds > 70) return Math.random() < 0.45 ? 3 : 2;
+  if (difficultySeconds > 35) return Math.random() < 0.45 ? 2 : 1;
+  return 1;
+}
+
 function spawnAsteroid(z = asteroidSpawnZ) {
-  const rockRadius = randomRange(0.55, 1.05);
-  const rockScaleX = randomRange(0.85, 1.45);
-  const rockScaleY = randomRange(0.7, 1.25);
-  const rockScaleZ = randomRange(0.8, 1.5);
+  const rockRadius = randomRange(0.36, 0.72);
+  const rockScaleX = randomRange(0.85, 1.25);
+  const rockScaleY = randomRange(0.75, 1.15);
+  const rockScaleZ = randomRange(0.85, 1.3);
   const startX = randomRange(-arenaHalfWidth, arenaHalfWidth);
   const startY = randomRange(arenaMinY, arenaMaxY);
   const targetZ = clamp(ship.position.z, arenaMinZ, arenaMaxZ);
   const targetX = clamp(ship.position.x + randomRange(-2.4, 2.4), -arenaHalfWidth + 0.8, arenaHalfWidth - 0.8);
   const targetY = clamp(ship.position.y + randomRange(-1.1, 1.1), arenaMinY + 0.3, arenaMaxY - 0.3);
-  const speed = randomRange(4.8, 7.2) + Math.min(score * 0.04, 2.8);
+  const speed = randomRange(3.2, 5.4) + asteroidSpeedBonus() + Math.min(score * 0.015, 1.5);
   const timeToTarget = Math.max(0.75, (z - targetZ) / speed);
 
   const asteroid = new waveIcoSphere(rockRadius, 1, true);
@@ -3300,8 +3336,42 @@ function spawnAsteroid(z = asteroidSpawnZ) {
   });
 }
 
+function spawnPowerUp(z = asteroidSpawnZ) {
+  const startX = randomRange(-arenaHalfWidth + 1, arenaHalfWidth - 1);
+  const startY = randomRange(arenaMinY + 0.5, arenaMaxY - 0.5);
+  const targetX = clamp(startX + randomRange(-1.6, 1.6), -arenaHalfWidth + 1, arenaHalfWidth - 1);
+  const targetY = clamp(startY + randomRange(-0.8, 0.8), arenaMinY + 0.5, arenaMaxY - 0.5);
+  const speed = randomRange(2.7, 3.8);
+  const timeToTarget = Math.max(1, (z - shipStartZ) / speed);
+
+  const core = new waveSphere(0.24, 18);
+  core.placeAt(startX, startY, z);
+  core.setColor(PALETTE.GREEN);
+  core.setEmissiveColor(PALETTE.GREEN);
+  core.setEmissiveIntensity(1.8);
+  core.addTag("power-core");
+
+  const ring = new waveTorus(0.42, 0.035, 32);
+  ring.placeAt(startX, startY, z);
+  ring.setColor(PALETTE.CYAN);
+  ring.setEmissiveColor(PALETTE.CYAN);
+  ring.setEmissiveIntensity(1.2);
+  ring.addTag("power-core-ring");
+
+  powerUps.push({
+    body: core,
+    ring,
+    radius: powerUpRadius,
+    speed,
+    driftX: (targetX - startX) / timeToTarget,
+    driftY: (targetY - startY) / timeToTarget,
+    age: 0,
+    lifetime: 7,
+  });
+}
+
 function spawnShard(center: { x: number; y: number; z: number }, angleDegrees: number) {
-  const shardRadius = randomRange(0.16, 0.28);
+  const shardRadius = randomRange(0.12, 0.22);
   const radians = angleDegrees * Math.PI / 180;
   const shard = new waveIcoSphere(shardRadius, 1, true);
   shard.placeAt(
@@ -3346,6 +3416,13 @@ function removeAsteroid(index: number) {
   asteroids.splice(index, 1);
 }
 
+function removePowerUp(index: number) {
+  const powerUp = powerUps[index];
+  if (!powerUp.body.isDestroyed) powerUp.body.destroy();
+  if (!powerUp.ring.isDestroyed) powerUp.ring.destroy();
+  powerUps.splice(index, 1);
+}
+
 function pulverizeAsteroid(index: number) {
   const asteroid = asteroids[index];
   const center = {
@@ -3363,7 +3440,7 @@ function pulverizeAsteroid(index: number) {
     return;
   }
 
-  score += 5;
+  score += 5 + powerLevel;
   updateHud();
 
   for (let i = 0; i < 7; i++) {
@@ -3379,12 +3456,12 @@ function fireMissile() {
   const shipPosition = ship.position;
   const missile = new wave3DObject(models.Missile);
   missile.placeAt(shipPosition.x, shipPosition.y, shipPosition.z + 0.95);
-  missile.setUniformScale(0.16);
+  missile.setUniformScale(0.12 + powerLevel * 0.015);
   missile.alignDirectionWith(ship);
   missile.turnRight(90);
   missile.setColor(PALETTE.WHITE);
   missile.setEmissiveColor(PALETTE.ORANGE);
-  missile.setEmissiveIntensity(0.6);
+  missile.setEmissiveIntensity(0.5 + powerLevel * 0.15);
   missile.model.enableTrail({
     trailColor: PALETTE.ORANGE,
     intensity: 1.4,
@@ -3402,6 +3479,15 @@ function fireMissile() {
 }
 
 function damageShip() {
+  if (shieldCharges > 0) {
+    shieldCharges -= 1;
+    updateHud();
+    playHitSound();
+    ship.setColor(PALETTE.CYAN);
+    ship.after(0.25, Seconds).do(() => ship.setColor(PALETTE.WHITE));
+    return;
+  }
+
   lives -= 1;
   updateHud();
   playHitSound();
@@ -3483,6 +3569,26 @@ function updateAsteroids(deltaTime: number) {
   }
 }
 
+function updatePowerUps(deltaTime: number) {
+  for (let i = powerUps.length - 1; i >= 0; i--) {
+    const powerUp = powerUps[i];
+    powerUp.age += deltaTime;
+    const movement = {
+      x: powerUp.driftX * deltaTime,
+      y: powerUp.driftY * deltaTime,
+      z: -powerUp.speed * deltaTime,
+    };
+    powerUp.body.moveBy(movement);
+    powerUp.ring.moveBy(movement);
+    powerUp.ring.turnRight(150 * deltaTime);
+    powerUp.ring.rollRight(90 * deltaTime);
+
+    if (powerUp.age > powerUp.lifetime || powerUp.body.position.z < asteroidExitZ) {
+      removePowerUp(i);
+    }
+  }
+}
+
 function checkMissileHits() {
   for (let p = projectiles.length - 1; p >= 0; p--) {
     const projectile = projectiles[p];
@@ -3496,6 +3602,28 @@ function checkMissileHits() {
         pulverizeAsteroid(a);
         break;
       }
+    }
+  }
+}
+
+function collectPowerUp(index: number) {
+  const powerUp = powerUps[index];
+  powerUp.body.fx.play(waveFxPresets.impactSparks());
+  removePowerUp(index);
+  powerLevel = Math.min(powerLevel + 1, 6);
+  shieldCharges = Math.min(shieldCharges + 1, 3);
+  fireCooldown = Math.max(minimumFireCooldown, fireCooldown - 0.02);
+  score += 3;
+  ship.setColor(PALETTE.GREEN);
+  ship.after(0.25, Seconds).do(() => ship.setColor(PALETTE.WHITE));
+  updateHud();
+}
+
+function checkPowerUpHits() {
+  for (let i = powerUps.length - 1; i >= 0; i--) {
+    const powerUp = powerUps[i];
+    if (ship.distanceTo(powerUp.body) <= powerUp.radius + shipHitRadius) {
+      collectPowerUp(i);
     }
   }
 }
@@ -3518,6 +3646,7 @@ myScene.director.whenPress(Keyboard.Space, fireMissile);
 
 myScene.director.onTick((_self, deltaTime) => {
   if (gameOver) return;
+  difficultySeconds += deltaTime;
 
   updateShipControls(deltaTime);
   clampShipToArena();
@@ -3525,18 +3654,29 @@ myScene.director.onTick((_self, deltaTime) => {
 
   spawnTimer -= deltaTime;
   if (spawnTimer <= 0) {
-    spawnAsteroid();
-    spawnTimer = randomRange(0.32, 0.62);
+    const waveCount = asteroidsPerWave();
+    for (let i = 0; i < waveCount; i++) {
+      spawnAsteroid(asteroidSpawnZ + i * randomRange(0.4, 1.4));
+    }
+    spawnTimer = nextAsteroidSpawnDelay();
+  }
+
+  powerSpawnTimer -= deltaTime;
+  if (powerSpawnTimer <= 0) {
+    spawnPowerUp();
+    powerSpawnTimer = randomRange(5.5, 8.5);
   }
 
   updateProjectiles(deltaTime);
   updateAsteroids(deltaTime);
+  updatePowerUps(deltaTime);
   checkMissileHits();
+  checkPowerUpHits();
   checkShipHits();
 });
 
-for (let i = 0; i < 7; i++) {
-  spawnAsteroid(asteroidSpawnZ - i * 2);
+for (let i = 0; i < 4; i++) {
+  spawnAsteroid(asteroidSpawnZ - i * 3);
 }
 
 updateHud();
@@ -3549,8 +3689,11 @@ control do not depend on the spaceship model receiving object-level events. The
 rear, high camera keeps the ship small enough that it does not block the flight
 tunnel. The neon corridor makes the playable volume visible, coral impact dots
 and vertical stems show where rocks are aimed and at what height, and
-near-misses add bonus points. W/S fly forward and backward through depth, A/D
-strafe, and Arrow Up/Down or Q/E change height. A tiny cyan `soundKey` sphere owns the object-level sound pattern,
+near-misses add bonus points. Green power cores are safe targets: when they hit
+the ship, they add shield, raise `powerLevel`, and reduce `fireCooldown`.
+`difficultySeconds` makes asteroid waves faster and more crowded as the run
+continues. W/S fly forward and backward through depth, A/D strafe, and Arrow
+Up/Down or Q/E change height. A tiny cyan `soundKey` sphere owns the object-level sound pattern,
 `soundKey.whenPress(Keyboard.Space, fireMissile)`. The director also calls
 `fireMissile` on the initial press and from `onTick` while Space is held, with
 `fireCooldown` deciding when the next missile is allowed.
@@ -3560,8 +3703,8 @@ strafe, and Arrow Up/Down or Q/E change height. A tiny cyan `soundKey` sphere ow
 `myScene.terrain.remove`, `myScene.sky.withSkyboxTexture`,
 `myScene.director.isKeyPressed`, `myScene.director.whenPress`,
 `myScene.director.onTick`, `waveSphere.whenPress`, `waveIcoSphere`,
-`waveCube`, `materials.CrateredRock`, `setScale`, `rollRight`, `waveUIText`,
-`playSound`, `distanceTo`, `moveBy`, `setOpacity`,
+`waveSphere`, `waveTorus`, `waveCube`, `materials.CrateredRock`, `setScale`,
+`rollRight`, `waveUIText`, `playSound`, `distanceTo`, `moveBy`, `setOpacity`,
 `waveFxPresets.impactSparks`, `after`, `Seconds`, and array-backed game state.
 
 **Natural-language constants:** `Keyboard.W`, `Keyboard.ArrowUp`,
@@ -3570,11 +3713,13 @@ strafe, and Arrow Up/Down or Q/E change height. A tiny cyan `soundKey` sphere ow
 `PALETTE.YELLOW`, `PALETTE.GREEN`, `PALETTE.ORANGE`, `textures.space1`,
 `materials.CrateredRock`, `audios.explosion`, `audios.player_hit`,
 `audios.game_over`, `Seconds`, and named tuning values
-such as `shipMoveSpeed`, `missileSpeed`, `fireCooldown`, and `shipHitRadius`.
+such as `shipMoveSpeed`, `missileSpeed`, `startingFireCooldown`,
+`minimumFireCooldown`, `powerUpRadius`, `difficultySeconds`, `powerLevel`,
+`shieldCharges`, and `shipHitRadius`.
 
 **Remix challenges:** add a start screen, save high score with `myCloud`, make
-asteroids split twice, add shield pickups, use a real asteroid model, or add a
-boss asteroid with a health bar.
+asteroids split twice, make rare super cores, use a real asteroid model, or add
+a boss asteroid with a health bar.
 
 **Source demo reference:** combines ideas from `runway-runner/main.ts`,
 `shooting-range/main.ts`, and Boss Project 1's recursive-fragment mindset.
