@@ -3025,6 +3025,7 @@ type GameProjectile = {
 type GameAsteroid = {
   body: waveIcoSphere;
   warning: waveSphere | null;
+  warningStem: waveCube | null;
   radius: number;
   speed: number;
   driftX: number;
@@ -3048,7 +3049,7 @@ const shipMoveSpeed = 6;
 const missileSpeed = 20;
 const missileLifetime = 1.2;
 const fireCooldown = 0.18;
-const shipHitRadius = 0.42;
+const shipHitRadius = 0.32;
 const missileHitRadius = 0.28;
 const nearMissBonusRadius = 1.6;
 
@@ -3072,10 +3073,11 @@ myScene.sky
 
 scene.camera
   .orbit({
-    target: { x: 0, y: 2.6, z: 0 },
-    distance: 17,
-    fov: 58,
+    target: { x: 0, y: 3.1, z: 1.5 },
+    cameraPosition: { x: 0, y: 8.2, z: -18 },
+    fov: 46,
   })
+  .gestureOrbit({ enabled: true, rotateSensitivity: 0.45 })
   .apply();
 
 scene.lighting
@@ -3112,7 +3114,7 @@ gameOverText.setScreenPositionPixels(24, 124);
 
 const ship = new wave3DObject(models.Spaceship);
 ship.placeAt(0, 2.7, shipStartZ);
-ship.setUniformScale(0.18);
+ship.setUniformScale(0.12);
 
 const soundKey = new waveSphere(0.16, 12);
 soundKey.placeAt(0, 2.7, 0);
@@ -3175,6 +3177,13 @@ function createTunnelRail(x: number, y: number) {
   createGateBar(0.06, 0.06, railDepth, x, y, railCenterZ, PALETTE.BLUE, 0.38);
 }
 
+function createAltitudeRail(y: number, color: number) {
+  const railDepth = asteroidSpawnZ - arenaMinZ + 2;
+  const railCenterZ = (asteroidSpawnZ + arenaMinZ) / 2;
+  createGateBar(0.08, 0.08, railDepth, -arenaHalfWidth, y, railCenterZ, color, 0.48);
+  createGateBar(0.08, 0.08, railDepth, arenaHalfWidth, y, railCenterZ, color, 0.48);
+}
+
 [arenaMinZ, -5, arenaMaxZ, 1, 4, 7, asteroidSpawnZ].forEach((z, index) => {
   createDepthGate(z, index % 2 === 0 ? PALETTE.CYAN : PALETTE.BLUE, 0.32);
 });
@@ -3182,6 +3191,7 @@ createTunnelRail(-arenaHalfWidth, arenaMinY);
 createTunnelRail(arenaHalfWidth, arenaMinY);
 createTunnelRail(-arenaHalfWidth, arenaMaxY);
 createTunnelRail(arenaHalfWidth, arenaMaxY);
+createAltitudeRail((arenaMinY + arenaMaxY) / 2, PALETTE.GREEN);
 
 function updateHud() {
   scoreText.setText(`Score: ${score}   Lives: ${lives}`);
@@ -3265,9 +3275,19 @@ function spawnAsteroid(z = asteroidSpawnZ) {
   warning.setOpacity(0.72);
   warning.addTag("danger-marker");
 
+  const stemHeight = Math.max(0.2, targetY - arenaMinY);
+  const warningStem = new waveCube(0.05, stemHeight, 0.05);
+  warningStem.placeAt(targetX, arenaMinY + stemHeight / 2, targetZ);
+  warningStem.setColor(PALETTE.CORAL);
+  warningStem.setEmissiveColor(PALETTE.CORAL);
+  warningStem.setEmissiveIntensity(1.6);
+  warningStem.setOpacity(0.5);
+  warningStem.addTag("danger-height-marker");
+
   asteroids.push({
     body: asteroid,
     warning,
+    warningStem,
     radius: rockRadius * Math.max(rockScaleX, rockScaleY, rockScaleZ),
     speed,
     driftX: (targetX - startX) / timeToTarget,
@@ -3299,6 +3319,7 @@ function spawnShard(center: { x: number; y: number; z: number }, angleDegrees: n
   asteroids.push({
     body: shard,
     warning: null,
+    warningStem: null,
     radius: shardRadius,
     speed: randomRange(2.6, 4.0),
     driftX: Math.cos(radians) * randomRange(0.8, 1.8),
@@ -3321,6 +3342,7 @@ function removeAsteroid(index: number) {
   const asteroid = asteroids[index];
   if (!asteroid.body.isDestroyed) asteroid.body.destroy();
   if (asteroid.warning && !asteroid.warning.isDestroyed) asteroid.warning.destroy();
+  if (asteroid.warningStem && !asteroid.warningStem.isDestroyed) asteroid.warningStem.destroy();
   asteroids.splice(index, 1);
 }
 
@@ -3420,10 +3442,14 @@ function updateAsteroids(deltaTime: number) {
 
     if (asteroid.warning && !asteroid.warning.isDestroyed) {
       const warningDistance = Math.abs(asteroid.body.position.z - asteroid.warning.position.z);
-      asteroid.warning.setOpacity(clamp(1 - warningDistance / 8, 0.22, 0.82));
-      if (warningDistance < 1.2) asteroid.warning.setColor(PALETTE.CORAL);
-      else if (warningDistance < 3) asteroid.warning.setColor(PALETTE.YELLOW);
-      else asteroid.warning.setColor(PALETTE.CORAL);
+      const warningOpacity = clamp(1 - warningDistance / 8, 0.22, 0.82);
+      const warningColor = warningDistance < 3 ? PALETTE.YELLOW : PALETTE.CORAL;
+      asteroid.warning.setOpacity(warningOpacity);
+      asteroid.warning.setColor(warningColor);
+      if (asteroid.warningStem && !asteroid.warningStem.isDestroyed) {
+        asteroid.warningStem.setOpacity(warningOpacity * 0.75);
+        asteroid.warningStem.setColor(warningColor);
+      }
     }
 
     if (!asteroid.small && !asteroid.nearMissScored && asteroid.body.position.z < ship.position.z - 0.25) {
@@ -3438,6 +3464,10 @@ function updateAsteroids(deltaTime: number) {
         if (asteroid.warning && !asteroid.warning.isDestroyed) {
           asteroid.warning.setColor(PALETTE.GREEN);
           asteroid.warning.setOpacity(0.9);
+        }
+        if (asteroid.warningStem && !asteroid.warningStem.isDestroyed) {
+          asteroid.warningStem.setColor(PALETTE.GREEN);
+          asteroid.warningStem.setOpacity(0.7);
         }
       }
     }
@@ -3516,10 +3546,11 @@ This version removes the default terrain, uses the built-in `textures.space1`
 skybox with the demo-tested `withSkyboxTexture(...)` chain, and runs the game
 loop from `myScene.director.onTick(...)` so asteroid spawning and keyboard
 control do not depend on the spaceship model receiving object-level events. The
-neon corridor makes the playable volume visible, coral impact dots show where
-rocks are aimed, and near-misses add bonus points. W/S fly forward and backward
-through depth, A/D strafe, and Arrow Up/Down or Q/E change height. A tiny cyan
-`soundKey` sphere owns the object-level sound pattern,
+rear, high camera keeps the ship small enough that it does not block the flight
+tunnel. The neon corridor makes the playable volume visible, coral impact dots
+and vertical stems show where rocks are aimed and at what height, and
+near-misses add bonus points. W/S fly forward and backward through depth, A/D
+strafe, and Arrow Up/Down or Q/E change height. A tiny cyan `soundKey` sphere owns the object-level sound pattern,
 `soundKey.whenPress(Keyboard.Space, fireMissile)`. The director also calls
 `fireMissile` on the initial press and from `onTick` while Space is held, with
 `fireCooldown` deciding when the next missile is allowed.
