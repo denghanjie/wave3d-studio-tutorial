@@ -3358,6 +3358,7 @@ function fireMissile() {
   missile.placeAt(shipPosition.x, shipPosition.y, shipPosition.z + 0.95);
   missile.setUniformScale(0.16);
   missile.alignDirectionWith(ship);
+  missile.turnRight(180);
   missile.setColor(PALETTE.WHITE);
   missile.setEmissiveColor(PALETTE.ORANGE);
   missile.setEmissiveIntensity(0.6);
