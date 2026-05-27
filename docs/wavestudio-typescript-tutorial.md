@@ -3049,17 +3049,17 @@ type GamePowerUp = {
   lifetime: number;
 };
 
-const arenaHalfWidth = 8;
-const arenaMinY = 0.8;
-const arenaMaxY = 5.6;
-const asteroidSpawnZ = 11;
-const asteroidExitZ = -12;
-const arenaMinZ = -8;
-const arenaMaxZ = -2;
-const shipStartZ = -7;
+const arenaHalfWidth = 13;
+const arenaMinY = 0.6;
+const arenaMaxY = 8.2;
+const asteroidSpawnZ = 42;
+const asteroidExitZ = -30;
+const arenaMinZ = -20;
+const arenaMaxZ = 12;
+const shipStartZ = -16;
 const shipMoveSpeed = 6;
-const missileSpeed = 20;
-const missileLifetime = 1.2;
+const missileSpeed = 32;
+const missileLifetime = 2.4;
 const startingFireCooldown = 0.18;
 const minimumFireCooldown = 0.08;
 const shipHitRadius = 0.38;
@@ -3081,6 +3081,7 @@ let gameOver = false;
 const projectiles: GameProjectile[] = [];
 const asteroids: GameAsteroid[] = [];
 const powerUps: GamePowerUp[] = [];
+const sceneryAsteroids: waveIcoSphere[] = [];
 
 myScene.terrain.remove();
 
@@ -3093,9 +3094,9 @@ myScene.sky
 
 scene.camera
   .orbit({
-    target: { x: 0, y: 3.1, z: 1.5 },
-    cameraPosition: { x: 0, y: 8.2, z: -18 },
-    fov: 46,
+    target: { x: 0, y: 4.6, z: 11 },
+    cameraPosition: { x: 0, y: 14, z: -44 },
+    fov: 54,
   })
   .gestureOrbit({ enabled: true, rotateSensitivity: 0.45 })
   .apply();
@@ -3204,7 +3205,7 @@ function createAltitudeRail(y: number, color: number) {
   createGateBar(0.08, 0.08, railDepth, arenaHalfWidth, y, railCenterZ, color, 0.48);
 }
 
-[arenaMinZ, -5, arenaMaxZ, 1, 4, 7, asteroidSpawnZ].forEach((z, index) => {
+[arenaMinZ, -12, -4, 4, 12, 20, 28, 36, asteroidSpawnZ].forEach((z, index) => {
   createDepthGate(z, index % 2 === 0 ? PALETTE.CYAN : PALETTE.BLUE, 0.32);
 });
 createTunnelRail(-arenaHalfWidth, arenaMinY);
@@ -3266,6 +3267,42 @@ function randomRange(min: number, max: number) {
   return min + Math.random() * (max - min);
 }
 
+function placeSceneryAsteroid(rock: waveIcoSphere, z?: number) {
+  const side = Math.random() < 0.5 ? -1 : 1;
+  rock.placeAt(
+    side * randomRange(arenaHalfWidth + 2, arenaHalfWidth + 16),
+    randomRange(arenaMinY, arenaMaxY + 6),
+    z ?? randomRange(arenaMinZ - 12, asteroidSpawnZ + 24)
+  );
+}
+
+function createSceneryAsteroids(count: number) {
+  for (let i = 0; i < count; i++) {
+    const rock = new waveIcoSphere(randomRange(0.25, 1.15), 1, true);
+    placeSceneryAsteroid(rock);
+    rock.setScale(randomRange(0.7, 1.7), randomRange(0.6, 1.4), randomRange(0.8, 1.8));
+    rock.useMaterial(materials.CrateredRock);
+    rock.setColor(PALETTE.darken(PALETTE.SLATE, randomRange(18, 38)));
+    rock.setRoughness(1);
+    rock.setOpacity(randomRange(0.38, 0.68));
+    rock.turnRight(randomRange(0, 360));
+    rock.rollRight(randomRange(0, 360));
+    rock.addTag("background-asteroid");
+    sceneryAsteroids.push(rock);
+  }
+}
+
+function updateSceneryAsteroids(deltaTime: number) {
+  sceneryAsteroids.forEach((rock) => {
+    rock.moveBy({ x: 0, y: 0, z: -0.45 * deltaTime });
+    rock.turnRight(8 * deltaTime);
+    rock.rollRight(5 * deltaTime);
+    if (rock.position.z < arenaMinZ - 10) {
+      placeSceneryAsteroid(rock, asteroidSpawnZ + randomRange(10, 28));
+    }
+  });
+}
+
 function asteroidSpeedBonus() {
   return Math.min(difficultySeconds * 0.07, 5);
 }
@@ -3277,9 +3314,10 @@ function nextAsteroidSpawnDelay() {
 }
 
 function asteroidsPerWave() {
-  if (difficultySeconds > 70) return Math.random() < 0.45 ? 3 : 2;
-  if (difficultySeconds > 35) return Math.random() < 0.45 ? 2 : 1;
-  return 1;
+  if (difficultySeconds > 70) return Math.random() < 0.55 ? 4 : 3;
+  if (difficultySeconds > 35) return Math.random() < 0.55 ? 3 : 2;
+  if (difficultySeconds > 15) return Math.random() < 0.45 ? 2 : 1;
+  return Math.random() < 0.3 ? 2 : 1;
 }
 
 function spawnAsteroid(z = asteroidSpawnZ) {
@@ -3292,7 +3330,7 @@ function spawnAsteroid(z = asteroidSpawnZ) {
   const targetZ = clamp(ship.position.z, arenaMinZ, arenaMaxZ);
   const targetX = clamp(ship.position.x + randomRange(-2.4, 2.4), -arenaHalfWidth + 0.8, arenaHalfWidth - 0.8);
   const targetY = clamp(ship.position.y + randomRange(-1.1, 1.1), arenaMinY + 0.3, arenaMaxY - 0.3);
-  const speed = randomRange(3.2, 5.4) + asteroidSpeedBonus() + Math.min(score * 0.015, 1.5);
+  const speed = randomRange(7.2, 10.4) + asteroidSpeedBonus() + Math.min(score * 0.015, 1.5);
   const timeToTarget = Math.max(0.75, (z - targetZ) / speed);
 
   const asteroid = new waveIcoSphere(rockRadius, 1, true);
@@ -3332,7 +3370,7 @@ function spawnAsteroid(z = asteroidSpawnZ) {
     small: false,
     nearMissScored: false,
     age: 0,
-    lifetime: 5.5,
+    lifetime: 16,
   });
 }
 
@@ -3341,7 +3379,7 @@ function spawnPowerUp(z = asteroidSpawnZ) {
   const startY = randomRange(arenaMinY + 0.5, arenaMaxY - 0.5);
   const targetX = clamp(startX + randomRange(-1.6, 1.6), -arenaHalfWidth + 1, arenaHalfWidth - 1);
   const targetY = clamp(startY + randomRange(-0.8, 0.8), arenaMinY + 0.5, arenaMaxY - 0.5);
-  const speed = randomRange(2.7, 3.8);
+  const speed = randomRange(5.8, 7.8);
   const timeToTarget = Math.max(1, (z - shipStartZ) / speed);
 
   const core = new waveSphere(0.24, 18);
@@ -3366,7 +3404,7 @@ function spawnPowerUp(z = asteroidSpawnZ) {
     driftX: (targetX - startX) / timeToTarget,
     driftY: (targetY - startY) / timeToTarget,
     age: 0,
-    lifetime: 7,
+    lifetime: 16,
   });
 }
 
@@ -3644,6 +3682,8 @@ soundKey.whenPress(Keyboard.Space, fireMissile);
 
 myScene.director.whenPress(Keyboard.Space, fireMissile);
 
+createSceneryAsteroids(52);
+
 myScene.director.onTick((_self, deltaTime) => {
   if (gameOver) return;
   difficultySeconds += deltaTime;
@@ -3670,13 +3710,14 @@ myScene.director.onTick((_self, deltaTime) => {
   updateProjectiles(deltaTime);
   updateAsteroids(deltaTime);
   updatePowerUps(deltaTime);
+  updateSceneryAsteroids(deltaTime);
   checkMissileHits();
   checkPowerUpHits();
   checkShipHits();
 });
 
-for (let i = 0; i < 4; i++) {
-  spawnAsteroid(asteroidSpawnZ - i * 3);
+for (let i = 0; i < 6; i++) {
+  spawnAsteroid(asteroidSpawnZ - i * 4);
 }
 
 updateHud();
@@ -3686,14 +3727,17 @@ This version removes the default terrain, uses the built-in `textures.space1`
 skybox with the demo-tested `withSkyboxTexture(...)` chain, and runs the game
 loop from `myScene.director.onTick(...)` so asteroid spawning and keyboard
 control do not depend on the spaceship model receiving object-level events. The
-rear, high camera keeps the ship small enough that it does not block the flight
-tunnel. The neon corridor makes the playable volume visible, coral impact dots
-and vertical stems show where rocks are aimed and at what height, and
-near-misses add bonus points. Green power cores are safe targets: when they hit
-the ship, they add shield, raise `powerLevel`, and reduce `fireCooldown`.
-`difficultySeconds` makes asteroid waves faster and more crowded as the run
-continues. W/S fly forward and backward through depth, A/D strafe, and Arrow
-Up/Down or Q/E change height. A tiny cyan `soundKey` sphere owns the object-level sound pattern,
+rear, high camera keeps the ship small enough that it does not block the
+flight tunnel. The playable corridor is much deeper than the ship's immediate
+neighborhood, so incoming asteroids appear far away before they become threats.
+Non-colliding background asteroids drift beside the lane to make the space feel
+busy and wide. Coral impact dots and vertical stems show where dangerous rocks
+are aimed and at what height, while near-misses add bonus points. Green power
+cores are safe targets: when they hit the ship, they add shield, raise
+`powerLevel`, and reduce `fireCooldown`. `difficultySeconds` makes asteroid
+waves faster and more crowded as the run continues. W/S fly forward and
+backward through depth, A/D strafe, and Arrow Up/Down or Q/E change height. A
+tiny cyan `soundKey` sphere owns the object-level sound pattern,
 `soundKey.whenPress(Keyboard.Space, fireMissile)`. The director also calls
 `fireMissile` on the initial press and from `onTick` while Space is held, with
 `fireCooldown` deciding when the next missile is allowed.
@@ -3705,7 +3749,8 @@ Up/Down or Q/E change height. A tiny cyan `soundKey` sphere owns the object-leve
 `myScene.director.onTick`, `waveSphere.whenPress`, `waveIcoSphere`,
 `waveSphere`, `waveTorus`, `waveCube`, `materials.CrateredRock`, `setScale`,
 `rollRight`, `waveUIText`, `playSound`, `distanceTo`, `moveBy`, `setOpacity`,
-`waveFxPresets.impactSparks`, `after`, `Seconds`, and array-backed game state.
+`waveFxPresets.impactSparks`, `after`, `Seconds`, background scenery loops, and
+array-backed game state.
 
 **Natural-language constants:** `Keyboard.W`, `Keyboard.ArrowUp`,
 `Keyboard.ArrowDown`, `Keyboard.Q`, `Keyboard.E`, `Keyboard.Space`,
