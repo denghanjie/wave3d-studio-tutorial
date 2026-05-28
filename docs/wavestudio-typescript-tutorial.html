@@ -2395,7 +2395,7 @@ myScene
           <label class="check"><input type="checkbox" data-complete="lesson-13"> Complete</label>
         </header>
         <div class="lesson-body">
-          <pre><code class="language-ts">const hudBackground = PALETTE.modifyAlphaChannel(PALETTE.BLACK, 55);
+          <pre><code class="language-ts">const hudBackground = PALETTE.GRAY;
 
 const scoreLabel = new waveUIText();
 scoreLabel.setText("Score: 0");
@@ -2427,7 +2427,7 @@ function addScore(points: number) {
               <tr><td><code>waveUICrosshair</code></td><td>Reticles and pointer overlays</td><td><code>setCrosshairColor</code>, <code>setDot</code></td></tr>
             </tbody>
           </table>
-          <pre><code class="language-ts">const panelColor = PALETTE.modifyAlphaChannel(PALETTE.BLACK, 55);
+          <pre><code class="language-ts">const panelColor = PALETTE.GRAY;
 
 const title = new waveUIText();
 title.setText("WaveStudio HUD");
@@ -2474,7 +2474,7 @@ crosshair.setNormalizedScreenPosition(0.5, 0.5);</code></pre>
   .setText("Mode: build")
   .setFontSize(20)
   .setColor(PALETTE.WHITE)
-  .setBackgroundColor(PALETTE.modifyAlphaChannel(PALETTE.BLACK, 55))
+  .setBackgroundColor(PALETTE.GRAY)
   .setSize(220, 40)
   .setScreenPositionPixels(24, 24);
 
@@ -2691,7 +2691,7 @@ saveSettings({
 const totalPickups = 5;
 const playerStepDistance = 0.75;
 const completionMessageFontSize = 32;
-const hudBackground = PALETTE.modifyAlphaChannel(PALETTE.BLACK, 55);
+const hudBackground = PALETTE.GRAY;
 
 scene.camera
   .orbit({
@@ -3298,7 +3298,7 @@ if (result.success) {
 };
 
 type GameAsteroid = {
-  body: waveIcoSphere;
+  body: waveSphere;
   warning: waveSphere | null;
   warningStem: waveCube | null;
   radius: number;
@@ -3355,12 +3355,12 @@ let gameOver = false;
 const projectiles: GameProjectile[] = [];
 const asteroids: GameAsteroid[] = [];
 const powerUps: GamePowerUp[] = [];
-const sceneryAsteroids: waveIcoSphere[] = [];
+const sceneryAsteroids: waveSphere[] = [];
 
 myScene.terrain.remove();
 
 myScene.sky
-  .withSkyboxTexture(textures.space1)
+  .skyboxTexture(textures.space1)
   .skyboxSize(50000)
   .skyboxIntensity(0.8)
   .backgroundColor(PALETTE.BLACK)
@@ -3384,7 +3384,7 @@ scene.lighting
   })
   .apply();
 
-const hudBackground = PALETTE.modifyAlphaChannel(PALETTE.BLACK, 55);
+const hudBackground = PALETTE.GRAY;
 const scoreText = new waveUIText();
 scoreText.setFontSize(20);
 scoreText.setColor(PALETTE.WHITE);
@@ -3396,7 +3396,7 @@ const helpText = new waveUIText();
 helpText.setText("WASD/QE fly | Hold Space fire | Green cores power up");
 helpText.setFontSize(16);
 helpText.setColor(PALETTE.CYAN);
-helpText.setBackgroundColor(PALETTE.modifyAlphaChannel(PALETTE.BLACK, 35));
+helpText.setBackgroundColor(PALETTE.GRAY);
 helpText.setSize(650, 40);
 helpText.setScreenPositionPixels(24, 72);
 
@@ -3541,7 +3541,7 @@ function randomRange(min: number, max: number) {
   return min + Math.random() * (max - min);
 }
 
-function placeSceneryAsteroid(rock: waveIcoSphere, z?: number) {
+function placeSceneryAsteroid(rock: waveSphere, z?: number) {
   const side = Math.random() &lt; 0.5 ? -1 : 1;
   rock.placeAt(
     side * randomRange(arenaHalfWidth + 2, arenaHalfWidth + 16),
@@ -3552,7 +3552,7 @@ function placeSceneryAsteroid(rock: waveIcoSphere, z?: number) {
 
 function createSceneryAsteroids(count: number) {
   for (let i = 0; i &lt; count; i++) {
-    const rock = new waveIcoSphere(randomRange(0.25, 1.15), 1, true);
+    const rock = new waveSphere(randomRange(0.25, 1.15), 1);
     placeSceneryAsteroid(rock);
     rock.setScale(randomRange(0.7, 1.7), randomRange(0.6, 1.4), randomRange(0.8, 1.8));
     rock.useMaterial(materials.CrateredRock);
@@ -3607,7 +3607,7 @@ function spawnAsteroid(z = asteroidSpawnZ) {
   const speed = randomRange(7.2, 10.4) + asteroidSpeedBonus() + Math.min(score * 0.015, 1.5);
   const timeToTarget = Math.max(0.75, (z - targetZ) / speed);
 
-  const asteroid = new waveIcoSphere(rockRadius, 1, true);
+  const asteroid = new waveSphere(rockRadius, 1);
   asteroid.placeAt(startX, startY, z);
   asteroid.setScale(rockScaleX, rockScaleY, rockScaleZ);
   asteroid.useMaterial(materials.CrateredRock);
@@ -3685,7 +3685,7 @@ function spawnPowerUp(z = asteroidSpawnZ) {
 function spawnShard(center: { x: number; y: number; z: number }, angleDegrees: number) {
   const shardRadius = randomRange(0.12, 0.22);
   const radians = angleDegrees * Math.PI / 180;
-  const shard = new waveIcoSphere(shardRadius, 1, true);
+  const shard = new waveSphere(shardRadius, 1);
   shard.placeAt(
     center.x + Math.cos(radians) * 0.5,
     center.y + Math.sin(radians) * 0.3,
@@ -3995,9 +3995,9 @@ for (let i = 0; i &lt; 6; i++) {
 }
 
 updateHud();</code></pre>
-            <p>This version removes the default terrain, uses the built-in <code>textures.space1</code> skybox with the demo-tested <code>withSkyboxTexture(...)</code> chain, and runs the game loop from <code>myScene.director.onTick(...)</code> so asteroid spawning and keyboard control do not depend on the spaceship model receiving object-level events. The rear, high camera keeps the ship small enough that it does not block the flight tunnel. The playable corridor is much deeper than the ship's immediate neighborhood, so incoming asteroids appear far away before they become threats. Non-colliding background asteroids drift beside the lane to make the space feel busy and wide. Coral impact dots and vertical stems show where dangerous rocks are aimed and at what height, while near-misses add bonus points. Green power cores are safe targets: when they hit the ship, they add shield, raise <code>powerLevel</code>, and reduce <code>fireCooldown</code>. <code>difficultySeconds</code> makes asteroid waves faster and more crowded as the run continues. W/S fly forward and backward through depth, A/D strafe, and Arrow Up/Down or Q/E change height. A tiny cyan <code>soundKey</code> sphere owns the object-level sound pattern, <code>soundKey.whenPress(Keyboard.Space, fireMissile)</code>. The director also calls <code>fireMissile</code> on the initial press and from <code>onTick</code> while Space is held, with <code>fireCooldown</code> deciding when the next missile is allowed.</p>
-            <p><span class="mini-label">APIs to steal</span> <code>wave3DObject</code>, <code>models.Spaceship</code>, <code>models.Missile</code>, <code>model.enableTrail</code>, <code>myScene.terrain.remove</code>, <code>myScene.sky.withSkyboxTexture</code>, <code>myScene.director.isKeyPressed</code>, <code>myScene.director.whenPress</code>, <code>myScene.director.onTick</code>, <code>waveSphere.whenPress</code>, <code>waveIcoSphere</code>, <code>waveSphere</code>, <code>waveTorus</code>, <code>waveCube</code>, <code>materials.CrateredRock</code>, <code>setScale</code>, <code>rollRight</code>, <code>waveUIText</code>, <code>playSound</code>, <code>distanceTo</code>, <code>moveBy</code>, <code>setOpacity</code>, <code>waveFxPresets.impactSparks</code>, <code>after</code>, <code>Seconds</code>, background scenery loops, and array-backed game state.</p>
-            <p><span class="mini-label">Natural-language constants</span> <code>Keyboard.W</code>, <code>Keyboard.ArrowUp</code>, <code>Keyboard.ArrowDown</code>, <code>Keyboard.Q</code>, <code>Keyboard.E</code>, <code>Keyboard.Space</code>, <code>PALETTE.BLACK</code>, <code>PALETTE.BLUE</code>, <code>PALETTE.CYAN</code>, <code>PALETTE.CORAL</code>, <code>PALETTE.YELLOW</code>, <code>PALETTE.GREEN</code>, <code>PALETTE.ORANGE</code>, <code>textures.space1</code>, <code>materials.CrateredRock</code>, <code>audios.explosion</code>, <code>audios.player_hit</code>, <code>audios.game_over</code>, <code>Seconds</code>, and named tuning values such as <code>shipMoveSpeed</code>, <code>missileSpeed</code>, <code>startingFireCooldown</code>, <code>minimumFireCooldown</code>, <code>powerUpRadius</code>, <code>difficultySeconds</code>, <code>powerLevel</code>, <code>shieldCharges</code>, and <code>shipHitRadius</code>.</p>
+            <p>This version removes the default terrain, uses the built-in <code>textures.space1</code> skybox with the current <code>skyboxTexture(...)</code> chain, and runs the game loop from <code>myScene.director.onTick(...)</code> so asteroid spawning and keyboard control do not depend on the spaceship model receiving object-level events. The rear, high camera keeps the ship small enough that it does not block the flight tunnel. The playable corridor is much deeper than the ship's immediate neighborhood, so incoming asteroids appear far away before they become threats. Non-colliding background asteroids drift beside the lane to make the space feel busy and wide. Coral impact dots and vertical stems show where dangerous rocks are aimed and at what height, while near-misses add bonus points. Green power cores are safe targets: when they hit the ship, they add shield, raise <code>powerLevel</code>, and reduce <code>fireCooldown</code>. <code>difficultySeconds</code> makes asteroid waves faster and more crowded as the run continues. W/S fly forward and backward through depth, A/D strafe, and Arrow Up/Down or Q/E change height. A tiny cyan <code>soundKey</code> sphere owns the object-level sound pattern, <code>soundKey.whenPress(Keyboard.Space, fireMissile)</code>. The director also calls <code>fireMissile</code> on the initial press and from <code>onTick</code> while Space is held, with <code>fireCooldown</code> deciding when the next missile is allowed.</p>
+            <p><span class="mini-label">APIs to steal</span> <code>wave3DObject</code>, <code>models.Spaceship</code>, <code>models.Missile</code>, <code>model.enableTrail</code>, <code>myScene.terrain.remove</code>, <code>myScene.sky.skyboxTexture</code>, <code>myScene.director.isKeyPressed</code>, <code>myScene.director.whenPress</code>, <code>myScene.director.onTick</code>, <code>waveSphere.whenPress</code>, <code>waveSphere</code>, <code>waveTorus</code>, <code>waveCube</code>, <code>materials.CrateredRock</code>, <code>setScale</code>, <code>rollRight</code>, <code>waveUIText</code>, <code>playSound</code>, <code>distanceTo</code>, <code>moveBy</code>, <code>setOpacity</code>, <code>waveFxPresets.impactSparks</code>, <code>after</code>, <code>Seconds</code>, background scenery loops, and array-backed game state.</p>
+            <p><span class="mini-label">Natural-language constants</span> <code>Keyboard.W</code>, <code>Keyboard.ArrowUp</code>, <code>Keyboard.ArrowDown</code>, <code>Keyboard.Q</code>, <code>Keyboard.E</code>, <code>Keyboard.Space</code>, <code>PALETTE.BLACK</code>, <code>PALETTE.GRAY</code>, <code>PALETTE.BLUE</code>, <code>PALETTE.CYAN</code>, <code>PALETTE.CORAL</code>, <code>PALETTE.YELLOW</code>, <code>PALETTE.GREEN</code>, <code>PALETTE.ORANGE</code>, <code>textures.space1</code>, <code>materials.CrateredRock</code>, <code>audios.explosion</code>, <code>audios.player_hit</code>, <code>audios.game_over</code>, <code>Seconds</code>, and named tuning values such as <code>shipMoveSpeed</code>, <code>missileSpeed</code>, <code>startingFireCooldown</code>, <code>minimumFireCooldown</code>, <code>powerUpRadius</code>, <code>difficultySeconds</code>, <code>powerLevel</code>, <code>shieldCharges</code>, and <code>shipHitRadius</code>.</p>
             <ul class="remix-list"><li>Add a start screen.</li><li>Save high score with <code>myCloud</code>.</li><li>Make asteroids split twice.</li><li>Make rare super cores.</li><li>Add a boss asteroid.</li></ul>
             <p class="source-note">Source demo reference: combines ideas from <code>runway-runner/main.ts</code>, <code>shooting-range/main.ts</code>, and Boss Project 1's recursive-fragment mindset.</p>
           </div>
@@ -4045,7 +4045,7 @@ scene.lighting
 const hud = new waveUIText();
 hud.setFontSize(24);
 hud.setColor(PALETTE.WHITE);
-hud.setBackgroundColor(PALETTE.modifyAlphaChannel(PALETTE.BLACK, 55));
+hud.setBackgroundColor(PALETTE.GRAY);
 hud.setSize(360, 48);
 hud.setScreenPositionPixels(24, 24);
 
@@ -4238,7 +4238,7 @@ scene.lighting
 const bubbleHud = new waveUIText();
 bubbleHud.setFontSize(24);
 bubbleHud.setColor(PALETTE.WHITE);
-bubbleHud.setBackgroundColor(PALETTE.modifyAlphaChannel(PALETTE.BLACK, 55));
+bubbleHud.setBackgroundColor(PALETTE.GRAY);
 bubbleHud.setSize(380, 48);
 bubbleHud.setScreenPositionPixels(24, 24);
 

@@ -1905,7 +1905,7 @@ WaveStudio has 2D UI entities such as `waveUIText`, `waveUIButton`,
 `waveUIImage`, `waveUISlider`, and more.
 
 ```ts
-const hudBackground = PALETTE.modifyAlphaChannel(PALETTE.BLACK, 55);
+const hudBackground = PALETTE.GRAY;
 
 const scoreLabel = new waveUIText();
 scoreLabel.setText("Score: 0");
@@ -1956,7 +1956,7 @@ in the active scene, then attach callbacks when the widget should react.
 | `waveUICrosshair` | Reticles and pointer overlays | `setCrosshairColor`, `setDot` |
 
 ```ts
-const panelColor = PALETTE.modifyAlphaChannel(PALETTE.BLACK, 55);
+const panelColor = PALETTE.GRAY;
 
 const title = new waveUIText();
 title.setText("WaveStudio HUD");
@@ -2009,7 +2009,7 @@ const statusText = new waveUIText()
   .setText("Mode: build")
   .setFontSize(20)
   .setColor(PALETTE.WHITE)
-  .setBackgroundColor(PALETTE.modifyAlphaChannel(PALETTE.BLACK, 55))
+  .setBackgroundColor(PALETTE.GRAY)
   .setSize(220, 40)
   .setScreenPositionPixels(24, 24);
 
@@ -2253,7 +2253,7 @@ let score = 0;
 const totalPickups = 5;
 const playerStepDistance = 0.75;
 const completionMessageFontSize = 32;
-const hudBackground = PALETTE.modifyAlphaChannel(PALETTE.BLACK, 55);
+const hudBackground = PALETTE.GRAY;
 
 scene.camera
   .orbit({
@@ -3024,7 +3024,7 @@ type GameProjectile = {
 };
 
 type GameAsteroid = {
-  body: waveIcoSphere;
+  body: waveSphere;
   warning: waveSphere | null;
   warningStem: waveCube | null;
   radius: number;
@@ -3081,12 +3081,12 @@ let gameOver = false;
 const projectiles: GameProjectile[] = [];
 const asteroids: GameAsteroid[] = [];
 const powerUps: GamePowerUp[] = [];
-const sceneryAsteroids: waveIcoSphere[] = [];
+const sceneryAsteroids: waveSphere[] = [];
 
 myScene.terrain.remove();
 
 myScene.sky
-  .withSkyboxTexture(textures.space1)
+  .skyboxTexture(textures.space1)
   .skyboxSize(50000)
   .skyboxIntensity(0.8)
   .backgroundColor(PALETTE.BLACK)
@@ -3110,7 +3110,7 @@ scene.lighting
   })
   .apply();
 
-const hudBackground = PALETTE.modifyAlphaChannel(PALETTE.BLACK, 55);
+const hudBackground = PALETTE.GRAY;
 const scoreText = new waveUIText();
 scoreText.setFontSize(20);
 scoreText.setColor(PALETTE.WHITE);
@@ -3122,7 +3122,7 @@ const helpText = new waveUIText();
 helpText.setText("WASD/QE fly | Hold Space fire | Green cores power up");
 helpText.setFontSize(16);
 helpText.setColor(PALETTE.CYAN);
-helpText.setBackgroundColor(PALETTE.modifyAlphaChannel(PALETTE.BLACK, 35));
+helpText.setBackgroundColor(PALETTE.GRAY);
 helpText.setSize(650, 40);
 helpText.setScreenPositionPixels(24, 72);
 
@@ -3267,7 +3267,7 @@ function randomRange(min: number, max: number) {
   return min + Math.random() * (max - min);
 }
 
-function placeSceneryAsteroid(rock: waveIcoSphere, z?: number) {
+function placeSceneryAsteroid(rock: waveSphere, z?: number) {
   const side = Math.random() < 0.5 ? -1 : 1;
   rock.placeAt(
     side * randomRange(arenaHalfWidth + 2, arenaHalfWidth + 16),
@@ -3278,7 +3278,7 @@ function placeSceneryAsteroid(rock: waveIcoSphere, z?: number) {
 
 function createSceneryAsteroids(count: number) {
   for (let i = 0; i < count; i++) {
-    const rock = new waveIcoSphere(randomRange(0.25, 1.15), 1, true);
+    const rock = new waveSphere(randomRange(0.25, 1.15), 1);
     placeSceneryAsteroid(rock);
     rock.setScale(randomRange(0.7, 1.7), randomRange(0.6, 1.4), randomRange(0.8, 1.8));
     rock.useMaterial(materials.CrateredRock);
@@ -3333,7 +3333,7 @@ function spawnAsteroid(z = asteroidSpawnZ) {
   const speed = randomRange(7.2, 10.4) + asteroidSpeedBonus() + Math.min(score * 0.015, 1.5);
   const timeToTarget = Math.max(0.75, (z - targetZ) / speed);
 
-  const asteroid = new waveIcoSphere(rockRadius, 1, true);
+  const asteroid = new waveSphere(rockRadius, 1);
   asteroid.placeAt(startX, startY, z);
   asteroid.setScale(rockScaleX, rockScaleY, rockScaleZ);
   asteroid.useMaterial(materials.CrateredRock);
@@ -3411,7 +3411,7 @@ function spawnPowerUp(z = asteroidSpawnZ) {
 function spawnShard(center: { x: number; y: number; z: number }, angleDegrees: number) {
   const shardRadius = randomRange(0.12, 0.22);
   const radians = angleDegrees * Math.PI / 180;
-  const shard = new waveIcoSphere(shardRadius, 1, true);
+  const shard = new waveSphere(shardRadius, 1);
   shard.placeAt(
     center.x + Math.cos(radians) * 0.5,
     center.y + Math.sin(radians) * 0.3,
@@ -3724,7 +3724,7 @@ updateHud();
 ```
 
 This version removes the default terrain, uses the built-in `textures.space1`
-skybox with the demo-tested `withSkyboxTexture(...)` chain, and runs the game
+skybox with the current `skyboxTexture(...)` chain, and runs the game
 loop from `myScene.director.onTick(...)` so asteroid spawning and keyboard
 control do not depend on the spaceship model receiving object-level events. The
 rear, high camera keeps the ship small enough that it does not block the
@@ -3744,9 +3744,9 @@ tiny cyan `soundKey` sphere owns the object-level sound pattern,
 
 **APIs to steal:** `wave3DObject`, `models.Spaceship`,
 `models.Missile`, `model.enableTrail`,
-`myScene.terrain.remove`, `myScene.sky.withSkyboxTexture`,
+`myScene.terrain.remove`, `myScene.sky.skyboxTexture`,
 `myScene.director.isKeyPressed`, `myScene.director.whenPress`,
-`myScene.director.onTick`, `waveSphere.whenPress`, `waveIcoSphere`,
+`myScene.director.onTick`, `waveSphere.whenPress`,
 `waveSphere`, `waveTorus`, `waveCube`, `materials.CrateredRock`, `setScale`,
 `rollRight`, `waveUIText`, `playSound`, `distanceTo`, `moveBy`, `setOpacity`,
 `waveFxPresets.impactSparks`, `after`, `Seconds`, background scenery loops, and
@@ -3754,7 +3754,7 @@ array-backed game state.
 
 **Natural-language constants:** `Keyboard.W`, `Keyboard.ArrowUp`,
 `Keyboard.ArrowDown`, `Keyboard.Q`, `Keyboard.E`, `Keyboard.Space`,
-`PALETTE.BLACK`, `PALETTE.BLUE`, `PALETTE.CYAN`, `PALETTE.CORAL`,
+`PALETTE.BLACK`, `PALETTE.GRAY`, `PALETTE.BLUE`, `PALETTE.CYAN`, `PALETTE.CORAL`,
 `PALETTE.YELLOW`, `PALETTE.GREEN`, `PALETTE.ORANGE`, `textures.space1`,
 `materials.CrateredRock`, `audios.explosion`, `audios.player_hit`,
 `audios.game_over`, `Seconds`, and named tuning values
@@ -3819,7 +3819,7 @@ scene.lighting
 const hud = new waveUIText();
 hud.setFontSize(24);
 hud.setColor(PALETTE.WHITE);
-hud.setBackgroundColor(PALETTE.modifyAlphaChannel(PALETTE.BLACK, 55));
+hud.setBackgroundColor(PALETTE.GRAY);
 hud.setSize(360, 48);
 hud.setScreenPositionPixels(24, 24);
 
@@ -4018,7 +4018,7 @@ scene.lighting
 const bubbleHud = new waveUIText();
 bubbleHud.setFontSize(24);
 bubbleHud.setColor(PALETTE.WHITE);
-bubbleHud.setBackgroundColor(PALETTE.modifyAlphaChannel(PALETTE.BLACK, 55));
+bubbleHud.setBackgroundColor(PALETTE.GRAY);
 bubbleHud.setSize(380, 48);
 bubbleHud.setScreenPositionPixels(24, 24);
 
